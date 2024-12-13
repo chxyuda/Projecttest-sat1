@@ -1,0 +1,146 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #eaf4fc;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Sign Up Page Styles */
+.signup-container {
+    margin-top: 150px; /* ระยะห่างจาก Header */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: 70vh;
+  }
+  
+  .signup-box {
+    background-color: white;
+    padding: 40px 50px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* เพิ่มเงาให้ดูโดดเด่น */
+    text-align: center;
+    width: 100%;
+    max-width: 475px; /* จำกัดความกว้าง */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .signup-icon {
+    width: 50px; /* กำหนดความกว้าง */
+    height: 50px; /* กำหนดความสูง */
+    margin-bottom: 5px; /* เพิ่มระยะห่างด้านล่าง */
+}
+  
+  .signup-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* เพิ่มเอฟเฟกต์ hover */
+  }
+  
+  .signup-box h1 {
+    font-size: 26px; /* ปรับขนาดฟอนต์ */
+    margin-bottom: 20px; /* เพิ่มระยะห่าง */
+  }
+  
+  .signup-box .form-group {
+    margin-bottom: 20px; /* เพิ่มระยะห่างระหว่างกลุ่มฟิลด์ */
+  }
+  
+  .signup-box .form-group label {
+    font-family: 'Prompt', sans-serif;
+    display: block;
+    font-size: 14px;
+    font-weight: bold; /* ข้อความ Label ดูเด่นชัด */
+    text-align: left;
+    margin-bottom: 10px; /* เพิ่มระยะห่างระหว่าง Label กับ Input */
+    font-weight: bold; /* ทำตัวหนา */
+}
+
+  
+.signup-box input,
+.signup-box select {
+    font-family: 'Prompt', sans-serif;
+    width: 100%;
+    padding: 12px 15px; /* เพิ่ม Padding */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+  .signup-box input:focus,
+  .signup-box select:focus {
+    border-color: #007bff; /* เปลี่ยนสีขอบเมื่อ Focus */
+    outline: none;
+  }
+  
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 50px; /* ลดระยะห่างระหว่างช่อง */
+    margin-bottom: 20px; /* เพิ่มระยะห่างระหว่างแถว */
+    font-weight: bold; /* ทำตัวหนา */
+    margin-bottom: 10px;
+}
+
+.row div {
+    flex: 1; /* ให้ช่องขนาดเท่ากัน */
+    display: flex;
+    flex-direction: column; /* จัด Label และ Input เป็นแนวตั้ง */
+    align-items: flex-start; /* จัด Label ให้อยู่ซ้ายสุด */
+    font-weight: bold; /* ทำตัวหนา */
+}
+  
+  .signup-box button {
+    width: 100%;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.signup-box button:hover {
+    background-color: #0056b3;
+    transform: translateY(-3px) scale(1.05); /* เพิ่มเอฟเฟกต์ขยาย */
+}
+
+.signup-box button:active {
+    transform: translateY(0) scale(1); /* ลดขนาดกลับเมื่อคลิก */
+}
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .signup-box {
+      padding: 30px 20px;
+    }
+  
+    .row {
+      flex-direction: column; /* ซ้อนกันในแนวตั้ง */
+      gap: 10px; /* ลดระยะห่าง */
+    }
+  }
+  
+button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px; /* เพิ่มระยะห่างด้านบน */
+    width: 150px; /* ระบุความกว้างให้พอดี */
+    margin: 0 auto; /* จัดให้อยู่ตรงกลาง */
+}
+
+
+button:hover {
+    background-color: #0056b3;
+}

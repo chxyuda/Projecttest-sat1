@@ -1,0 +1,131 @@
+/* โครงสร้างทั่วไป */
+.background-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* ปรับขนาดให้วิดีโอเต็มจอ */
+  z-index: -1; /* ส่งไปด้านหลัง */
+  opacity: 0.8; /* เพิ่มความโปร่งแสง */
+}
+.login-page {
+  position: relative;
+  height: 100vh; /* ให้เต็มหน้าจอ */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.login-container {
+  margin-top: 100px; /* เพิ่มระยะห่างด้านบน */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.login-box {
+  background-color: rgb(250, 250, 250);
+  padding: 40px 50px;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+}
+
+.user-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.user-icon img {
+  display: block;
+  margin: 0 auto 10px;
+  width: 50px;
+  height: 50px;
+}
+
+.login-box h3 {
+  font-size: 24px;
+  margin-bottom: 30px;
+}
+
+/* Input */
+.login-input {
+  width: 100%;
+  padding: 14px;
+  margin: 12px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.forgot-password {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+/* ปุ่ม */
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* ปุ่ม Sign Up */
+/* ปุ่ม Sign Up */
+.signup-btn {
+  background-color: white;
+  color: #007bff;
+  border: 1px solid #007bff;
+  transition: background-color 0.3s ease, transform 0.2s ease; /* เพิ่ม Transition */
+}
+
+.signup-btn:hover {
+  background-color: #f0f8ff;
+  transform: translateY(-3px); /* เพิ่ม Animation เคลื่อนไหว */
+}
+
+/* เพิ่ม Animation :focus */
+.signup-btn:focus {
+  outline: none;
+  box-shadow: 0 0 5px #007bff;
+}
+
+
+/* ปุ่ม Login */
+.login-btn {
+  background-color: #007bff;
+  color: white;
+  border: 1px solid #007bff;
+}
+
+.login-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-3px);
+}
+
+/* เพิ่ม Animation :focus */
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 5px #007bff;
+}
