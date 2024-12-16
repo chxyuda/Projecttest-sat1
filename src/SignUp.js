@@ -36,7 +36,9 @@ const SignUp = () => {
     // Handle department change
     const handleDepartmentChange = (e) => {
         const departmentId = e.target.value;
-        setFormData({ ...formData, departmentId });
+        setFormData({ ...formData, departmentId, sectionId: '', taskId: '' });
+        setSections([]);
+        setTasks([]);
         axios.get(`http://localhost:5001/api/sections/${departmentId}`)
             .then(response => setSections(response.data))
             .catch(error => console.error('Error fetching sections:', error));
@@ -45,7 +47,8 @@ const SignUp = () => {
     // Handle section change
     const handleSectionChange = (e) => {
         const sectionId = e.target.value;
-        setFormData({ ...formData, sectionId });
+        setFormData({ ...formData, sectionId, taskId: '' });
+        setTasks([]);
         axios.get(`http://localhost:5001/api/tasks/${sectionId}`)
             .then(response => setTasks(response.data))
             .catch(error => console.error('Error fetching tasks:', error));
@@ -54,13 +57,15 @@ const SignUp = () => {
     // Handle form submit
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('Form Data:', formData);
-
-        if (!formData.username || !formData.password || !formData.fullName || !formData.email || !formData.departmentId) {
-            alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+    
+        // ตรวจสอบว่าข้อมูลทุกช่องกรอกครบ
+        const { username, password, fullName, email, phone, departmentId, sectionId, taskId } = formData;
+        if (!username || !password || !fullName || !email || !phone || !departmentId || !sectionId || !taskId) {
+            alert('กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง');
             return;
         }
-
+    
+        // ส่งข้อมูลไปยังเซิร์ฟเวอร์หากข้อมูลครบถ้วน
         axios.post('http://localhost:5001/api/signup', formData)
             .then(() => {
                 alert('สมัครสมาชิกสำเร็จ');
@@ -71,6 +76,7 @@ const SignUp = () => {
                 alert('เกิดข้อผิดพลาดในการสมัครสมาชิก');
             });
     };
+    
 
     return (
         <div className="signup-container">

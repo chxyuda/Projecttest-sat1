@@ -10,7 +10,7 @@ const Header = ({ currentTime, currentDate }) => {
           <img src={logo} alt="SAT Logo" className="logo" />
           <div className="title-container">
             <div className="title">SPORTS AUTHORITY OF THAILAND</div>
-            <div className="subtitle">Computer Accessories Management System</div>
+            <div className="subtitle">Computer Equipment Management System</div>
           </div>
         </div>
         <div className="header-right">

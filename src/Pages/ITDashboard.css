@@ -1,0 +1,65 @@
+body {
+  font-family: 'Prompt', sans-serif;
+}
+/* Container หลัก */
+.navbar-itinfo {
+  display: flex;
+  justify-content: space-between; /* เมนูซ้าย, IT Info ขวา */
+  align-items: center; /* จัดตรงกลางแนวตั้ง */
+  background-color: #eaeef0; /* สีพื้นหลัง */
+  padding: 10px 20px; /* เพิ่ม padding ให้พอดี */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* เพิ่มเงาเบาๆ */
+  margin-top: -210px; /* เอาออกหรือตั้งเป็น 0 เพื่อให้ชิด Header */
+}
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-3px); }
+  100% { transform: translateX(0); }
+}
+/* Navbar ฟังก์ชันเมนู */
+.navbar {
+  display: flex;
+  gap: 50px; /* ระยะห่างระหว่างเมนู */
+}
+
+.navbar span {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  transition: transform 0.3s ease, color 0.3s ease; /* เพิ่ม transition */
+  position: relative;
+}
+
+.navbar span:hover {
+  color: #0078d7; /* สีเมื่อ Hover */
+  transform: scale(1.2);
+}
+
+/* IT Staff Info ชิดขวา */
+.it-info {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* ระยะห่างระหว่างไอคอนและข้อความ */
+}
+
+.icon1 {
+  width: 30px;
+  height: 30px;
+}
+
+.it-text {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.logout {
+  color: rgb(243, 119, 119);
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 290px; /* ขยับ Log out ไปด้านขวาเล็กน้อย */
+  margin-left: 50px;
+}

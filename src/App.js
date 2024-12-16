@@ -7,6 +7,13 @@ import SuccessModal from "./SuccessModal";
 import ForgotPassword from "./Pages/ForgotPassword";
 import VerifyCode from "./Pages/VerifyCode"; // สร้างไฟล์นี้ใหม่
 import SetNewPassword from "./Pages/SetNewPassword";
+import ITDashboard from "./Pages/ITDashboard";
+import Inventory from "./Pages/Inventory";
+import Settings from "./Pages/Settings";
+import Personnel from "./Pages/Personnel";
+import BorrowReturn from "./Pages/BorrowReturn";
+import Request from "./Pages/Request";
+import Dashboard from "./Pages/Dashboard";
 
 function App() {
   const [currentTime, setCurrentTime] = useState("");
@@ -66,6 +73,14 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verify-code" element={<VerifyCode />} />
           <Route path="/set-new-password" element={<SetNewPassword />} />
+          <Route path="/it-dashboard" element={<ITDashboard />} />
+          <Route path="/it-dashboard" element={<ITDashboard />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/personnel" element={<Personnel />} />
+          <Route path="/borrow-return" element={<BorrowReturn />} />
+          <Route path="/request" element={<Request />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </div>
     </Router>

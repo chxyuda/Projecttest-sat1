@@ -44,15 +44,15 @@
 }
 
 .title {
-    font-size: 28px;
+    font-size: 26px;
     font-weight: bold;
     text-align: left;
 }
 
 .subtitle {
-    font-family: 'Estonia', cursive;
+    font-family: 'Courgette', cursive;
     font-size: 18px;
-    margin-top: 5px;
+    margin-top: 2px;
 }
 
 .header-right {
@@ -75,3 +75,4 @@
     margin: 0;
     font-weight: normal;
 }
+
