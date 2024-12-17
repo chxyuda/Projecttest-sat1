@@ -19,6 +19,8 @@ const Login = () => {
         password,
       });
   
+      console.log("Server Response:", response.data); // เพิ่ม Log
+  
       if (response.data.success) {
         const role = response.data.role;
   
@@ -33,11 +35,10 @@ const Login = () => {
         alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
       }
     } catch (error) {
-      console.error("Login Error:", error);
+      console.error("Login Error:", error.response || error.message); // แสดง Error ชัดเจนขึ้น
       alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ. โปรดลองอีกครั้ง!");
     }
-  };
-  
+  };  
   return (
     <div className="login-page">
       <video autoPlay muted loop className="background-video">

@@ -1,7 +1,17 @@
 import React from "react";
+import ITDashboard from "./ITDashboard";
 
-const Inventory = () => {
-  return <h1>หน้านี้สำหรับฟังก์ชัน ตั้งค่า </h1>;
+const Settings = () => {
+  return (
+    <div>
+      {/* เรียกใช้ ITDashboard */}
+      <ITDashboard />
+   {/* เนื้อหาของหน้าคลังวัสดุ */}
+   <div className="settings-content">   
+   <h1>หน้านี้สำหรับฟังก์ชัน ตั้งค่า </h1>;
+  </div>
+    </div>
+  );
 };
 
-export default Inventory;
+export default Settings;

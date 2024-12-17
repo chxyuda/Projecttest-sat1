@@ -14,7 +14,7 @@ import Personnel from "./Pages/Personnel";
 import BorrowReturn from "./Pages/BorrowReturn";
 import Request from "./Pages/Request";
 import Dashboard from "./Pages/Dashboard";
-
+import StaffProfile from "./Pages/StaffProfile";
 function App() {
   const [currentTime, setCurrentTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
@@ -81,6 +81,7 @@ function App() {
           <Route path="/borrow-return" element={<BorrowReturn />} />
           <Route path="/request" element={<Request />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/staff-profile" element={<StaffProfile />} />
         </Routes>
       </div>
     </Router>

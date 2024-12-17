@@ -9,7 +9,7 @@ body {
   background-color: #eaeef0; /* สีพื้นหลัง */
   padding: 10px 20px; /* เพิ่ม padding ให้พอดี */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* เพิ่มเงาเบาๆ */
-  margin-top: -210px; /* เอาออกหรือตั้งเป็น 0 เพื่อให้ชิด Header */
+  margin-top: -80px; /* เอาออกหรือตั้งเป็น 0 เพื่อให้ชิด Header */
 }
 @keyframes shake {
   0% { transform: translateX(0); }
@@ -21,7 +21,7 @@ body {
 /* Navbar ฟังก์ชันเมนู */
 .navbar {
   display: flex;
-  gap: 50px; /* ระยะห่างระหว่างเมนู */
+  gap: 75px; /* ระยะห่างระหว่างเมนู */
 }
 
 .navbar span {
@@ -46,20 +46,214 @@ body {
 }
 
 .icon1 {
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
+  transition: transform 0.3s ease-in-out;
 }
-
+.icon1:hover {
+  transform: scale(1.1); /* ขยายไอคอนเล็กน้อย */
+}
 .it-text {
   font-size: 18px;
   font-weight: bold;
   color: #333;
+  transition: color 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+.it-text:hover {
+  transform: scale(1.05); /* ขยายข้อความเล็กน้อย */
+  text-decoration: underline; /* ขีดเส้นใต้ข้อความ */
 }
 
 .logout {
   color: rgb(243, 119, 119);
   cursor: pointer;
   font-weight: bold;
-  margin-right: 290px; /* ขยับ Log out ไปด้านขวาเล็กน้อย */
+  margin-right: 300px; /* ขยับ Log out ไปด้านขวาเล็กน้อย */
   margin-left: 50px;
 }
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* พื้นหลังมืด */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* เนื้อหาของ Modal */
+.modal-content {
+  background-color: #f4f4f4;
+  padding: 20px;
+  border-radius: 8px;
+  width: 500px; /* ปรับขนาดกว้างขึ้น */
+  max-width: 90%; /* ทำให้ไม่เกินจอ */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow-y: auto; /* เพิ่ม Scroll ถ้าเนื้อหาเกิน */
+  max-height: 80vh; /* กำหนดความสูงไม่เกิน 80% ของจอ */
+}
+
+/* ปุ่มปิด Modal (กากบาท) */
+.close-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  color: #333;
+}
+
+/* ฟอร์มแสดงข้อมูล */
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center; /* จัดให้อยู่ตรงกลาง */
+}
+
+.profile-form label {
+  font-weight: bold;
+  width: 100%;
+  text-align: left;
+}
+
+.profile-form input {
+  width: 100%;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+/* รูปโปรไฟล์ */
+.profile-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile-image img {
+  width: 120px; /* ปรับขนาดรูปโปรไฟล์ใหญ่ขึ้น */
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ddd;
+}
+
+.profile-image input {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.profile-image:hover input {
+  opacity: 1;
+}
+
+/* ปุ่มควบคุม */
+/* ปุ่มควบคุม */
+.btn-group {
+  display: flex;
+  justify-content: center; /* จัดปุ่มให้อยู่กึ่งกลาง */
+  gap: 10px; /* ระยะห่างระหว่างปุ่ม */
+  margin-top: 20px; /* ระยะห่างด้านบน */
+}
+
+.btn {
+  padding: 8px 20px; /* ปรับขนาด padding ให้ปุ่มสั้นลง */
+  font-size: 14px; /* ปรับขนาดตัวอักษร */
+  font-weight: bold;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-btn {
+  background-color: #ffc107;
+  color: white;
+}
+
+.save-btn {
+  background-color: #28a745; /* สีเขียวสำหรับปุ่มบันทึก */
+}
+
+.save-btn:hover {
+  background-color: #218838; /* สีเข้มขึ้นเมื่อ Hover */
+}
+
+.cancel-btn {
+  background-color: #dc3545; /* สีแดงสำหรับปุ่มยกเลิก */
+}
+
+.cancel-btn:hover {
+  background-color: #c82333; /* สีเข้มขึ้นเมื่อ Hover */
+}
+.upload-btn {
+  display: inline-block;
+  padding: 8px 12px;
+  background-color: #0078d7;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.upload-btn:hover {
+  background-color: #005bb5;
+}
+/* Container หลักสำหรับโปรไฟล์ */
+.profile-image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px; /* ระยะห่างจากเนื้อหาอื่น */
+}
+
+/* ตำแหน่งและขนาดของรูปภาพ */
+.profile-image img {
+  width: 120px; /* ปรับขนาดรูปภาพ */
+  height: 120px;
+  border-radius: 50%; /* ทำให้เป็นวงกลม */
+  object-fit: cover; /* ป้องกันภาพบิดเบี้ยว */
+  border: 2px solid #ccc; /* เส้นขอบเบาๆ */
+  margin-bottom: 10px;
+}
+
+/* ปุ่มอัปโหลด */
+.upload-btn-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.upload-btn {
+  display: inline-block;
+  padding: 8px 15px;
+  background-color: #0078d7;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.upload-btn:hover {
+  background-color: #005bb5;
+}
+
+
