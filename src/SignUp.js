@@ -23,10 +23,13 @@ const SignUp = () => {
     // Fetch departments
     useEffect(() => {
         axios.get('http://localhost:5001/api/departments')
-            .then(response => setDepartments(response.data))
+            .then(response => {
+                console.log(response.data);
+                setDepartments(response.data);
+            })
             .catch(error => console.error('Error fetching departments:', error));
     }, []);
-
+    
     // Handle input change
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -40,31 +43,36 @@ const SignUp = () => {
         setSections([]);
         setTasks([]);
         axios.get(`http://localhost:5001/api/sections/${departmentId}`)
-            .then(response => setSections(response.data))
+            .then(response => {
+                console.log('Sections fetched:', response.data); // ตรวจสอบข้อมูลกอง
+                setSections(response.data);
+            })
             .catch(error => console.error('Error fetching sections:', error));
     };
-
-    // Handle section change
+    
     const handleSectionChange = (e) => {
         const sectionId = e.target.value;
         setFormData({ ...formData, sectionId, taskId: '' });
         setTasks([]);
         axios.get(`http://localhost:5001/api/tasks/${sectionId}`)
-            .then(response => setTasks(response.data))
+            .then(response => {
+                console.log('Tasks fetched:', response.data); // ตรวจสอบข้อมูลงาน
+                setTasks(response.data);
+            })
             .catch(error => console.error('Error fetching tasks:', error));
     };
-
+    
     // Handle form submit
     const handleSubmit = (e) => {
         e.preventDefault();
-    
+
         // ตรวจสอบว่าข้อมูลทุกช่องกรอกครบ
         const { username, password, fullName, email, phone, departmentId, sectionId, taskId } = formData;
         if (!username || !password || !fullName || !email || !phone || !departmentId || !sectionId || !taskId) {
             alert('กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง');
             return;
         }
-    
+
         // ส่งข้อมูลไปยังเซิร์ฟเวอร์หากข้อมูลครบถ้วน
         axios.post('http://localhost:5001/api/signup', formData)
             .then(() => {
@@ -76,7 +84,6 @@ const SignUp = () => {
                 alert('เกิดข้อผิดพลาดในการสมัครสมาชิก');
             });
     };
-    
 
     return (
         <div className="signup-container">

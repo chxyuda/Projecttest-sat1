@@ -1,16 +1,42 @@
-body {
-  font-family: 'Prompt', sans-serif;
-}
 /* Container หลัก */
 .navbar-itinfo {
+  position: fixed;
+  top: 107px; /* ความสูง Header */
+  left: 0;
+  width: 100%;
+  background-color: #f5f5f5; /* สีพื้นหลัง */
   display: flex;
-  justify-content: space-between; /* เมนูซ้าย, IT Info ขวา */
-  align-items: center; /* จัดตรงกลางแนวตั้ง */
-  background-color: #eaeef0; /* สีพื้นหลัง */
-  padding: 10px 20px; /* เพิ่ม padding ให้พอดี */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* เพิ่มเงาเบาๆ */
-  margin-top: -80px; /* เอาออกหรือตั้งเป็น 0 เพื่อให้ชิด Header */
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000; /* ให้ Navbar อยู่เหนือ Header */
 }
+
+/* Header หลัก */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #3A87C5;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  z-index: 1000;
+}
+
+
+/* ปรับ body ให้มีพื้นที่สำหรับ Header */
+body {
+  margin: 0;
+  padding: 0;
+  padding-top: 70px; /* เพิ่มพื้นที่สำหรับ Header ความสูง 70px */
+  background-color: #f5f7fa;
+  box-sizing: border-box;
+}
+
+
 @keyframes shake {
   0% { transform: translateX(0); }
   25% { transform: translateX(-3px); }
@@ -18,6 +44,7 @@ body {
   75% { transform: translateX(-3px); }
   100% { transform: translateX(0); }
 }
+/* Navbar ฟังก์ชันเมนู */
 /* Navbar ฟังก์ชันเมนู */
 .navbar {
   display: flex;
@@ -29,12 +56,11 @@ body {
   font-weight: bold;
   color: #333;
   cursor: pointer;
-  transition: transform 0.3s ease, color 0.3s ease; /* เพิ่ม transition */
-  position: relative;
+  transition: transform 0.3s ease, color 0.3s ease;
 }
 
 .navbar span:hover {
-  color: #0078d7; /* สีเมื่อ Hover */
+  color: #0078d7;
   transform: scale(1.2);
 }
 
@@ -43,6 +69,7 @@ body {
   display: flex;
   align-items: center;
   gap: 15px; /* ระยะห่างระหว่างไอคอนและข้อความ */
+  margin-right: 50px; /* ลดระยะห่างจากขอบขวาของเฟรม */
 }
 
 .icon1 {

@@ -8,20 +8,25 @@
   object-fit: cover; /* ปรับขนาดให้วิดีโอเต็มจอ */
   z-index: -1; /* ส่งไปด้านหลัง */
   opacity: 0.8; /* เพิ่มความโปร่งแสง */
+  animation: pulse 10s infinite alternate; /* Animation จางและเข้มขึ้น */
 }
+
+/* Background Video Animation */
+@keyframes pulse {
+  from {
+    opacity: 0.8;
+  }
+  to {
+    opacity: 0.6;
+  }
+}
+
 .login-page {
   position: relative;
   height: 100vh; /* ให้เต็มหน้าจอ */
   display: flex;
   justify-content: center;
   align-items: center;
-}
-.login-container {
-  margin-top: 100px; /* เพิ่มระยะห่างด้านบน */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
 }
 
 .login-box {
@@ -40,13 +45,7 @@
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
 }
 
-.user-icon {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
+/* User Icon */
 .user-icon img {
   display: block;
   margin: 0 auto 10px;
@@ -54,6 +53,7 @@
   height: 50px;
 }
 
+/* Header */
 .login-box h3 {
   font-size: 24px;
   margin-bottom: 30px;
@@ -67,14 +67,34 @@
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 16px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.login-input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+}
+
+.login-input:hover {
+  border-color: #007bff;
+}
+
+/* Forgot Password */
 .forgot-password {
   margin-top: 10px;
   font-size: 14px;
+  color: #007bff;
+  cursor: pointer;
+  transition: color 0.3s ease;
 }
 
-/* ปุ่ม */
+.forgot-password:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Button Group */
 .button-group {
   display: flex;
   justify-content: space-between;
@@ -91,24 +111,35 @@
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
+
 /* ปุ่ม Sign Up */
-/* ปุ่ม Sign Up */
+/* ปุ่ม Sign Up - สถานะปกติ */
 .signup-btn {
-  background-color: white;
-  color: #007bff;
-  border: 1px solid #007bff;
-  transition: background-color 0.3s ease, transform 0.2s ease; /* เพิ่ม Transition */
+    display: inline-block;
+    visibility: visible;
+    opacity: 1;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 16px;
+    text-align: center;
+    transition: transform 0.2s ease, background-color 0.3s ease;
 }
 
 .signup-btn:hover {
-  background-color: #f0f8ff;
-  transform: translateY(-3px); /* เพิ่ม Animation เคลื่อนไหว */
+    background-color: #0056b3;
+    transform: scale(1.05);
 }
 
-/* เพิ่ม Animation :focus */
-.signup-btn:focus {
-  outline: none;
-  box-shadow: 0 0 5px #007bff;
+/* ปุ่ม Sign Up - เมื่อ Disabled (ปิดการใช้งาน) */
+.signup-btn:disabled {
+  background-color: #e0e0e0; /* สีพื้นหลังปิดการใช้งาน */
+  color: #a0a0a0; /* สีข้อความปิดการใช้งาน */
+  border: 2px solid #d0d0d0;
+  cursor: not-allowed;
 }
 
 
@@ -124,7 +155,10 @@
   transform: translateY(-3px);
 }
 
-/* เพิ่ม Animation :focus */
+.login-btn:active {
+  transform: translateY(2px);
+}
+
 .btn:focus {
   outline: none;
   box-shadow: 0 0 5px #007bff;

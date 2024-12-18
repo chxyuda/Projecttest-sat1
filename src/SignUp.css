@@ -10,7 +10,7 @@ body {
 
 /* Sign Up Page Styles */
 .signup-container {
-    margin-top: 150px; /* ระยะห่างจาก Header */
+    margin-top: 70px; /* ระยะห่างจาก Header */
     display: flex;
     justify-content: center;
     align-items: center;

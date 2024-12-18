@@ -131,6 +131,44 @@ app.post('/api/login', (req, res) => {
     }
   });
 });
+
+// API: ดึงข้อมูล departments ทั้งหมด
+app.get('/api/departments', (req, res) => {
+  const query = 'SELECT id, name FROM departments'; // ตรวจสอบชื่อตารางให้ตรงกับฐานข้อมูล
+  db.query(query, (err, results) => {
+      if (err) {
+          console.error('Error fetching departments:', err);
+          return res.status(500).json({ success: false, error: 'Server error' });
+      }
+      res.status(200).json(results); // ส่งข้อมูลกลับไปยัง Frontend
+  });
+});
+// API: ดึงข้อมูลกองตามฝ่าย/สำนัก
+app.get('/api/sections/:departmentId', (req, res) => {
+  const { departmentId } = req.params;
+  const query = 'SELECT id, name FROM sections WHERE department_id = ?';
+  db.query(query, [departmentId], (err, results) => {
+      if (err) {
+          console.error('Error fetching sections:', err);
+          return res.status(500).json({ success: false, error: 'Server error' });
+      }
+      res.status(200).json(results); // ส่งข้อมูลกองกลับไปยัง Frontend
+  });
+});
+
+// API: ดึงข้อมูลงานตามกอง
+app.get('/api/tasks/:sectionId', (req, res) => {
+  const { sectionId } = req.params;
+  const query = 'SELECT id, name FROM tasks WHERE section_id = ?';
+  db.query(query, [sectionId], (err, results) => {
+      if (err) {
+          console.error('Error fetching tasks:', err);
+          return res.status(500).json({ success: false, error: 'Server error' });
+      }
+      res.status(200).json(results);
+  });
+});
+
 // API: ดึงข้อมูลเจ้าหน้าที่
 app.get('/api/staff-info', (req, res) => {
   const staffId = 1; // สมมติว่า ID ของเจ้าหน้าที่ IT คือ 1 (ดึงจากการ Login ได้จริงในอนาคต)
