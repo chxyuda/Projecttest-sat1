@@ -14,9 +14,9 @@ const SignUp = () => {
         fullName: '',
         email: '',
         phone: '',
-        departmentId: '',
-        sectionId: '',
-        taskId: '',
+        departmentName: '',
+        sectionName: '',
+        taskName: '',
     });
     const navigate = useNavigate();
 
@@ -29,7 +29,7 @@ const SignUp = () => {
             })
             .catch(error => console.error('Error fetching departments:', error));
     }, []);
-    
+
     // Handle input change
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -38,42 +38,48 @@ const SignUp = () => {
 
     // Handle department change
     const handleDepartmentChange = (e) => {
-        const departmentId = e.target.value;
-        setFormData({ ...formData, departmentId, sectionId: '', taskId: '' });
+        const selectedIndex = e.target.selectedIndex;
+        const departmentName = e.target.options[selectedIndex].text;
+        setFormData({ ...formData, departmentName, sectionName: '', taskName: '' });
         setSections([]);
         setTasks([]);
-        axios.get(`http://localhost:5001/api/sections/${departmentId}`)
+        axios.get(`http://localhost:5001/api/sections/${e.target.value}`)
             .then(response => {
-                console.log('Sections fetched:', response.data); // ตรวจสอบข้อมูลกอง
+                console.log('Sections fetched:', response.data);
                 setSections(response.data);
             })
             .catch(error => console.error('Error fetching sections:', error));
     };
-    
+
     const handleSectionChange = (e) => {
-        const sectionId = e.target.value;
-        setFormData({ ...formData, sectionId, taskId: '' });
+        const selectedIndex = e.target.selectedIndex;
+        const sectionName = e.target.options[selectedIndex].text;
+        setFormData({ ...formData, sectionName, taskName: '' });
         setTasks([]);
-        axios.get(`http://localhost:5001/api/tasks/${sectionId}`)
+        axios.get(`http://localhost:5001/api/tasks/${e.target.value}`)
             .then(response => {
-                console.log('Tasks fetched:', response.data); // ตรวจสอบข้อมูลงาน
+                console.log('Tasks fetched:', response.data);
                 setTasks(response.data);
             })
             .catch(error => console.error('Error fetching tasks:', error));
     };
-    
+
+    const handleTaskChange = (e) => {
+        const selectedIndex = e.target.selectedIndex;
+        const taskName = e.target.options[selectedIndex].text;
+        setFormData({ ...formData, taskName });
+    };
+
     // Handle form submit
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // ตรวจสอบว่าข้อมูลทุกช่องกรอกครบ
-        const { username, password, fullName, email, phone, departmentId, sectionId, taskId } = formData;
-        if (!username || !password || !fullName || !email || !phone || !departmentId || !sectionId || !taskId) {
+        const { username, password, fullName, email, phone, departmentName, sectionName, taskName } = formData;
+        if (!username || !password || !fullName || !email || !phone || !departmentName || !sectionName || !taskName) {
             alert('กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง');
             return;
         }
 
-        // ส่งข้อมูลไปยังเซิร์ฟเวอร์หากข้อมูลครบถ้วน
         axios.post('http://localhost:5001/api/signup', formData)
             .then(() => {
                 alert('สมัครสมาชิกสำเร็จ');
@@ -118,7 +124,7 @@ const SignUp = () => {
                     <div className="row">
                         <div>
                             <label>ฝ่าย/สำนัก</label>
-                            <select name="departmentId" onChange={handleDepartmentChange}>
+                            <select name="departmentName" onChange={handleDepartmentChange}>
                                 <option value="">เลือก</option>
                                 {departments.map(dept => (
                                     <option key={dept.id} value={dept.id}>{dept.name}</option>
@@ -127,7 +133,7 @@ const SignUp = () => {
                         </div>
                         <div>
                             <label>กอง</label>
-                            <select name="sectionId" onChange={handleSectionChange}>
+                            <select name="sectionName" onChange={handleSectionChange}>
                                 <option value="">เลือก</option>
                                 {sections.map(section => (
                                     <option key={section.id} value={section.id}>{section.name}</option>
@@ -137,7 +143,7 @@ const SignUp = () => {
                     </div>
                     <div className="form-group">
                         <label>งาน</label>
-                        <select name="taskId" onChange={handleInputChange}>
+                        <select name="taskName" onChange={handleTaskChange}>
                             <option value="">เลือก</option>
                             {tasks.map(task => (
                                 <option key={task.id} value={task.id}>{task.name}</option>

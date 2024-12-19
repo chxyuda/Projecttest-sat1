@@ -3,10 +3,10 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2');
 const nodemailer = require('nodemailer'); // สำหรับส่งอีเมล
-const crypto = require('crypto'); // สร้าง OTP แบบสุ่ม
+require('dotenv').config(); // ใช้สำหรับโหลดตัวแปรจากไฟล์ .env
 
 const app = express();
-const PORT = 5001;
+const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors());
@@ -14,50 +14,50 @@ app.use(bodyParser.json());
 
 // MySQL Connection
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '12345678', // เปลี่ยนเป็นรหัสผ่าน MySQL ของคุณ
-  database: 'inventory_management',
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '12345678',
+  database: process.env.DB_NAME || 'inventory_management',
 });
 
 db.connect((err) => {
   if (err) {
     console.error('Error connecting to MySQL:', err);
-    return;
+    process.exit(1); // ปิดโปรแกรมถ้าการเชื่อมต่อไม่สำเร็จ
   }
   console.log('Connected to MySQL database.');
 });
 
-// Storage สำหรับ OTP ชั่วคราว
-let otpStore = {};
-
 // Nodemailer Transporter
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com", // เปลี่ยนเป็น SMTP ที่ใช้งาน (เช่น smtp.sat.or.th)
-  port: 587,              // ใช้พอร์ต 587 สำหรับ STARTTLS
-  secure: false,          // true สำหรับ SSL (พอร์ต 465), false สำหรับ STARTTLS
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: process.env.SMTP_PORT || 587,
+  secure: false,
   auth: {
-    user: "your-email@gmail.com",   // อีเมล Gmail หรือองค์กร
-    pass: "your-app-password",      // App Password ของ Gmail
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD,
   },
   tls: {
-    rejectUnauthorized: false, // ปิดการตรวจสอบ Certificate ชั่วคราว
+    rejectUnauthorized: false,
   },
 });
 
-// ตรวจสอบการเชื่อมต่อ SMTP ก่อนส่งอีเมล
-transporter.verify((error, success) => {
+// ตรวจสอบการเชื่อมต่อ SMTP
+transporter.verify((error) => {
   if (error) {
-    console.error("SMTP Connection Error:", error);
+    console.error('SMTP Connection Error:', error);
   } else {
-    console.log("SMTP Server is ready to take messages");
+    console.log('SMTP Server is ready to take messages');
   }
 });
 
 // API: ส่ง OTP ไปยังอีเมล
 app.post('/api/send-otp', (req, res) => {
   const { email } = req.body;
-  console.log("Received request for email:", email);
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'กรุณาระบุอีเมล' });
+  }
 
   const query = 'SELECT email FROM users WHERE email = ?';
   db.query(query, [email], (err, results) => {
@@ -67,47 +67,34 @@ app.post('/api/send-otp', (req, res) => {
     }
 
     if (results.length === 0) {
-      console.log("Email not found in database");
-      return res.status(404).json({ success: false, message: 'Email not found' });
+      return res.status(404).json({ success: false, message: 'ไม่พบอีเมลนี้ในระบบ' });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000);
-    otpStore[email] = otp;
-
     const mailOptions = {
-      from: "your-email@gmail.com",
+      from: process.env.SMTP_USER,
       to: email,
-      subject: "Password Reset OTP",
-      text: `Your OTP code is: ${otp}`,
+      subject: 'Password Reset OTP',
+      text: `รหัส OTP ของคุณคือ: ${otp}`,
     };
 
-    transporter.sendMail(mailOptions, (err, info) => {
+    transporter.sendMail(mailOptions, (err) => {
       if (err) {
-        console.error("Error sending email:", err);
-        return res.status(500).json({ success: false, message: "Failed to send OTP" });
+        console.error('Error sending email:', err);
+        return res.status(500).json({ success: false, message: 'ไม่สามารถส่ง OTP ได้' });
       }
-      console.log("Email sent successfully:", info.response);
-      res.status(200).json({ success: true, message: "OTP sent successfully" });
+      res.status(200).json({ success: true, message: 'ส่ง OTP สำเร็จ' });
     });
   });
-});
-
-// API: ยืนยัน OTP
-app.post('/api/verify-otp', (req, res) => {
-  const { email, otp } = req.body;
-
-  // ตรวจสอบ OTP
-  if (otpStore[email] && otpStore[email] === parseInt(otp)) {
-    delete otpStore[email]; // ลบ OTP หลังจากยืนยันสำเร็จ
-    res.status(200).json({ success: true, message: 'OTP verified successfully' });
-  } else {
-    res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
-  }
 });
 
 // API: Login ตรวจสอบ Username และ Password
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ success: false, message: 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน' });
+  }
 
   const query = 'SELECT role FROM users WHERE username = ? AND password = ?';
   db.query(query, [username, password], (err, results) => {
@@ -117,87 +104,79 @@ app.post('/api/login', (req, res) => {
     }
 
     if (results.length > 0) {
-      const role = results[0].role;
-
-      if (role === "Admin" || role === "IT") {
-        return res.status(200).json({ success: true, role: "IT" });
-      } else if (role === "Approver") {
-        return res.status(200).json({ success: true, role: "Approver" });
-      } else {
-        return res.status(401).json({ success: false, message: "บทบาทไม่ถูกต้อง" });
-      }
+      return res.status(200).json({ success: true, role: results[0].role });
     } else {
-      return res.status(401).json({ success: false, message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+      return res.status(401).json({ success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
+    }
+  });
+});
+
+// API: ดึงข้อมูลบุคลากร
+app.get("/api/staff-info", (req, res) => {
+  const { username } = req.query;
+  console.log("Received username:", username);
+  console.log("API received username:", username);
+  
+  const query = `
+    SELECT 
+      users.fullName,
+      users.phone,
+      users.email,
+      users.username,
+      users.password,
+      departments.name AS department_name
+    FROM users
+    LEFT JOIN departments ON users.department_id = departments.id
+    WHERE users.username = ?
+  `;
+
+  db.query(query, [username], (err, results) => {
+    if (err) {
+      console.error("Database query error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    if (results.length > 0) {
+      res.status(200).json(results[0]);
+    } else {
+      res.status(404).json({ error: "User not found" });
     }
   });
 });
 
 // API: ดึงข้อมูล departments ทั้งหมด
 app.get('/api/departments', (req, res) => {
-  const query = 'SELECT id, name FROM departments'; // ตรวจสอบชื่อตารางให้ตรงกับฐานข้อมูล
-  db.query(query, (err, results) => {
-      if (err) {
-          console.error('Error fetching departments:', err);
-          return res.status(500).json({ success: false, error: 'Server error' });
-      }
-      res.status(200).json(results); // ส่งข้อมูลกลับไปยัง Frontend
-  });
-});
-// API: ดึงข้อมูลกองตามฝ่าย/สำนัก
-app.get('/api/sections/:departmentId', (req, res) => {
-  const { departmentId } = req.params;
-  const query = 'SELECT id, name FROM sections WHERE department_id = ?';
-  db.query(query, [departmentId], (err, results) => {
-      if (err) {
-          console.error('Error fetching sections:', err);
-          return res.status(500).json({ success: false, error: 'Server error' });
-      }
-      res.status(200).json(results); // ส่งข้อมูลกองกลับไปยัง Frontend
-  });
-});
-
-// API: ดึงข้อมูลงานตามกอง
-app.get('/api/tasks/:sectionId', (req, res) => {
-  const { sectionId } = req.params;
-  const query = 'SELECT id, name FROM tasks WHERE section_id = ?';
-  db.query(query, [sectionId], (err, results) => {
-      if (err) {
-          console.error('Error fetching tasks:', err);
-          return res.status(500).json({ success: false, error: 'Server error' });
-      }
-      res.status(200).json(results);
-  });
-});
-
-// API: ดึงข้อมูลเจ้าหน้าที่
-app.get('/api/staff-info', (req, res) => {
-  const staffId = 1; // สมมติว่า ID ของเจ้าหน้าที่ IT คือ 1 (ดึงจากการ Login ได้จริงในอนาคต)
-
-  const query = "SELECT fullName, role, phone, email FROM users WHERE id = ?";
-  db.query(query, [staffId], (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ success: false, error: "Server error" });
-    }
-    if (results.length > 0) {
-      return res.status(200).json(results[0]);
-    } else {
-      return res.status(404).json({ success: false, message: "Staff not found" });
-    }
-  });
-});
-// API: ดึงข้อมูลสินค้าจากฐานข้อมูล
-app.get("/api/products", (req, res) => {
-  const query = "SELECT name, asset_number, category, device, brand, quantity FROM products";
-
+  const query = 'SELECT id, name FROM departments';
   db.query(query, (err, results) => {
     if (err) {
-      console.error("Error fetching products:", err);
-      return res.status(500).json({ success: false, error: "Server error" });
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
     }
-    return res.status(200).json(results);
+    res.status(200).json(results);
   });
 });
+
+// API: เพิ่มผู้ใช้งานใหม่
+app.post('/api/signup', (req, res) => {
+  const { username, password, fullName, email, phone, departmentId, sectionId, taskId } = req.body;
+
+  if (!username || !password || !email || !fullName || !phone || !departmentId || !sectionId || !taskId) {
+    return res.status(400).json({ success: false, message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
+  }
+
+  const query = `
+    INSERT INTO users (username, password, fullName, email, phone, department_id, section_id, task_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [username, password, fullName, email, phone, departmentId, sectionId, taskId], (err) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
+    }
+    res.status(201).json({ success: true, message: 'สมัครสมาชิกสำเร็จ' });
+  });
+});
+
 // Start Server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

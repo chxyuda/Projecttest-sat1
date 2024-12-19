@@ -5,11 +5,13 @@
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover; /* ปรับขนาดให้วิดีโอเต็มจอ */
-  z-index: -1; /* ส่งไปด้านหลัง */
-  opacity: 0.8; /* เพิ่มความโปร่งแสง */
-  animation: pulse 10s infinite alternate; /* Animation จางและเข้มขึ้น */
+  object-fit: cover;
+  z-index: -1;
+  opacity: 0.8;
+  filter: brightness(0.6); /* ลดความสว่างของวิดีโอ */
+  animation: pulse 10s infinite alternate;
 }
+
 
 /* Background Video Animation */
 @keyframes pulse {
@@ -163,3 +165,28 @@
   outline: none;
   box-shadow: 0 0 5px #007bff;
 }
+.login-message {
+  font-size: 16px;
+  color: green; /* สีข้อความ */
+  text-align: center;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+.alert-box {
+  background-color: #dff0d8;
+  color: #3c763d;
+  border: 1px solid #d6e9c6;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 16px;
+  opacity: 0; /* เริ่มต้นเป็นโปร่งใส */
+  transition: opacity 0.5s ease-in-out;
+}
+
+.alert-box.show {
+  opacity: 1; /* เมื่อแสดงข้อความ */
+}
+
+

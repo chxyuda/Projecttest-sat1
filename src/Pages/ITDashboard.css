@@ -16,6 +16,7 @@
 /* Header หลัก */
 .header {
   position: fixed;
+  font-family: 'Prompt', sans-serif; /* เปลี่ยนฟอนต์ที่โหลดมา */
   top: 0;
   left: 0;
   width: 100%;
@@ -30,6 +31,7 @@
 /* ปรับ body ให้มีพื้นที่สำหรับ Header */
 body {
   margin: 0;
+  font-family: 'Prompt', sans-serif; /* เปลี่ยนฟอนต์ที่โหลดมา */
   padding: 0;
   padding-top: 70px; /* เพิ่มพื้นที่สำหรับ Header ความสูง 70px */
   background-color: #f5f7fa;
@@ -48,7 +50,7 @@ body {
 /* Navbar ฟังก์ชันเมนู */
 .navbar {
   display: flex;
-  gap: 75px; /* ระยะห่างระหว่างเมนู */
+  gap: 60px; /* ระยะห่างระหว่างเมนู */
 }
 
 .navbar span {
@@ -69,7 +71,7 @@ body {
   display: flex;
   align-items: center;
   gap: 15px; /* ระยะห่างระหว่างไอคอนและข้อความ */
-  margin-right: 50px; /* ลดระยะห่างจากขอบขวาของเฟรม */
+  margin-right: 70px; /* ลดระยะห่างจากขอบขวาของเฟรม */
 }
 
 .icon1 {
@@ -81,7 +83,7 @@ body {
   transform: scale(1.1); /* ขยายไอคอนเล็กน้อย */
 }
 .it-text {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   color: #333;
   transition: color 0.3s ease-in-out, transform 0.3s ease-in-out;
@@ -150,11 +152,11 @@ body {
 
 .profile-form input {
   width: 100%;
-  border: 1px solid #ddd;
   padding: 10px;
-  border-radius: 4px;
-  background-color: #f9f9f9;
-  color: #333;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
 }
 
 /* รูปโปรไฟล์ */

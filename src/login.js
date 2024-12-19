@@ -12,33 +12,35 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       const response = await axios.post("http://localhost:5001/api/login", {
         username,
         password,
       });
-  
-      console.log("Server Response:", response.data); // เพิ่ม Log
-  
+
       if (response.data.success) {
         const role = response.data.role;
-  
+
+        // แสดงข้อความแจ้งเตือน
+        window.alert("เข้าสู่ระบบสำเร็จ!");
+
+        // เปลี่ยนหน้าไปยัง dashboard ที่เหมาะสม
         if (role === "IT") {
           navigate("/it-dashboard");
         } else if (role === "Approver") {
           navigate("/approver-dashboard");
         } else {
-          alert("บทบาทไม่ถูกต้อง!");
+          window.alert("บทบาทไม่ถูกต้อง!");
         }
       } else {
-        alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+        window.alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
       }
     } catch (error) {
-      console.error("Login Error:", error.response || error.message); // แสดง Error ชัดเจนขึ้น
-      alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ. โปรดลองอีกครั้ง!");
+      window.alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ. โปรดลองอีกครั้ง!");
     }
-  };  
+  };
+
   return (
     <div className="login-page">
       <video autoPlay muted loop className="background-video">
