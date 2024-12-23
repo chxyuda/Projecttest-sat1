@@ -1,108 +1,99 @@
-.inventory-page {
-    font-family: "Prompt", sans-serif;
-    margin: 20px;
-  }
-  
-  /* หัวข้อหลัก */
-  h2 {
-    font-size: 20px;
-    margin-bottom: 20px;
-    font-weight: bold;
-    text-align: left;
-  }
-  
-  /* Container หลัก */
-  .inventory-container {
-    margin-top: 200px auto; /* ระยะห่างจากด้านบน และกึ่งกลางแนวนอน */
-    padding: 30px; /* เพิ่ม padding ให้มีพื้นที่ด้านใน */
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 1000px; /* กำหนดความกว้างสูงสุด */
-  }  
-  
-  /* ส่วนกรองข้อมูล */
-  .filter-section {
-    display: flex;
-    justify-content: space-around; /* กระจายช่องกรองข้อมูล */
-    align-items: center;
-    gap: 10px; /* เพิ่มช่องว่างระหว่างตัวเลือก */
-    margin-bottom: 30px;
-  }
-  
-  .filter-section select,
-  .filter-section button {
-    padding: 10px 15px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .filter-section button {
-    background-color: #0078d7;
-    color: white;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-  }
-  
-  .filter-section button:hover {
-    background-color: #005a9e;
-  }
-  
-  
-  /* ตารางข้อมูล */
-  .inventory-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-  }
-  
-  .inventory-table th,
-  .inventory-table td {
-    padding: 12px; /* เพิ่มความสมดุลช่องข้อมูล */
-    border: 1px solid #ddd;
-    text-align: center;
-    font-size: 14px;
-  }
-  
-  .inventory-table th {
-    background-color: #0078d7;
-    color: #fff;
-    font-weight: bold;
-  }
-  
-  .inventory-table tr:nth-child(even) {
-    background-color: #f2f2f2;
-  }
-  
-  .inventory-table tr:hover {
-    background-color: #e6f7ff;
-    transition: background-color 0.3s ease;
-  }
-  
-  
-  /* ปุ่มดูรายละเอียด */
-  .details-btn {
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 8px 15px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .details-btn:hover {
-    background-color: #45a049;
-  }
-  
-  /* การแบ่งหน้า Pagination */
-  .pagination {
+/* Container หลัก */
+.inventory-container {
+  margin: 50px auto; /* จัดให้อยู่ตรงกลางแนวตั้ง */
+  padding: 140px; /* ลด Padding เพื่อให้กระชับ */
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  max-width: 900px; /* เพิ่มความกว้างตาราง */
+  width: 90%; /* ใช้ 90% ของหน้าจอ */
+}
+
+/* ส่วนกรองข้อมูล */
+.filter-section {
+  display: flex;
+  justify-content: space-between; /* จัดระยะห่างระหว่างตัวเลือก */
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 50px; /* เพิ่มระยะห่างจากตาราง */
+}
+
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap; /* ให้ตัวเลือกลงบรรทัดถัดไปหากพื้นที่ไม่พอ */
+  gap: 20px; /* เพิ่มช่องว่างระหว่างตัวเลือก */
+  flex: 3; /* ให้ส่วนนี้ใช้พื้นที่มากขึ้น */
+}
+
+.filter-controls select,
+.filter-controls button {
+  padding: 8px 12px; /* ลดขนาด Padding ให้พอดี */
+  font-size: 14px; /* ลดขนาดฟอนต์ */
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.filter-controls button {
+  background-color: #0078d7;
+  color: white;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.filter-controls button:hover {
+  background-color: #005a9e;
+}
+
+/* ตาราง */
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 16px; /* ลดขนาดฟอนต์ของตาราง */
+}
+
+.inventory-table th,
+.inventory-table td {
+  border: 1px solid #ddd;
+  padding: 10px; /* ลด Padding ในเซลล์ */
+  text-align: center;
+}
+
+.inventory-table th {
+  background-color: #0078d7;
+  color: white;
+  font-weight: bold;
+}
+
+.inventory-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.inventory-table tr:hover {
+  background-color: #e6f7ff;
+}
+
+/* ปุ่มดูรายละเอียด */
+.details-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 15px;
+  cursor: pointer;
+  font-size: 12px; /* ลดขนาดฟอนต์ปุ่ม */
+}
+
+.details-btn:hover {
+  background-color: #45a049;
+}
+
+/* Pagination */
+.pagination {
   display: flex;
   justify-content: center;
-  align-items: center;
-  margin-top: 30px;
+  margin-top: 20px;
 }
 
 .pagination button {
@@ -112,12 +103,14 @@
   margin: 0 5px;
   padding: 8px 12px;
   border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-size: 12px;
 }
 
 .pagination button:hover {
   background-color: #005a9e;
 }
 
-  
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}

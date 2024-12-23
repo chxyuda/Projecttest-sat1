@@ -41,32 +41,34 @@ const ITDashboard = () => {
   // ฟังก์ชันเปิด/ปิด Modal และดึงข้อมูลบุคลากร
   const toggleProfileModal = () => {
     setShowProfileModal(!showProfileModal);
-
+  
     if (!showProfileModal) {
       setIsLoading(true);
       axios
         .get("http://localhost:5001/api/staff-info", { params: { username: "itstaff" } })
         .then((response) => {
-          console.log("Response data from API:", response.data); // ตรวจสอบข้อมูลที่ดึงได้
+          console.log("Response data from API:", response.data);
           if (response.data) {
             setFormData({
-              agency: response.data.department_name || "",
-              fullName: response.data.fullName || "",
-              phone: response.data.phone || "",
-              email: response.data.email || "",
-              username: response.data.username || "",
-              password: response.data.password || "",
+              agency: response.data.department_name || "N/A",
+              fullName: response.data.fullName || "N/A",
+              phone: response.data.phone || "N/A",
+              email: response.data.email || "N/A",
+              username: response.data.username || "N/A",
+              password: response.data.password || "N/A",
             });
+          } else {
+            alert("ไม่พบข้อมูลในฐานข้อมูล");
           }
           setIsLoading(false);
         })
         .catch((error) => {
-          console.error("Error fetching staff info:", error);
-          alert("ไม่สามารถโหลดข้อมูลบุคลากรได้");
+          console.error("Error fetching staff info:", error.message);
+          alert("เกิดข้อผิดพลาดในการดึงข้อมูลบุคลากร");
           setIsLoading(false);
         });
     }
-  };
+  };  
 
   // ฟังก์ชันแก้ไขข้อมูล
   const handleEdit = () => {
@@ -78,17 +80,18 @@ const ITDashboard = () => {
     axios
       .post("http://localhost:5001/api/update-staff-info", formData)
       .then((response) => {
-        alert("บันทึกข้อมูลสำเร็จ!");
+        console.log("Response from update:", response.data);
+        alert("ข้อมูลถูกบันทึกเรียบร้อย!");
         setIsEditable(false);
         setIsLoading(false);
       })
       .catch((error) => {
-        console.error("Error updating staff info:", error);
-        alert("ไม่สามารถบันทึกข้อมูลได้");
+        console.error("Error updating staff info:", error.message);
+        alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
         setIsLoading(false);
       });
   };
-
+  
   const handleCancel = () => {
     setIsEditable(false);
   };
@@ -163,22 +166,24 @@ const ITDashboard = () => {
           <span onClick={() => handleNavigation("/personnel")}>
             <FontAwesomeIcon icon={faUsers} /> บุคลากร
           </span>
+          <span onClick={() => handleNavigation("/borrow-return")}>
+            <FontAwesomeIcon icon={faFileAlt} /> ยืม & คืน
+          </span>
           <span onClick={() => handleNavigation("/request")}>
             <FontAwesomeIcon icon={faFileAlt} /> คำขอเบิก
           </span>
           <span onClick={() => handleNavigation("/dashboard")}>
             <FontAwesomeIcon icon={faTachometerAlt} /> Dashboard
           </span>
-        </div>
-        <div className="it-info" onClick={toggleProfileModal}>
-          <span onClick={() => handleNavigation("/logout")}>
-            <FontAwesomeIcon icon={faSignOutAlt} /> Log out
+          <span onClick={() => handleNavigation("/logout")} className="logout">
+            <FontAwesomeIcon icon={faSignOutAlt} /> ออกจากระบบ
           </span>
-          <img src={profileImage} alt="IT Staff Icon" />
+        <div className="it-info" onClick={toggleProfileModal}>
+          <img src={profileImage} alt="IT Staff Icon" className="user-icon" />
           <span>เจ้าหน้าที่ฝ่าย IT</span>
         </div>
       </div>
-
+    </div>
       {showProfileModal && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -204,9 +209,26 @@ const ITDashboard = () => {
                   onChange={handleInputChange}
                   disabled={!isEditable}
                 />
-                {/* Add other fields */}
+                {/* เพิ่มฟิลด์ข้อมูลอื่น ๆ */}
+                <label>เบอร์โทรศัพท์:</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  disabled={!isEditable}
+                />
+                <label>อีเมล:</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  disabled={!isEditable}
+                />
               </div>
             )}
+
             <div>
               {!isEditable ? (
                 <button onClick={handleEdit}>แก้ไข</button>

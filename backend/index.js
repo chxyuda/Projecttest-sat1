@@ -177,6 +177,89 @@ app.post('/api/signup', (req, res) => {
   });
 });
 
+// API: ดึงข้อมูลประเภทสินค้า
+// ดึงรายการ products
+app.get('/api/products', (req, res) => {
+  const query = 'SELECT * FROM products';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+// ดึงรายการ categories
+app.get('/api/categories', (req, res) => {
+  const query = 'SELECT DISTINCT category_name FROM products';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+// ดึงรายการ devices
+app.get('/api/devices', (req, res) => {
+  const query = 'SELECT DISTINCT device_name FROM products'; // ตรวจสอบว่า products มีฟิลด์ device_name
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+// ดึงรายการ brands
+app.get('/api/brands', (req, res) => {
+  const query = 'SELECT DISTINCT brand_name AS name FROM products'; // Map brand_name เป็น name
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+app.get('/api/names', (req, res) => {
+  const { type } = req.query;
+
+  if (!type) {
+    return res.status(400).json({ success: false, message: 'กรุณาระบุประเภท (type)' });
+  }
+
+  const query = 'SELECT name FROM categories WHERE type = ?';
+  db.query(query, [type], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+app.post('/api/search-history', (req, res) => {
+  const { category, brand, status } = req.body;
+
+  const query = `
+    INSERT INTO search_history (category, brand, status)
+    VALUES (?, ?, ?)
+  `;
+  db.query(query, [category, brand, status], (err) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(201).json({ success: true, message: 'บันทึกประวัติการค้นหาสำเร็จ' });
+  });
+});
+
+
 // Start Server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
