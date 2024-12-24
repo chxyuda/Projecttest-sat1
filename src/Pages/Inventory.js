@@ -7,105 +7,131 @@ const Inventory = () => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [devices, setDevices] = useState([]);
   const [brands, setBrands] = useState([]);
   const [category, setCategory] = useState("all");
   const [device, setDevice] = useState("all");
   const [brand, setBrand] = useState("all");
-  const [searchHistory, setSearchHistory] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  
 
+  // Fetch data from the backend
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const productResponse = await axios.get("http://localhost:5001/api/products");
-        const categoryResponse = await axios.get("http://localhost:5001/api/categories");
-        const deviceResponse = await axios.get("http://localhost:5001/api/devices"); // API สำหรับดึงข้อมูลอุปกรณ์
-        const brandResponse = await axios.get("http://localhost:5001/api/brands");
-
-        setData(productResponse.data);
-        setFilteredData(productResponse.data);
-        setCategories(categoryResponse.data);
-        setDevices(deviceResponse.data); // ตั้งค่าอุปกรณ์
-        setBrands(brandResponse.data);
+        const productsResponse = await axios.get("http://localhost:5001/api/products");
+        const categoriesResponse = await axios.get("http://localhost:5001/api/categories");
+        const brandsResponse = await axios.get("http://localhost:5001/api/brands");
+  
+        setData(productsResponse.data.data || []); // ดึงเฉพาะ data ที่ซ้อนอยู่ใน response
+        setFilteredData(productsResponse.data.data || []);
+        setCategories(categoriesResponse.data.data || []);
+        setBrands(brandsResponse.data.data || []);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setData([]);
+        setFilteredData([]);
+        setCategories([]);
+        setBrands([]);
       }
     };
     fetchData();
-  }, []);
+  }, []);  
 
   const handleFilter = () => {
     let filtered = data;
-
+  
     if (category !== "all") {
-      filtered = filtered.filter((item) => item.category_name === category);
+      filtered = filtered.filter((item) => item.category === category);
     }
     if (device !== "all") {
-      filtered = filtered.filter((item) => item.device_name === device); // เปลี่ยนฟิลด์เป็น device_name
+      filtered = filtered.filter((item) => item.equipment === device);
     }
     if (brand !== "all") {
-      filtered = filtered.filter((item) => item.brand_name === brand);
+      filtered = filtered.filter((item) => item.brand === brand);
     }
-
+  
     setFilteredData(filtered);
-
+    setCurrentPage(1); // รีเซ็ตไปยังหน้าแรก
+  
     const newSearch = {
-      category,
-      device,
-      brand,
+      category: category !== "all" ? category : "ประเภททั้งหมด",
+      device: device !== "all" ? device : "อุปกรณ์ทั้งหมด",
+      brand: brand !== "all" ? brand : "ยี่ห้อทั้งหมด",
       timestamp: new Date().toLocaleString("th-TH"),
     };
-    setSearchHistory((prevHistory) => [...prevHistory, newSearch]);
+    setSearchHistory((prevHistory) => [newSearch, ...prevHistory]);
   };
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
+  
+  const paginate = (pageNumber) => {
+    console.log(`เปลี่ยนไปยังหน้า: ${pageNumber}`);
+    setCurrentPage(pageNumber);
+  };
+  
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
+  const handleShowHistory = () => {
+  setShowHistory(true);
+    };
+
+  const handleCloseHistory = () => {
+  setShowHistory(false);
+  };
+
+  const goBack = () => {
+    if (currentPage > 1) {
+      console.log("ย้อนกลับไปยังหน้า:", currentPage - 1); // เพิ่มข้อความเพื่อ debug
+      setCurrentPage((prevPage) => prevPage - 1);
+    }
+  };
+  
   return (
-    <div>
+    <>
       <ITDashboard />
       <div className="inventory-container">
-        <h2 className="inventory-title">คลังวัสดุ/ รายการ</h2>
+        <h1>คลังวัสดุ/ รายการ</h1>
         <div className="filter-section">
-          <div className="filter-controls">
-            <select onChange={(e) => setCategory(e.target.value)}>
-              <option value="all">ประเภททั้งหมด</option>
-              {categories.map((cat, index) => (
-                <option key={index} value={cat.category_name}>
-                  {cat.category_name}
-                </option>
-              ))}
-            </select>
-            <select onChange={(e) => setDevice(e.target.value)}>
-              <option value="all">อุปกรณ์ทั้งหมด</option>
-              {devices.map((dev, index) => (
-                <option key={index} value={dev.device_name}>
-                  {dev.device_name}
-                </option>
-              ))}
-            </select>
-            <select onChange={(e) => setBrand(e.target.value)}>
-              <option value="all">ยี่ห้อทั้งหมด</option>
-              {brands.map((brand, index) => (
-                <option key={index} value={brand.name}>
-                  {brand.name}
-                </option>
-              ))}
-            </select>
+        <div className="filter-controls">
+        <select onChange={(e) => setCategory(e.target.value)}>
+          <option value="all">ประเภททั้งหมด</option>
+          {categories.map((cat, index) => (
+          <option key={index} value={cat.category_name}>
+            {cat.category_name}
+          </option>
+          ))}
+        </select>
+        <select onChange={(e) => setDevice(e.target.value)}>
+          <option value="all">อุปกรณ์ทั้งหมด</option>
+            {[...new Set(data.map((item) => item.equipment))].map((uniqueDevice, index) => (
+            <option key={index} value={uniqueDevice}>
+            {uniqueDevice}
+          </option>
+            ))}
+        </select>
+          <select onChange={(e) => setBrand(e.target.value)}>
+          <option value="all">ยี่ห้อทั้งหมด</option>
+            {brands.map((brand, index) => (
+          <option key={index} value={brand.name}>
+             {brand.name}
+            </option>
+            ))}
+          </select>
+          <div className="filter-buttons">
             <button onClick={handleFilter}>ค้นหา</button>
+              <button onClick={handleShowHistory} className="history-btn">
+              ประวัติการค้นหา
+            </button>
           </div>
-          <button className="history-btn">ดูประวัติการค้นหาทั้งหมด</button>
         </div>
-
+      </div>
         <table className="inventory-table">
           <thead>
             <tr>
-              <th>ชื่อสินค้า</th>
+              <th>วัสดุ</th>
               <th>หมายเลขครุภัณฑ์</th>
               <th>ประเภท</th>
               <th>อุปกรณ์</th>
@@ -117,12 +143,12 @@ const Inventory = () => {
           <tbody>
             {currentItems.map((item, index) => (
               <tr key={index}>
-                <td>{item.name}</td>
+                <td>{item.material}</td>
                 <td>{item.serial_number || "-"}</td>
-                <td>{item.category_name}</td>
-                <td>{item.device_name}</td>
-                <td>{item.brand_name}</td>
-                <td>{item.inventory_number}</td>
+                <td>{item.category}</td>
+                <td>{item.equipment}</td>
+                <td>{item.brand}</td>
+                <td>{item.quantity}</td>
                 <td>
                   <button className="details-btn">รายละเอียด</button>
                 </td>
@@ -130,24 +156,57 @@ const Inventory = () => {
             ))}
           </tbody>
         </table>
-
-        <div className="pagination">
-          {Array.from(
-            { length: Math.ceil(filteredData.length / itemsPerPage) },
-            (_, i) => (
-              <button
-                key={i}
-                onClick={() => paginate(i + 1)}
-                className={currentPage === i + 1 ? "active" : ""}
-              >
-                {i + 1}
-              </button>
-            )
-          )}
-        </div>
-      </div>
+        {showHistory && (
+  <div className="modal-overlay">
+    <div className="modal-content">
+      <h3>ประวัติการค้นหา</h3>
+      <button onClick={handleCloseHistory} className="close-btn">
+        ปิด
+      </button>
+      <table className="history-table">
+        <thead>
+          <tr>
+            <th>ประเภท</th>
+            <th>อุปกรณ์</th>
+            <th>ยี่ห้อ</th>
+            <th>เวลา</th>
+          </tr>
+        </thead>
+        <tbody>
+          {searchHistory.map((history, index) => (
+            <tr key={index}>
+              <td>{history.category}</td>
+              <td>{history.device}</td>
+              <td>{history.brand}</td>
+              <td>{history.timestamp}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-  );
+  </div>
+)}
+       <div className="pagination">
+       <button onClick={goBack} disabled={currentPage === 1}>
+          ย้อนกลับ
+        </button>
+          {Array.from(
+          { length: Math.ceil(filteredData.length / itemsPerPage) },
+          (_, i) => (
+            <button
+              key={i}
+              onClick={() => paginate(i + 1)}
+              className={currentPage === i + 1 ? "active" : ""}
+            >
+            {i + 1}
+            </button>
+          )
+        )}
+      </div>
+      </div>
+      </>
+  
+  );  
 };
 
 export default Inventory;

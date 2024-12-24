@@ -1,37 +1,51 @@
-/* Container หลัก */
 .inventory-container {
-  margin: 50px auto; /* จัดให้อยู่ตรงกลางแนวตั้ง */
-  padding: 140px; /* ลด Padding เพื่อให้กระชับ */
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  max-width: 900px; /* เพิ่มความกว้างตาราง */
-  width: 90%; /* ใช้ 90% ของหน้าจอ */
+  margin: 15px auto; /* ระยะห่างจากด้านบน */
+  padding: 20px; /* เพิ่ม Padding ด้านใน */
+  background-color: #ffffff; /* สีพื้นหลัง */
+  border-radius: 10px; /* มุมโค้ง */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+  max-width: 1800px; /* ความกว้างสูงสุด */
+  width: 100%; /* ใช้ 90% ของหน้าจอ */
+  margin-top: 190px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+}
+
+
+/* หัวข้อ */
+.inventory-title {
+  margin-bottom: 20px; /* เพิ่มระยะห่างระหว่างหัวข้อกับตาราง */
+  text-align: center; /* จัดให้อยู่กลาง */
+  font-size: 24px; /* ขนาดตัวอักษร */
+  font-weight: bold; /* ตัวหนา */
 }
 
 /* ส่วนกรองข้อมูล */
 .filter-section {
   display: flex;
-  justify-content: space-between; /* จัดระยะห่างระหว่างตัวเลือก */
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 50px; /* เพิ่มระยะห่างจากตาราง */
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px; /* เพิ่มระยะห่างระหว่างตัวเลือก */
+  margin-bottom: 20px;
+  font-family: 'Prompt', sans-serif;
 }
 
 .filter-controls {
   display: flex;
-  flex-wrap: wrap; /* ให้ตัวเลือกลงบรรทัดถัดไปหากพื้นที่ไม่พอ */
-  gap: 20px; /* เพิ่มช่องว่างระหว่างตัวเลือก */
-  flex: 3; /* ให้ส่วนนี้ใช้พื้นที่มากขึ้น */
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 15px; /* ลดช่องว่าง */
+  width: 100%;
 }
 
 .filter-controls select,
 .filter-controls button {
-  padding: 8px 12px; /* ลดขนาด Padding ให้พอดี */
-  font-size: 14px; /* ลดขนาดฟอนต์ */
+  padding: 10px 15px;
+  font-size: 1ุpx;
   border: 1px solid #ccc;
   border-radius: 5px;
   cursor: pointer;
+  font-family: 'Prompt', sans-serif;
+  min-width: 200px; /* เพิ่มความกว้างขั้นต่ำ */
+  max-width: 300px; /* กำหนดความกว้างสูงสุด */
 }
 
 .filter-controls button {
@@ -45,19 +59,21 @@
   background-color: #005a9e;
 }
 
+
 /* ตาราง */
 .inventory-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
-  font-size: 16px; /* ลดขนาดฟอนต์ของตาราง */
+  font-size: 18px; /* ลดขนาดฟอนต์เล็กน้อย */
+  text-align: left; /* จัดข้อความชิดซ้าย */
 }
 
 .inventory-table th,
 .inventory-table td {
   border: 1px solid #ddd;
-  padding: 10px; /* ลด Padding ในเซลล์ */
-  text-align: center;
+  padding: 12px; /* เพิ่ม Padding ในเซลล์เพื่อความชัดเจน */
+  text-align: center; /* จัดข้อความในตารางให้อยู่กลาง */
 }
 
 .inventory-table th {
@@ -82,7 +98,7 @@
   border-radius: 5px;
   padding: 8px 15px;
   cursor: pointer;
-  font-size: 12px; /* ลดขนาดฟอนต์ปุ่ม */
+  font-size: 14px; /* เพิ่มขนาดฟอนต์ปุ่ม */
 }
 
 .details-btn:hover {
@@ -94,16 +110,17 @@
   display: flex;
   justify-content: center;
   margin-top: 20px;
+  gap: 5px; /* เพิ่มช่องว่างระหว่างปุ่ม */
 }
 
 .pagination button {
   background-color: #0078d7;
   color: white;
   border: none;
-  margin: 0 5px;
   padding: 8px 12px;
   border-radius: 5px;
-  font-size: 12px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 .pagination button:hover {
@@ -113,4 +130,139 @@
 .pagination button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .inventory-container {
+    padding: 20px; /* ลด Padding */
+    max-width: 100%; /* กำหนดความกว้างเป็น 100% */
+  }
+  .filter-section {
+    flex-direction: column; /* จัดตัวเลือกเป็นแนวตั้ง */
+    align-items: flex-start; /* จัดตัวเลือกชิดซ้าย */
+  }
+
+  .filter-controls {
+    display: flex;
+    flex-wrap: wrap; /* จัดองค์ประกอบลงบรรทัดใหม่ถ้าพื้นที่ไม่พอ */
+    gap: 10px; /* ระยะห่างระหว่างตัวเลือก */
+    align-items: center; /* จัดให้อยู่กึ่งกลางในแนวตั้ง */
+  }
+  .filter-controls select {
+    flex: 1; /* ให้ dropdown ขยายตามพื้นที่ */
+    min-width: 150px; /* กำหนดความกว้างขั้นต่ำ */
+  }
+  
+  .filter-buttons {
+    display: flex;
+    gap: 10px; /* ระยะห่างระหว่างปุ่ม */
+  }
+  .filter-buttons button {
+    padding: 10px 15px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .filter-buttons button:first-child {
+    background-color: #0078d7;
+    color: white;
+  }
+  
+  .filter-buttons button:first-child:hover {
+    background-color: #005a9e;
+  }
+  
+  .filter-buttons button.history-btn {
+    background-color: #ffa500; /* สีปุ่มประวัติการค้นหา */
+    color: white;
+  }
+  
+  .filter-buttons button.history-btn:hover {
+    background-color: #cc8400; /* สีเมื่อ hover ปุ่มประวัติการค้นหา */
+  }
+
+  .pagination {
+    gap: 3px; /* ลดช่องว่างระหว่างปุ่ม */
+  }
+
+  .details-btn {
+    font-size: 12px; /* ลดขนาดฟอนต์ปุ่ม */
+  }
+}
+.search-history-btn {
+  margin-left: 5px; /* ระยะห่างระหว่างปุ่ม */
+}
+
+.history-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.history-btn:hover {
+  background-color: #d35400;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #f44336;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.close-btn:hover {
+  background: #d32f2f;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.history-table th,
+.history-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.history-table th {
+  background: #0078d7;
+  color: #fff;
 }

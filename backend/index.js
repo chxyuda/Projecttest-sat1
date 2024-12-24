@@ -154,6 +154,30 @@ app.get('/api/departments', (req, res) => {
     res.status(200).json(results);
   });
 });
+// API: ดึงข้อมูล Sections ตาม Department ID
+app.get('/api/sections/:departmentId', (req, res) => {
+  const departmentId = req.params.departmentId;
+  const query = 'SELECT id, name FROM sections WHERE department_id = ?';
+  db.query(query, [departmentId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+app.get('/api/tasks/:sectionId', (req, res) => {
+  const sectionId = req.params.sectionId;
+  const query = 'SELECT id, name FROM tasks WHERE section_id = ?';
+  db.query(query, [sectionId], (err, results) => {
+      if (err) {
+          console.error('Error fetching tasks:', err);
+          return res.status(500).json({ success: false, error: 'Server error' });
+      }
+      res.status(200).json(results);
+  });
+});
 
 // API: เพิ่มผู้ใช้งานใหม่
 app.post('/api/signup', (req, res) => {
@@ -177,52 +201,51 @@ app.post('/api/signup', (req, res) => {
   });
 });
 
-// API: ดึงข้อมูลประเภทสินค้า
 // ดึงรายการ products
 app.get('/api/products', (req, res) => {
-  const query = 'SELECT * FROM products';
+  const query = `
+    SELECT 
+      model AS material,
+      COALESCE(serial_number, '-') AS serial_number,
+      category_name AS category,
+      name AS equipment,
+      brand_name AS brand,
+      COALESCE(inventory_number, 0) AS quantity
+    FROM products
+  `;
+
   db.query(query, (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ success: false, error: 'Server error' });
     }
-    res.status(200).json(results);
+    res.status(200).json({ success: true, data: results });
   });
 });
 
 // ดึงรายการ categories
 app.get('/api/categories', (req, res) => {
   const query = 'SELECT DISTINCT category_name FROM products';
+  
   db.query(query, (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ success: false, error: 'Server error' });
     }
-    res.status(200).json(results);
-  });
-});
-
-// ดึงรายการ devices
-app.get('/api/devices', (req, res) => {
-  const query = 'SELECT DISTINCT device_name FROM products'; // ตรวจสอบว่า products มีฟิลด์ device_name
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ success: false, error: 'Server error' });
-    }
-    res.status(200).json(results);
+    res.status(200).json({ success: true, data: results });
   });
 });
 
 // ดึงรายการ brands
 app.get('/api/brands', (req, res) => {
-  const query = 'SELECT DISTINCT brand_name AS name FROM products'; // Map brand_name เป็น name
+  const query = 'SELECT DISTINCT brand_name AS name FROM products';
+  
   db.query(query, (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ success: false, error: 'Server error' });
     }
-    res.status(200).json(results);
+    res.status(200).json({ success: true, data: results });
   });
 });
 
