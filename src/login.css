@@ -39,7 +39,9 @@
   text-align: center;
   width: 100%;
   max-width: 400px;
+  margin-top: 40px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative; /* เพื่อจัดไอคอนให้อยู่ด้านบน */
 }
 
 .login-box:hover {
@@ -47,18 +49,20 @@
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* User Icon */
 .user-icon img {
-  display: block;
-  margin: 0 auto 10px;
-  width: 50px;
+  position: absolute; /* เพื่อให้จัดตำแหน่งไอคอน */
+  width: 50px; /* ขนาดไอคอน */
   height: 50px;
+  left: 50%; /* จัดให้อยู่ตรงกลาง */
+  transform: translateX(-50%); /* แก้ไขตำแหน่งให้อยู่กึ่งกลาง */
 }
+
 
 /* Header */
 .login-box h3 {
+  margin-top: 40px; /* เพิ่มระยะห่างด้านบน */
   font-size: 24px;
-  margin-bottom: 30px;
+  text-align: center;
 }
 
 /* Input */

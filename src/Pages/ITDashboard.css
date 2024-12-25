@@ -17,7 +17,7 @@
 /* Header หลัก */
 .header {
   position: fixed;
-  font-family: 'Prompt', sans-serif; /* เปลี่ยนฟอนต์ที่โหลดมา */
+  font-family: 'Kanit', sans-serif; /* เปลี่ยนฟอนต์ที่โหลดมา */
   top: 0;
   left: 0;
   width: 100%;
@@ -31,7 +31,7 @@
 /* ปรับ body ให้มีพื้นที่สำหรับ Header */
 body {
   margin: 0;
-  font-family: 'Prompt', sans-serif; /* เปลี่ยนฟอนต์ที่โหลดมา */
+  font-family: 'Kanit', sans-serif; /* เปลี่ยนฟอนต์ที่โหลดมา */
   padding: 0;
   padding-top: 10px; /* เพิ่มพื้นที่สำหรับ Header ความสูง 70px */
   background-color: #f5f7fa;
@@ -44,12 +44,12 @@ body {
   justify-content: center;
   align-items: center;
   flex: 1; /* ใช้พื้นที่กลาง */
-  gap: 40px; /* ระยะห่างระหว่างเมนู */
+  gap: 30px; /* ระยะห่างระหว่างเมนู */
 }
 
 /* กลุ่มเมนู */
 .navbar-left, .navbar-center, .navbar-right {
-  font-family: 'Prompt', sans-serif; /* เปลี่ยนฟอนต์ */
+  font-family: 'Kanit', sans-serif; /* เปลี่ยนฟอนต์ */
   display: flex;
   align-items: center;
   gap: 70px; /* ระยะห่างระหว่างปุ่ม */

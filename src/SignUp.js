@@ -11,6 +11,7 @@ const SignUp = () => {
     const [formData, setFormData] = useState({
         username: '',
         password: '',
+        confirmPassword: '',
         fullName: '',
         email: '',
         phone: '',
@@ -18,15 +19,13 @@ const SignUp = () => {
         sectionName: '',
         taskName: '',
     });
+    const [passwordMatch, setPasswordMatch] = useState(true); // State สำหรับตรวจสอบรหัสผ่าน
     const navigate = useNavigate();
 
     // Fetch departments
     useEffect(() => {
         axios.get('http://localhost:5001/api/departments')
-            .then(response => {
-                console.log(response.data);
-                setDepartments(response.data);
-            })
+            .then(response => setDepartments(response.data))
             .catch(error => console.error('Error fetching departments:', error));
     }, []);
 
@@ -34,47 +33,28 @@ const SignUp = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-    };
 
-    // Handle department change
-    const handleDepartmentChange = (e) => {
-        const selectedIndex = e.target.selectedIndex;
-        const departmentName = e.target.options[selectedIndex].text;
-        setFormData({ ...formData, departmentName, sectionName: '', taskName: '' });
-        setSections([]);
-        setTasks([]);
-        axios.get(`http://localhost:5001/api/sections/${e.target.value}`)
-            .then(response => {
-                console.log('Sections fetched:', response.data);
-                setSections(response.data);
-            })
-            .catch(error => console.error('Error fetching sections:', error));
-    };
-
-    const handleSectionChange = (e) => {
-        const selectedIndex = e.target.selectedIndex;
-        const sectionName = e.target.options[selectedIndex].text;
-        setFormData({ ...formData, sectionName, taskName: '' });
-        setTasks([]);
-        axios.get(`http://localhost:5001/api/tasks/${e.target.value}`)
-            .then(response => {
-                console.log('Tasks fetched:', response.data);
-                setTasks(response.data);
-            })
-            .catch(error => console.error('Error fetching tasks:', error));
-    };
-
-    const handleTaskChange = (e) => {
-        const selectedIndex = e.target.selectedIndex;
-        const taskName = e.target.options[selectedIndex].text;
-        setFormData({ ...formData, taskName });
+        // ตรวจสอบรหัสผ่านตรงกันเมื่อกรอก
+        if (name === 'password' || name === 'confirmPassword') {
+            setPasswordMatch(
+                name === 'password'
+                    ? value === formData.confirmPassword
+                    : value === formData.password
+            );
+        }
     };
 
     // Handle form submit
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const { username, password, fullName, email, phone, departmentName, sectionName, taskName } = formData;
+        const { password, confirmPassword, username, fullName, email, phone, departmentName, sectionName, taskName } = formData;
+
+        if (password !== confirmPassword) {
+            alert('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน');
+            return;
+        }
+
         if (!username || !password || !fullName || !email || !phone || !departmentName || !sectionName || !taskName) {
             alert('กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง');
             return;
@@ -85,7 +65,7 @@ const SignUp = () => {
                 alert('สมัครสมาชิกสำเร็จ');
                 navigate('/');
             })
-            .catch((error) => {
+            .catch(error => {
                 console.error('Error during signup:', error);
                 alert('เกิดข้อผิดพลาดในการสมัครสมาชิก');
             });
@@ -100,31 +80,68 @@ const SignUp = () => {
                     <div className="row">
                         <div className="form-group">
                             <label>Username</label>
-                            <input type="text" name="username" placeholder="Enter Username" onChange={handleInputChange} />
+                            <input
+                                type="text"
+                                name="username"
+                                placeholder="กรอก Username"
+                                onChange={handleInputChange}
+                            />
                         </div>
                         <div className="form-group">
                             <label>Password</label>
-                            <input type="password" name="password" placeholder="Enter Password" onChange={handleInputChange} />
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="กรอกรหัสผ่าน"
+                                onChange={handleInputChange}
+                            />
                         </div>
                     </div>
                     <div className="form-group">
+                        <label>Confirm Password</label>
+                        <input
+                            type="password"
+                            name="confirmPassword"
+                            placeholder="ยืนยันรหัสผ่าน"
+                            onChange={handleInputChange}
+                        />
+                        {!passwordMatch && (
+                            <small style={{ color: 'red' }}>รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน</small>
+                        )}
+                    </div>
+                    <div className="form-group">
                         <label>ชื่อ-นามสกุล</label>
-                        <input type="text" name="fullName" placeholder="ชื่อ-นามสกุล" onChange={handleInputChange} />
+                        <input
+                            type="text"
+                            name="fullName"
+                            placeholder="ชื่อ-นามสกุล"
+                            onChange={handleInputChange}
+                        />
                     </div>
                     <div className="row">
                         <div>
                             <label>E-mail</label>
-                            <input type="email" name="email" placeholder="example@sat.th" onChange={handleInputChange} />
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="example@sat.th"
+                                onChange={handleInputChange}
+                            />
                         </div>
                         <div>
                             <label>เบอร์โทรภายใน</label>
-                            <input type="text" name="phone" placeholder="เบอร์โทร" onChange={handleInputChange} />
+                            <input
+                                type="text"
+                                name="phone"
+                                placeholder="เบอร์โทร"
+                                onChange={handleInputChange}
+                            />
                         </div>
                     </div>
                     <div className="row">
                         <div>
                             <label>ฝ่าย/สำนัก</label>
-                            <select name="departmentName" onChange={handleDepartmentChange}>
+                            <select name="departmentName" onChange={handleInputChange}>
                                 <option value="">เลือก</option>
                                 {departments.map(dept => (
                                     <option key={dept.id} value={dept.id}>{dept.name}</option>
@@ -133,7 +150,7 @@ const SignUp = () => {
                         </div>
                         <div>
                             <label>กอง</label>
-                            <select name="sectionName" onChange={handleSectionChange}>
+                            <select name="sectionName" onChange={handleInputChange}>
                                 <option value="">เลือก</option>
                                 {sections.map(section => (
                                     <option key={section.id} value={section.id}>{section.name}</option>
@@ -143,14 +160,14 @@ const SignUp = () => {
                     </div>
                     <div className="form-group">
                         <label>งาน</label>
-                        <select name="taskName" onChange={handleTaskChange}>
+                        <select name="taskName" onChange={handleInputChange}>
                             <option value="">เลือก</option>
                             {tasks.map(task => (
                                 <option key={task.id} value={task.id}>{task.name}</option>
                             ))}
                         </select>
                     </div>
-                    <button type="submit">Sign Up</button>
+                    <button type="submit" disabled={!passwordMatch}>Sign Up</button>
                 </form>
             </div>
         </div>

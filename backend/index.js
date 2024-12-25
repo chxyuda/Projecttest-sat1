@@ -181,23 +181,39 @@ app.get('/api/tasks/:sectionId', (req, res) => {
 
 // API: เพิ่มผู้ใช้งานใหม่
 app.post('/api/signup', (req, res) => {
-  const { username, password, fullName, email, phone, departmentId, sectionId, taskId } = req.body;
+  const { username, password, fullName, email, phone, departmentName, sectionName, taskName } = req.body;
 
-  if (!username || !password || !email || !fullName || !phone || !departmentId || !sectionId || !taskId) {
+  console.log("Received signup data:", req.body);
+
+  // ตรวจสอบว่ามีข้อมูลครบถ้วน
+  if (!username || !password || !email || !fullName || !phone || !departmentName || !sectionName || !taskName) {
     return res.status(400).json({ success: false, message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
   }
 
-  const query = `
-    INSERT INTO users (username, password, fullName, email, phone, department_id, section_id, task_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
-  db.query(query, [username, password, fullName, email, phone, departmentId, sectionId, taskId], (err) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
+  // ตรวจสอบว่าชื่อผู้ใช้หรืออีเมลซ้ำหรือไม่
+  const checkQuery = `SELECT * FROM users WHERE username = ? OR email = ?`;
+  db.query(checkQuery, [username, email], (checkErr, checkResults) => {
+    if (checkErr) {
+      console.error('Database error during username/email check:', checkErr);
+      return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการตรวจสอบข้อมูล' });
     }
-    res.status(201).json({ success: true, message: 'สมัครสมาชิกสำเร็จ' });
+
+    if (checkResults.length > 0) {
+      return res.status(400).json({ success: false, message: 'ชื่อผู้ใช้หรืออีเมลนี้มีอยู่ในระบบแล้ว' });
+    }
+
+    // ดำเนินการเพิ่มผู้ใช้ในฐานข้อมูล
+    const insertQuery = `
+      INSERT INTO users (username, password, fullName, email, phone, department_name, section_name, task_name)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    db.query(insertQuery, [username, password, fullName, email, phone, departmentName, sectionName, taskName], (insertErr) => {
+      if (insertErr) {
+        console.error('Database error during user insertion:', insertErr);
+        return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
+      }
+      res.status(201).json({ success: true, message: 'สมัครสมาชิกสำเร็จ' });
+    });
   });
 });
 
@@ -220,6 +236,51 @@ app.get('/api/products', (req, res) => {
       return res.status(500).json({ success: false, error: 'Server error' });
     }
     res.status(200).json({ success: true, data: results });
+  });
+});
+
+app.post("/api/products", (req, res) => {
+  const { material, serialNumber, category, equipment, brand, quantity, remaining, status } = req.body;
+  const query = `
+    INSERT INTO products (material, serial_number, category, equipment, brand, quantity, remaining, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  db.query(query, [material, serialNumber, category, equipment, brand, quantity, remaining, status], (err) => {
+    if (err) {
+      console.error("Error adding product:", err);
+      res.status(500).json({ success: false, error: "Database error" });
+    } else {
+      res.status(201).json({ success: true });
+    }
+  });
+});
+
+app.put("/api/products/:id", (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+  const fields = Object.keys(updates).map((field) => `${field} = ?`).join(", ");
+  const values = Object.values(updates);
+  const query = `UPDATE products SET ${fields} WHERE id = ?`;
+  db.query(query, [...values, id], (err) => {
+    if (err) {
+      console.error("Error updating product:", err);
+      res.status(500).json({ success: false, error: "Database error" });
+    } else {
+      res.status(200).json({ success: true });
+    }
+  });
+});
+
+app.delete("/api/products/:id", (req, res) => {
+  const { id } = req.params;
+  const query = "DELETE FROM products WHERE id = ?";
+  db.query(query, [id], (err) => {
+    if (err) {
+      console.error("Error deleting product:", err);
+      res.status(500).json({ success: false, error: "Database error" });
+    } else {
+      res.status(200).json({ success: true });
+    }
   });
 });
 
