@@ -5,176 +5,107 @@ import axios from "axios";
 
 const Settings = () => {
   const [data, setData] = useState([]);
-  const [modalType, setModalType] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
 
-  // ดึงข้อมูลสำหรับตารางหลัก
+  // Fetch data
   useEffect(() => {
     fetchData();
   }, []);
 
-  const fetchData = () => {
-    axios
-      .get("/api/inventory")
-      .then((response) => setData(response.data))
-      .catch((error) => console.error("Error fetching data:", error));
-  };
-
-  const handleEdit = (id, field, value) => {
-    setData((prevData) =>
-      prevData.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
-      )
-    );
-  };
-
-  const handleSave = (id) => {
-    const item = data.find((item) => item.id === id);
-    axios
-      .put(`/api/inventory/${id}`, item)
-      .then(() => fetchData())
-      .catch((error) => console.error("Error saving data:", error));
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm("คุณต้องการลบข้อมูลนี้หรือไม่?")) {
-      axios
-        .delete(`/api/inventory/${id}`)
-        .then(() => fetchData())
-        .catch((error) => console.error("Error deleting data:", error));
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("http://localhost:5001/api/products");
+      setData(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching product data:", error);
     }
   };
 
-  const handleAdd = () => {
-    const newItem = {
-      material: "",
-      serialNumber: "",
-      category: "",
-      equipment: "",
-      brand: "",
-      quantity: 0,
-      remaining: 0,
-      status: "",
-    };
-    setData([newItem, ...data]);
+  const handleCheckboxChange = (id) => {
+    setSelectedItems((prevSelected) =>
+      prevSelected.includes(id)
+        ? prevSelected.filter((item) => item !== id) // Uncheck
+        : [...prevSelected, id] // Check
+    );
   };
 
-  const handleManageClick = (type) => {
-    setModalType(type);
-    setIsModalOpen(true);
+  const handleDeleteSelected = async () => {
+    if (selectedItems.length === 0) {
+      alert("กรุณาเลือกอย่างน้อยหนึ่งรายการเพื่อลบ");
+      return;
+    }
+
+    if (window.confirm("คุณต้องการลบข้อมูลที่เลือกไว้หรือไม่?")) {
+      try {
+        await Promise.all(
+          selectedItems.map((id) =>
+            axios.delete(`http://localhost:5001/api/products/${id}`)
+          )
+        );
+        setData(data.filter((item) => !selectedItems.includes(item.id)));
+        setSelectedItems([]);
+        alert("ลบข้อมูลสำเร็จ");
+      } catch (error) {
+        console.error("Error deleting selected items:", error);
+        alert("เกิดข้อผิดพลาดในการลบข้อมูล");
+      }
+    }
   };
 
   return (
     <div>
       <ITDashboard />
-      <h1>การตั้งค่า</h1>
-      <div className="settings-actions">
-        <button onClick={() => handleManageClick("category")}>ประเภท</button>
-        <button onClick={() => handleManageClick("equipment")}>อุปกรณ์</button>
-        <button onClick={() => handleManageClick("brand")}>ยี่ห้อ</button>
-      </div>
-      <button className="add-btn" onClick={handleAdd}>เพิ่มข้อมูลใหม่</button>
-      <table className="settings-table">
-        <thead>
-          <tr>
-            <th>ลบ</th>
-            <th>วัสดุ</th>
-            <th>หมายเลขครุภัณฑ์</th>
-            <th>ประเภท</th>
-            <th>อุปกรณ์</th>
-            <th>ยี่ห้อ</th>
-            <th>จำนวน</th>
-            <th>คงเหลือ</th>
-            <th>สถานะ</th>
-            <th>บันทึก</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <tr key={item.id}>
-              <td>
-                <button onClick={() => handleDelete(item.id)}>ลบ</button>
-              </td>
-              {Object.keys(item).map((key) =>
-                key !== "id" ? (
-                  <td key={key}>
-                    <input
-                      type="text"
-                      value={item[key]}
-                      onChange={(e) => handleEdit(item.id, key, e.target.value)}
-                    />
-                  </td>
-                ) : null
-              )}
-              <td>
-                <button onClick={() => handleSave(item.id)}>บันทึก</button>
-              </td>
+      <div className="settings-container">
+        <h1>การตั้งค่า</h1>
+        <div className="actions">
+          <button
+            onClick={handleDeleteSelected}
+            className="delete-selected-btn"
+          >
+            ลบรายการที่เลือก
+          </button>
+        </div>
+        <table className="settings-table">
+          <thead>
+            <tr>
+              <th>เลือก</th>
+              <th>วัสดุ</th>
+              <th>หมายเลขครุภัณฑ์</th>
+              <th>ประเภท</th>
+              <th>อุปกรณ์</th>
+              <th>ยี่ห้อ</th>
+              <th>จำนวน</th>
+              <th>คงเหลือ</th>
+              <th>จัดการ</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <ManageModal
-        type={modalType}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+          </thead>
+          <tbody>
+            {data.map((item) => (
+              <tr key={item.id}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(item.id)}
+                    onChange={() => handleCheckboxChange(item.id)}
+                  />
+                </td>
+                <td>{item.material}</td>
+                <td>{item.serial_number || "-"}</td>
+                <td>{item.category}</td>
+                <td>{item.equipment}</td>
+                <td>{item.brand}</td>
+                <td>{item.quantity}</td>
+                <td>{item.remaining}</td>
+                <td>
+                  <button className="edit-btn">แก้ไข</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
-};
-
-const ManageModal = ({ type, isOpen, onClose }) => {
-  const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState("");
-
-  useEffect(() => {
-    if (isOpen) {
-      axios
-        .get(`/api/${type}`)
-        .then((response) => setItems(response.data))
-        .catch((error) => console.error("Error fetching modal data:", error));
-    }
-  }, [type, isOpen]);
-
-  const handleAdd = () => {
-    axios
-      .post(`/api/${type}`, { name: newItem })
-      .then(() => {
-        setItems([...items, { id: Date.now(), name: newItem }]);
-        setNewItem("");
-      })
-      .catch((error) => console.error("Error adding item:", error));
-  };
-
-  const handleDelete = (id) => {
-    axios
-      .delete(`/api/${type}/${id}`)
-      .then(() => setItems(items.filter((item) => item.id !== id)))
-      .catch((error) => console.error("Error deleting item:", error));
-  };
-
-  return isOpen ? (
-    <div className="modal">
-      <div className="modal-content">
-        <h2>จัดการ {type}</h2>
-        <ul>
-          {items.map((item) => (
-            <li key={item.id}>
-              {item.name}
-              <button onClick={() => handleDelete(item.id)}>ลบ</button>
-            </li>
-          ))}
-        </ul>
-        <input
-          type="text"
-          value={newItem}
-          onChange={(e) => setNewItem(e.target.value)}
-          placeholder={`เพิ่ม ${type}`}
-        />
-        <button onClick={handleAdd}>เพิ่ม</button>
-        <button onClick={onClose}>ปิด</button>
-      </div>
-    </div>
-  ) : null;
 };
 
 export default Settings;
