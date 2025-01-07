@@ -226,7 +226,8 @@ app.get('/api/products', (req, res) => {
       category_name AS category,
       name AS equipment,
       brand_name AS brand,
-      COALESCE(inventory_number, 0) AS quantity
+      COALESCE(inventory_number, 0) AS quantity,
+      details -- เพิ่มฟิลด์นี้
     FROM products
   `;
 
@@ -239,13 +240,14 @@ app.get('/api/products', (req, res) => {
   });
 });
 
+
 app.post("/api/products", (req, res) => {
-  const { material, serialNumber, category, equipment, brand, quantity, remaining, status } = req.body;
+  const { material, serialNumber, category, equipment, brand, quantity, remaining, status, details } = req.body; // เพิ่ม details
   const query = `
-    INSERT INTO products (material, serial_number, category, equipment, brand, quantity, remaining, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO products (material, serial_number, category, equipment, brand, quantity, remaining, status, details)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) -- เพิ่ม details
   `;
-  db.query(query, [material, serialNumber, category, equipment, brand, quantity, remaining, status], (err) => {
+  db.query(query, [material, serialNumber, category, equipment, brand, quantity, remaining, status, details], (err) => {
     if (err) {
       console.error("Error adding product:", err);
       res.status(500).json({ success: false, error: "Database error" });
@@ -254,6 +256,7 @@ app.post("/api/products", (req, res) => {
     }
   });
 });
+
 
 app.put("/api/products/:id", (req, res) => {
   const { id } = req.params;
@@ -271,15 +274,22 @@ app.put("/api/products/:id", (req, res) => {
   });
 });
 
-app.delete("/api/products/:id", (req, res) => {
-  const { id } = req.params;
-  const query = "DELETE FROM products WHERE id = ?";
-  db.query(query, [id], (err) => {
+
+app.post("/api/products/delete", (req, res) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ success: false, message: "Invalid IDs" });
+  }
+
+  const query = `DELETE FROM products WHERE id IN (?)`;
+  db.query(query, [ids], (err, result) => {
     if (err) {
-      console.error("Error deleting product:", err);
-      res.status(500).json({ success: false, error: "Database error" });
+      console.error("Error deleting products:", err);
+      res.status(500).json({ success: false, message: "Database error" });
     } else {
-      res.status(200).json({ success: true });
+      res
+        .status(200)
+        .json({ success: true, message: "Products deleted successfully", affectedRows: result.affectedRows });
     }
   });
 });
@@ -294,6 +304,43 @@ app.get('/api/categories', (req, res) => {
       return res.status(500).json({ success: false, error: 'Server error' });
     }
     res.status(200).json({ success: true, data: results });
+  });
+});
+
+app.post('/api/categories', (req, res) => {
+  const { name } = req.body;
+  const query = 'INSERT INTO categories (name) VALUES (?)';
+  db.query(query, [name], (err, result) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(201).json({ success: true, id: result.insertId });
+  });
+});
+
+app.put('/api/categories/:id', (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+  const query = 'UPDATE categories SET name = ? WHERE id = ?';
+  db.query(query, [name, id], (err) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json({ success: true });
+  });
+});
+
+app.delete('/api/categories/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM categories WHERE id = ?';
+  db.query(query, [id], (err) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json({ success: true });
   });
 });
 

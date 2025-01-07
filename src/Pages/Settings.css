@@ -1,20 +1,27 @@
 /* โครงสร้างทั่วไป */
 body {
   font-family: 'Arial', sans-serif;
-  background-color: #f9f9f9;
+  background-color: #dfe9f1;
   margin: 0;
   padding: 0;
 }
 
 .settings-container {
   margin: 200px auto; /* ระยะห่างจากด้านบน */
-  padding: 10px; /* เพิ่ม Padding ด้านใน */
+  padding: 30px; /* เพิ่ม Padding ด้านใน */
   background-color: #ffffff; /* สีพื้นหลัง */
   border-radius: 10px; /* มุมโค้ง */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
   max-width: 1800px; /* ความกว้างสูงสุด */
   max-width: 1400px; /* ลดความกว้างสูงสุด */
   width: 90%; /* ใช้พื้นที่ 90% ของหน้าจอ */
+}
+
+.settings-actions {
+  display: flex; /* ใช้ Flexbox */
+  align-items: center; /* จัดให้อยู่ในแนวเดียวกัน */
+  gap: 2px; /* ระยะห่างระหว่างปุ่ม */
+  margin-bottom: 20px;
 }
 
 h1 {
@@ -67,31 +74,44 @@ h1 {
 }
 
 /* ตารางข้อมูล */
-.settings-table {
+settings-table {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
+  border-collapse: collapse; /* รวมเส้นขอบ */
+  border-spacing: 0; /* ไม่มีช่องว่างระหว่างเซลล์ */
   background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
 }
 
-.settings-table thead th,
+.settings-table th,
 .settings-table td {
-  border: 1px solid #ddd;
+  border: 1px solid #9b9898; /* เส้นขอบ */
   padding: 8px;
   text-align: center;
   font-size: 14px;
+  box-sizing: border-box; /* รวม padding และ border */
 }
 
-.settings-table thead th {
+
+.settings-table th {
   background-color: #f8f9fa;
   font-weight: bold;
   color: #333;
   position: sticky;
   top: 0;
   z-index: 2;
+}
+
+.settings-table thead th {
+  background-color: #007bff; /* สีพื้นหลัง */
+  color: #ffffff; /* สีข้อความ */
+  font-weight: bold; /* ข้อความตัวหนา */
+  text-align: center; /* จัดข้อความให้อยู่กลาง */
+  padding: 10px; /* ระยะห่างภายในเซลล์ */
+  border: 1px solid #ddd; /* เส้นขอบ */
+}
+
+.settings-table tbody td {
+  background-color: #ffffff; /* พื้นหลังของเซลล์ */
 }
 
 .settings-table td input {
@@ -153,21 +173,17 @@ h1 {
 }
 
 .modal-content {
-  background: white;
+  background: #fff;
   padding: 20px;
   border-radius: 10px;
-  width: 500px; /* ลดความกว้าง */
-  max-width: 90%; /* รองรับหน้าจอเล็ก */
-  max-height: 80vh; /* กำหนดความสูงสูงสุด */
-  overflow-y: auto; /* เพิ่ม scroll ถ้าสูงเกิน */
+  width: 500px;
+  max-width: 90%;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  text-align: center;
 }
 
 .modal-content h2 {
   font-size: 24px;
-  margin-bottom: 20px;
-  color: #333;
+  margin-bottom: 10px;
 }
 
 .modal-content table {
@@ -246,18 +262,47 @@ h1 {
   background-color: #5a6268;
 }
 
+.close-btn {
+  float: right;
+  background: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 50%;
+}
+
 .delete-selected-btn {
   background-color: #dc3545;
   color: white;
-  padding: 10px 20px;
+  padding: 10px 15px;
   border: none;
   border-radius: 5px;
+  font-size: 14px;
   cursor: pointer;
-  font-size: 16px;
-  margin-bottom: 20px;
 }
 
 .delete-selected-btn:hover {
   background-color: #c82333;
 }
+
+input[type="checkbox"] {
+  appearance: checkbox; /* ตรวจสอบว่าไม่ได้ซ่อน checkbox */
+  margin: 0;
+  padding: 0;
+}
+
+.custom-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.custom-btn:hover {
+  background-color: #0056b3;
+}
+
 
