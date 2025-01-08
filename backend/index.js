@@ -257,14 +257,12 @@ app.post("/api/products", (req, res) => {
   });
 });
 
-
 app.put("/api/products/:id", (req, res) => {
   const { id } = req.params;
-  const updates = req.body;
-  const fields = Object.keys(updates).map((field) => `${field} = ?`).join(", ");
-  const values = Object.values(updates);
-  const query = `UPDATE products SET ${fields} WHERE id = ?`;
-  db.query(query, [...values, id], (err) => {
+  const { name } = req.body;
+
+  const query = `UPDATE products SET name = ? WHERE id = ?`;
+  db.query(query, [name, id], (err) => {
     if (err) {
       console.error("Error updating product:", err);
       res.status(500).json({ success: false, error: "Database error" });
@@ -273,6 +271,7 @@ app.put("/api/products/:id", (req, res) => {
     }
   });
 });
+
 
 
 app.post("/api/products/delete", (req, res) => {
@@ -307,17 +306,22 @@ app.get('/api/categories', (req, res) => {
   });
 });
 
-app.post('/api/categories', (req, res) => {
-  const { name } = req.body;
-  const query = 'INSERT INTO categories (name) VALUES (?)';
-  db.query(query, [name], (err, result) => {
+app.post("/api/categories", (req, res) => {
+  const { name, type } = req.body;
+  if (!name) {
+    return res.status(400).json({ success: false, message: "กรุณากรอกชื่อประเภท" });
+  }
+
+  const query = "INSERT INTO categories (name, type) VALUES (?, ?)";
+  db.query(query, [name, type || "ประเภททั่วไป"], (err, result) => {
     if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ success: false, error: 'Server error' });
+      console.error("Error adding category:", err);
+      return res.status(500).json({ success: false, error: "Database error" });
     }
     res.status(201).json({ success: true, id: result.insertId });
   });
 });
+
 
 app.put('/api/categories/:id', (req, res) => {
   const { id } = req.params;
