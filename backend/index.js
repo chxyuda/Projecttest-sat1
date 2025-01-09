@@ -295,8 +295,7 @@ app.post("/api/products/delete", (req, res) => {
 
 // ดึงรายการ categories
 app.get('/api/categories', (req, res) => {
-  const query = 'SELECT DISTINCT category_name FROM products';
-  
+  const query = 'SELECT id, name, type FROM categories';
   db.query(query, (err, results) => {
     if (err) {
       console.error('Database error:', err);
@@ -308,15 +307,16 @@ app.get('/api/categories', (req, res) => {
 
 app.post("/api/categories", (req, res) => {
   const { name, type } = req.body;
+
   if (!name) {
-    return res.status(400).json({ success: false, message: "กรุณากรอกชื่อประเภท" });
+    return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" });
   }
 
   const query = "INSERT INTO categories (name, type) VALUES (?, ?)";
-  db.query(query, [name, type || "ประเภททั่วไป"], (err, result) => {
+  db.query(query, [name, type || 'ประเภททั่วไป'], (err, result) => {
     if (err) {
       console.error("Error adding category:", err);
-      return res.status(500).json({ success: false, error: "Database error" });
+      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
     }
     res.status(201).json({ success: true, id: result.insertId });
   });
@@ -325,9 +325,14 @@ app.post("/api/categories", (req, res) => {
 
 app.put('/api/categories/:id', (req, res) => {
   const { id } = req.params;
-  const { name } = req.body;
-  const query = 'UPDATE categories SET name = ? WHERE id = ?';
-  db.query(query, [name, id], (err) => {
+  const { name, type } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ success: false, message: "กรุณากรอกชื่อประเภท" });
+  }
+
+  const query = 'UPDATE categories SET name = ?, type = ? WHERE id = ?';
+  db.query(query, [name, type || 'ประเภททั่วไป', id], (err) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ success: false, error: 'Server error' });
@@ -336,17 +341,27 @@ app.put('/api/categories/:id', (req, res) => {
   });
 });
 
+
 app.delete('/api/categories/:id', (req, res) => {
   const { id } = req.params;
-  const query = 'DELETE FROM categories WHERE id = ?';
-  db.query(query, [id], (err) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ success: false, error: 'Server error' });
+
+  const checkQuery = 'SELECT * FROM categories WHERE id = ?';
+  db.query(checkQuery, [id], (checkErr, checkResults) => {
+    if (checkErr || checkResults.length === 0) {
+      return res.status(404).json({ success: false, message: 'ไม่พบข้อมูลที่ต้องการลบ' });
     }
-    res.status(200).json({ success: true });
+
+    const deleteQuery = 'DELETE FROM categories WHERE id = ?';
+    db.query(deleteQuery, [id], (deleteErr) => {
+      if (deleteErr) {
+        console.error('Database error:', deleteErr);
+        return res.status(500).json({ success: false, error: 'Server error' });
+      }
+      res.status(200).json({ success: true });
+    });
   });
 });
+
 
 // ดึงรายการ brands
 app.get('/api/brands', (req, res) => {
@@ -360,6 +375,59 @@ app.get('/api/brands', (req, res) => {
     res.status(200).json({ success: true, data: results });
   });
 });
+
+// ตัวอย่าง API สำหรับเพิ่มยี่ห้อ (brands)
+app.post('/api/brands', async (req, res) => {
+  console.log("Request Body:", req.body); // Debug ค่าที่มาจาก Frontend
+  const { name, category } = req.body;
+
+  if (!name || !category) {
+      return res.status(400).json({ success: false, message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
+  }
+
+  try {
+      const result = await db.query('INSERT INTO brands (name, category) VALUES (?, ?)', [name, category]);
+      res.status(200).json({ success: true, id: result.insertId });
+  } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการเพิ่มยี่ห้อ' });
+  }
+});
+
+app.delete('/api/brands/:id', async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+      return res.status(400).json({ success: false, message: 'ID ไม่ถูกต้อง' });
+  }
+
+  try {
+      const query = 'DELETE FROM brands WHERE id = ?';
+      await db.query(query, [id]);
+      res.status(200).json({ success: true, message: 'ลบยี่ห้อสำเร็จ' });
+  } catch (error) {
+      console.error('Error deleting brand:', error);
+      res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการลบยี่ห้อ' });
+  }
+});
+
+app.put('/api/brands/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, category } = req.body;
+
+    if (!id || !name || !category) {
+        return res.status(400).json({ success: false, message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
+    }
+
+    try {
+        const query = 'UPDATE brands SET name = ?, category = ? WHERE id = ?';
+        await db.query(query, [name, category, id]);
+        res.status(200).json({ success: true, message: 'แก้ไขยี่ห้อสำเร็จ' });
+    } catch (error) {
+        console.error('Error updating brand:', error);
+        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ' });
+    }
+});
+
 
 app.get('/api/names', (req, res) => {
   const { type } = req.query;

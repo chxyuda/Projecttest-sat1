@@ -17,7 +17,15 @@ const Settings = () => {
   const [newEquipment, setNewEquipment] = useState(""); // สำหรับเพิ่มอุปกรณ์ใหม่
   const [editingEquipmentRow, setEditingEquipmentRow] = useState(null); // เก็บ index ของแถวที่กำลังแก้ไข
   const [showEquipmentsModal, setShowEquipmentsModal] = useState(false); // สำหรับเปิด/ปิด Modal
+  const [editingBrandName, setEditingBrandName] = useState(""); // สำหรับชื่อยี่ห้อ
+  const [editingBrandIndex, setEditingBrandIndex] = useState(null); // สำหรับ index ที่กำลังแก้ไข
+  const [newBrand, setNewBrand] = useState(""); // State สำหรับจัดเก็บค่าชื่อยี่ห้อใหม่
+  const [brands, setBrands] = useState([]); // State สำหรับจัดเก็บรายชื่อยี่ห้อทั้งหมด  
+  const [showBrandModal, setShowBrandModal] = useState(false); // ควบคุมการแสดงผล Modal
+  const [selectedCategory, setSelectedCategory] = useState(""); // State สำหรับเก็บประเภทที่เลือก
   
+
+
 
 
   console.log("Selected Items:", selectedItems);
@@ -121,19 +129,14 @@ const Settings = () => {
       alert("กรุณากรอกชื่อประเภท");
       return;
     }
-  
+
     try {
       const response = await axios.post("http://localhost:5001/api/categories", {
         name: newCategory,
-        type: "ประเภททั่วไป", // กำหนดค่า Default
       });
-  
       if (response.data.success) {
-        setCategories([
-          ...categories,
-          { id: response.data.id, name: newCategory, type: "ประเภททั่วไป" },
-        ]);
-        setNewCategory(""); // ล้างค่า input
+        setCategories([...categories, { id: response.data.id, name: newCategory }]);
+        setNewCategory("");
         alert("เพิ่มประเภทสำเร็จ");
       }
     } catch (error) {
@@ -141,7 +144,7 @@ const Settings = () => {
       alert("เกิดข้อผิดพลาดในการเพิ่มประเภท");
     }
   };
-  
+
   const handleDeleteCategory = (index) => {
     if (window.confirm("คุณต้องการลบประเภทนี้หรือไม่?")) {
       const updatedCategories = categories.filter((_, i) => i !== index);
@@ -308,6 +311,135 @@ const Settings = () => {
     console.log("Categories state:", categories);
   }, [categories]);
   
+
+  useEffect(() => {
+    handleFetchBrands();
+  }, []);
+
+  const fetchBrands = async () => {
+    try {
+        const response = await axios.get("http://localhost:5001/api/brands");
+        setBrands(response.data.data || []);
+    } catch (error) {
+        console.error("Error fetching brands:", error);
+    }
+};
+
+useEffect(() => {
+    fetchBrands();
+}, []);
+
+  
+  const handleFetchBrands = async () => {
+    try {
+      const response = await axios.get("http://localhost:5001/api/brands"); // ดึงข้อมูลจาก API ยี่ห้อ
+      if (response.data.success) {
+        setBrands(response.data.data || []); // อัปเดตข้อมูล state ของยี่ห้อ
+      } else {
+        alert("ไม่พบข้อมูลยี่ห้อ");
+      }
+    } catch (error) {
+      console.error("Error fetching brands:", error);
+      alert("ไม่สามารถดึงข้อมูลยี่ห้อได้ กรุณาตรวจสอบ API หรือเซิร์ฟเวอร์");
+    }
+  };
+
+  const handleAddBrand = async () => {
+    console.log("New Brand:", newBrand);
+    console.log("Selected Category:", selectedCategory);
+  
+    if (!newBrand.trim() || !selectedCategory) {
+      alert("กรุณากรอกชื่อยี่ห้อและเลือกประเภท");
+      return;
+    }
+  
+    try {
+      const response = await axios.post("http://localhost:5001/api/brands", {
+        name: newBrand,
+        category: selectedCategory,
+      });
+  
+      if (response.data.success) {
+        setBrands((prevBrands) => [...prevBrands, { id: response.data.id, name: newBrand, category: selectedCategory }]);
+        setNewBrand("");
+        setSelectedCategory("");
+        alert("เพิ่มยี่ห้อสำเร็จ");
+      } else {
+        alert(response.data.message || "เกิดข้อผิดพลาดในการเพิ่มยี่ห้อ");
+      }
+    } catch (error) {
+      console.error("Error adding brand:", error);
+      alert("เกิดข้อผิดพลาดในการเพิ่มยี่ห้อ");
+    }
+  };
+  
+  const handleDeleteBrand = async (id) => {
+    if (window.confirm("คุณต้องการลบยี่ห้อนี้หรือไม่?")) {
+      try {
+        const response = await axios.delete(`http://localhost:5001/api/brands/${id}`);
+        if (response.data.success) {
+          setBrands(brands.filter((brand) => brand.id !== id)); // อัปเดต state
+          alert("ลบยี่ห้อสำเร็จ");
+        }
+      } catch (error) {
+        console.error("Error deleting brand:", error);
+        alert("เกิดข้อผิดพลาดในการลบยี่ห้อ");
+      }
+    }
+  };
+
+  const handleEditBrand = async (id, updatedName, updatedCategory) => {
+    if (!updatedName.trim() || !updatedCategory) {
+      alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+    try {
+      const response = await axios.put(`http://localhost:5001/api/brands/${id}`, {
+        name: updatedName,
+        category: updatedCategory,
+      });
+      if (response.data.success) {
+        const updatedBrands = brands.map((brand) =>
+          brand.id === id ? { ...brand, name: updatedName, category: updatedCategory } : brand
+        );
+        setBrands(updatedBrands);
+        alert("แก้ไขยี่ห้อสำเร็จ");
+      }
+    } catch (error) {
+      console.error("Error updating brand:", error);
+      alert("เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ");
+    }
+  };
+  
+  const handleSaveBrand = async (index) => {
+    const brandId = brands[index].id;
+    if (!editingBrandName.trim()) {
+      alert("ชื่อยี่ห้อไม่สามารถเว้นว่างได้");
+      return;
+    }
+  
+    try {
+      await axios.put(`http://localhost:5001/api/brands/${brandId}`, {
+        name: editingBrandName,
+      });
+      const updatedBrands = [...brands];
+      updatedBrands[index].name = editingBrandName;
+      setBrands(updatedBrands);
+      setEditingBrandIndex(null);
+      alert("แก้ไขยี่ห้อสำเร็จ");
+    } catch (error) {
+      console.error("Error saving brand:", error);
+      alert("เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ");
+    }
+  };
+  const handleShowBrandModal = (index) => {
+    setShowBrandModal(true); // เปิด Modal
+};
+
+const handleCloseBrandModal = () => {
+    setShowBrandModal(false); // ปิด Modal
+};
+
   return (
     <div>
       <ITDashboard />
@@ -323,7 +455,7 @@ const Settings = () => {
         <button className="custom-btn" onClick={handleShowEquipmentsModal}>
           <span className="custom-btn-icon">🖉</span> อุปกรณ์
         </button>
-          <button className="custom-btn" onClick={() => handleEditClick("brand")}>
+          <button className="custom-btn" onClick={() =>  handleShowBrandModal("brand")}>
             <span className="custom-btn-icon">🖉</span> ยี่ห้อ
           </button>
         </div>
@@ -331,7 +463,7 @@ const Settings = () => {
           <thead>
             <tr>
             <th>เลือก</th>
-            <th>วัสดุ</th>
+            <th>ชื่อ</th>
             <th>หมายเลขครุภัณฑ์</th>
             <th>ประเภท</th>
             <th>อุปกรณ์</th>
@@ -535,6 +667,104 @@ const Settings = () => {
             </div>
           </div>
         )}
+        {/* Modal สำหรับจัดการยี่ห้อ */}
+{showBrandModal && (
+  <div className="modal">
+    <div className="modal-content">
+      <h2 className="modal-title">รายละเอียดยี่ห้อ</h2>
+      <button className="close-btn" onClick={handleCloseBrandModal}>
+        X
+      </button>
+      <div className="modal-input-group">
+  <input
+    type="text"
+    className="modal-input"
+    value={newBrand}
+    placeholder="เพิ่มยี่ห้อใหม่"
+    onChange={(e) => setNewBrand(e.target.value)}
+  />
+  <select
+    className="modal-select"
+    value={selectedCategory || ""}
+    onChange={(e) => setSelectedCategory(e.target.value)}
+  >
+    <option value="">เลือกประเภท</option>
+    {categories.map((category) => (
+      <option key={category.id} value={category.name}>
+        {category.name}
+      </option>
+    ))}
+  </select>
+  <button className="modal-add-btn" onClick={handleAddBrand}>
+    เพิ่ม
+  </button>
+</div>
+      <table className="modal-table">
+        <thead>
+          <tr>
+            <th>ลำดับ</th>
+            <th>ชื่อยี่ห้อ</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {brands.map((brand, index) => (
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td>
+                {editingBrandIndex === index ? (
+                  <input
+                    type="text"
+                    value={editingBrandName}
+                    onChange={(e) => setEditingBrandName(e.target.value)}
+                  />
+                ) : (
+                  <span>{brand.name}</span>
+                )}
+              </td>
+              <td>
+                {editingBrandIndex === index ? (
+                  <>
+                    <button
+                      className="save-btn"
+                      onClick={() => handleSaveBrand(index)}
+                    >
+                      บันทึก
+                    </button>
+                    <button
+                      className="cancel-btn"
+                      onClick={() => setEditingBrandIndex(null)}
+                    >
+                      ยกเลิก
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="edit-btn"
+                      onClick={() => {
+                        setEditingBrandIndex(index);
+                        setEditingBrandName(brand.name);
+                      }}
+                    >
+                      แก้ไข
+                    </button>
+                    <button
+                      className="delete-btn"
+                      onClick={() => handleDeleteBrand(index)}
+                    >
+                      ลบ
+                    </button>
+                  </>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
     </div>
   );
 };
