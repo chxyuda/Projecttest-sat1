@@ -6,7 +6,7 @@ import axios from "axios";
 const Settings = () => {
   const [data, setData] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [newCategoryType, setNewCategoryType] = useState(""); // สำหรับชนิดประเภท
+  const [newCategoryType, setNewCategoryType] = useState("3"); // สำหรับชนิดประเภท
   const [editingIndex, setEditingIndex] = useState(null); // เก็บ index ของแถวที่กำลังแก้ไข
   const [editedItem, setEditedItem] = useState({}); // เก็บข้อมูลที่กำลังแก้ไข
   const [showModal, setShowModal] = useState(false); // ควบคุมการแสดง Modal
@@ -14,22 +14,23 @@ const Settings = () => {
   const [newCategory, setNewCategory] = useState(""); // สำหรับเพิ่มประเภทใหม่
   const [editingRow, setEditingRow] = useState(null); // เก็บ id ของแถวที่กำลังแก้ไข
   const [equipments, setEquipments] = useState([]); // จัดเก็บข้อมูลอุปกรณ์
-  const [newEquipment, setNewEquipment] = useState(""); // สำหรับเพิ่มอุปกรณ์ใหม่
+  const [newEquipment, setNewEquipment] = useState(" "); // สำหรับเพิ่มอุปกรณ์ใหม่
   const [editingEquipmentRow, setEditingEquipmentRow] = useState(null); // เก็บ index ของแถวที่กำลังแก้ไข
   const [showEquipmentsModal, setShowEquipmentsModal] = useState(false); // สำหรับเปิด/ปิด Modal
-  const [editingBrandName, setEditingBrandName] = useState(""); // สำหรับชื่อยี่ห้อ
+  const [editingBrandName, setEditingBrandName] = useState("13"); // สำหรับชื่อยี่ห้อ
   const [editingBrandIndex, setEditingBrandIndex] = useState(null); // สำหรับ index ที่กำลังแก้ไข
-  const [newBrand, setNewBrand] = useState(""); // State สำหรับจัดเก็บค่าชื่อยี่ห้อใหม่
+  const [newBrand, setNewBrand] = useState("13"); // State สำหรับจัดเก็บค่าชื่อยี่ห้อใหม่
   const [brands, setBrands] = useState([]); // State สำหรับจัดเก็บรายชื่อยี่ห้อทั้งหมด  
   const [showBrandModal, setShowBrandModal] = useState(false); // ควบคุมการแสดงผล Modal
   const [selectedCategory, setSelectedCategory] = useState(""); // State สำหรับเก็บประเภทที่เลือก
-  
-
-
+  const [newCategoryName, setNewCategoryName] = useState(""); // สำหรับเก็บชื่อประเภทใหม่
+  const [newModel, setNewModel] = useState(""); // เพิ่มตัวแปร state
 
 
   console.log("Selected Items:", selectedItems);
-  
+  console.log({ newModel, newEquipment });
+  console.log("Name being sent:", newBrand);
+
 
   useEffect(() => {
     console.log("Selected Items:", selectedItems); // แสดงผล selectedItems ทุกครั้งที่มีการเปลี่ยนแปลง
@@ -125,34 +126,44 @@ const Settings = () => {
   };
 
   const handleAddCategory = async () => {
-    if (!newCategory.trim()) {
+    if (!newCategoryName.trim()) { // ตรวจสอบว่ามีการกรอกชื่อหรือไม่
       alert("กรุณากรอกชื่อประเภท");
       return;
     }
-
+  
     try {
       const response = await axios.post("http://localhost:5001/api/categories", {
-        name: newCategory,
+        name: newCategoryName, // ส่งชื่อประเภทไปยัง API
+        type: newCategoryType || "ประเภททั่วไป", // หากไม่มีชนิด ให้ตั้งค่าเริ่มต้น
       });
       if (response.data.success) {
-        setCategories([...categories, { id: response.data.id, name: newCategory }]);
-        setNewCategory("");
-        alert("เพิ่มประเภทสำเร็จ");
+        alert("เพิ่มประเภทใหม่เรียบร้อย");
+        fetchCategories(); // เรียกข้อมูลใหม่หลังเพิ่ม
+        setNewCategoryName(""); // ล้างค่าชื่อประเภทหลังจากเพิ่มสำเร็จ
+      } else {
+        alert(response.data.message || "เกิดข้อผิดพลาดในการเพิ่มประเภท");
       }
     } catch (error) {
       console.error("Error adding category:", error);
       alert("เกิดข้อผิดพลาดในการเพิ่มประเภท");
     }
   };
-
-  const handleDeleteCategory = (index) => {
+  
+  const handleDeleteCategory = async (id) => {
     if (window.confirm("คุณต้องการลบประเภทนี้หรือไม่?")) {
-      const updatedCategories = categories.filter((_, i) => i !== index);
-      setCategories(updatedCategories);
-      alert("ลบประเภทสำเร็จ");
+      try {
+        const response = await axios.delete(`http://localhost:5001/api/categories/${id}`);
+        if (response.data.success) {
+          alert("ลบประเภทเรียบร้อย");
+          fetchCategories(); // อัปเดตข้อมูลใหม่
+        }
+      } catch (error) {
+        console.error("Error deleting category:", error);
+        alert("เกิดข้อผิดพลาดในการลบประเภท");
+      }
     }
   };
-
+  
   const handleSaveCategory = (index, updatedName) => {
     if (!updatedName.trim()) {
       alert("ชื่อประเภทไม่สามารถว่างได้");
@@ -165,43 +176,75 @@ const Settings = () => {
     alert("แก้ไขประเภทสำเร็จ");
   };
   
+  const handleEditCategory = async (id, updatedName, updatedType) => {
+    if (!updatedName) {
+      alert("กรุณากรอกชื่อประเภท");
+      return;
+    }
+  
+    try {
+      const response = await axios.put(`http://localhost:5001/api/categories/${id}`, {
+        name: updatedName,
+        type: updatedType || "ประเภททั่วไป",
+      });
+      if (response.data.success) {
+        alert("แก้ไขประเภทเรียบร้อย");
+        fetchCategories(); // อัปเดตข้อมูลใหม่
+      }
+    } catch (error) {
+      console.error("Error updating category:", error);
+      alert("เกิดข้อผิดพลาดในการแก้ไขประเภท");
+    }
+  };
+  
   
   const fetchCategories = async () => {
     try {
       const response = await axios.get("http://localhost:5001/api/categories");
-      console.log("Categories data from API:", response.data);
-      if (response.data && response.data.data) {
+      if (response.data.success) {
         setCategories(response.data.data);
-        setShowModal(true);
-      } else {
-        alert("ไม่พบข้อมูลประเภท");
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
-      alert("ไม่สามารถดึงข้อมูลประเภทได้ กรุณาตรวจสอบ API หรือเซิร์ฟเวอร์");
     }
   };
 
+  useEffect(() => {
+    const fetchEquipments = async () => {
+      try {
+        const response = await axios.get("http://localhost:5001/api/products");
+        setEquipments(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching equipments:", error);
+      }
+    };
+    fetchEquipments();
+  }, []);
+  
+  useEffect(() => {
+    fetchEquipments(); // ดึงข้อมูลอุปกรณ์เมื่อเริ่มต้น
+  }, []);
+
+  
   const fetchEquipments = async () => {
     try {
       const response = await axios.get("http://localhost:5001/api/products");
       if (response.data.success) {
-        console.log("Raw Data from API:", response.data.data); // ตรวจสอบข้อมูล
-        setEquipments(response.data.data); // ตั้งค่าข้อมูลที่ได้รับจาก API
-      } else {
-        alert("ไม่สามารถดึงข้อมูลอุปกรณ์ได้");
+        // ใช้ Set เพื่อลดข้อมูลซ้ำตามชื่ออุปกรณ์
+        const uniqueEquipments = response.data.data.filter(
+          (item, index, self) =>
+            index ===
+            self.findIndex((t) => t.equipment === item.equipment)
+        );
+        setEquipments(uniqueEquipments);
       }
     } catch (error) {
-      console.error("Error fetching equipments:", error);
-      alert("เกิดข้อผิดพลาดในการดึงข้อมูลอุปกรณ์");
+      console.error("Error fetching equipment data:", error);
     }
   };
   
-  
   // เรียกใช้ fetchEquipments เมื่อ Component ถูกสร้าง
-  useEffect(() => {
-    fetchEquipments();
-  }, []);
+
 
   // ฟังก์ชันเปิด Modal
   const handleShowEquipmentsModal = () => {
@@ -222,30 +265,30 @@ const Settings = () => {
   // ฟังก์ชันเพิ่มอุปกรณ์ใหม่
   const handleAddEquipment = async () => {
     if (!newEquipment.trim()) {
-      alert("กรุณากรอกชื่ออุปกรณ์ใหม่");
+      alert("กรุณากรอกชื่ออุปกรณ์");
       return;
     }
   
     try {
       const response = await axios.post("http://localhost:5001/api/products", {
-        name: newEquipment, // ใช้ "name" ตามฟิลด์ใน Backend API
+        name: newEquipment,
+        model: newModel || "รุ่นทั่วไป", // ใช้ newModel ถ้ามี หรือค่าดีฟอลต์
       });
   
-      console.log("Response from Server:", response.data); // Debug Response
       if (response.data.success) {
-        setEquipments([
-          ...equipments,
-          { id: response.data.id, equipment: newEquipment },
-        ]);
-        setNewEquipment("");
         alert("เพิ่มอุปกรณ์สำเร็จ");
+        fetchEquipments(); // โหลดข้อมูลใหม่
+        setNewEquipment(""); // รีเซ็ตค่า
+        setNewModel(""); // รีเซ็ตค่า
+      } else {
+        alert(response.data.message || "เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์");
       }
     } catch (error) {
       console.error("Error adding equipment:", error);
       alert("เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์");
     }
   };
-  
+   
   // ฟังก์ชันแก้ไขข้อมูลอุปกรณ์
   const handleCancelEditEquipment = () => {
     setEditingEquipmentRow(null); // ออกจากโหมดแก้ไข
@@ -302,6 +345,18 @@ const Settings = () => {
       }
     }
   };
+
+  const getUniqueEquipments = (data) => {
+    const uniqueEquipments = [];
+    const seen = new Set();
+    data.forEach((item) => {
+      if (!seen.has(item.equipment)) {
+        seen.add(item.equipment);
+        uniqueEquipments.push(item);
+      }
+    });
+    return uniqueEquipments;
+  };
   
   useEffect(() => {
     fetchData();
@@ -318,12 +373,13 @@ const Settings = () => {
 
   const fetchBrands = async () => {
     try {
-        const response = await axios.get("http://localhost:5001/api/brands");
-        setBrands(response.data.data || []);
+      const response = await axios.get("http://localhost:5001/api/brands");
+      setBrands(response.data.data || []);
     } catch (error) {
-        console.error("Error fetching brands:", error);
+      console.error("Error fetching brands:", error);
+      alert("เกิดข้อผิดพลาดในการดึงข้อมูลยี่ห้อ");
     }
-};
+  };
 
 useEffect(() => {
     fetchBrands();
@@ -345,66 +401,53 @@ useEffect(() => {
   };
 
   const handleAddBrand = async () => {
-    console.log("New Brand:", newBrand);
-    console.log("Selected Category:", selectedCategory);
-  
-    if (!newBrand.trim() || !selectedCategory) {
-      alert("กรุณากรอกชื่อยี่ห้อและเลือกประเภท");
+    if (!newBrand.trim()) {
+      alert("กรุณากรอกชื่อยี่ห้อ");
       return;
     }
   
     try {
-      const response = await axios.post("http://localhost:5001/api/brands", {
-        name: newBrand,
-        category: selectedCategory,
-      });
+      const response = await axios.post("http://localhost:5001/api/brands", { name: newBrand });
   
       if (response.data.success) {
-        setBrands((prevBrands) => [...prevBrands, { id: response.data.id, name: newBrand, category: selectedCategory }]);
+        setBrands([...brands, { id: response.data.id, name: newBrand }]);
         setNewBrand("");
-        setSelectedCategory("");
         alert("เพิ่มยี่ห้อสำเร็จ");
-      } else {
-        alert(response.data.message || "เกิดข้อผิดพลาดในการเพิ่มยี่ห้อ");
       }
     } catch (error) {
       console.error("Error adding brand:", error);
-      alert("เกิดข้อผิดพลาดในการเพิ่มยี่ห้อ");
+      alert(error.response?.data?.message || "เกิดข้อผิดพลาดในการเพิ่มยี่ห้อ");
     }
   };
   
-  const handleDeleteBrand = async (id) => {
-    if (window.confirm("คุณต้องการลบยี่ห้อนี้หรือไม่?")) {
-      try {
-        const response = await axios.delete(`http://localhost:5001/api/brands/${id}`);
-        if (response.data.success) {
-          setBrands(brands.filter((brand) => brand.id !== id)); // อัปเดต state
-          alert("ลบยี่ห้อสำเร็จ");
-        }
-      } catch (error) {
-        console.error("Error deleting brand:", error);
-        alert("เกิดข้อผิดพลาดในการลบยี่ห้อ");
-      }
-    }
-  };
+  
+const handleDeleteBrand = async (id) => {
+  if (!window.confirm("คุณต้องการลบยี่ห้อนี้หรือไม่?")) return;
 
-  const handleEditBrand = async (id, updatedName, updatedCategory) => {
-    if (!updatedName.trim() || !updatedCategory) {
-      alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+  try {
+    await axios.delete(`http://localhost:5001/api/brands/${id}`);
+    setBrands(brands.filter((brand) => brand.id !== id));
+    alert("ลบยี่ห้อสำเร็จ");
+  } catch (error) {
+    console.error("Error deleting brand:", error);
+    alert("เกิดข้อผิดพลาดในการลบยี่ห้อ");
+  }
+};
+
+  const handleEditBrand = async (id, updatedName) => {
+    if (!updatedName.trim()) {
+      alert("กรุณากรอกชื่อยี่ห้อ");
       return;
     }
+  
     try {
-      const response = await axios.put(`http://localhost:5001/api/brands/${id}`, {
-        name: updatedName,
-        category: updatedCategory,
-      });
-      if (response.data.success) {
-        const updatedBrands = brands.map((brand) =>
-          brand.id === id ? { ...brand, name: updatedName, category: updatedCategory } : brand
-        );
-        setBrands(updatedBrands);
-        alert("แก้ไขยี่ห้อสำเร็จ");
-      }
+      await axios.put(`http://localhost:5001/api/brands/${id}`, { name: updatedName });
+  
+      const updatedBrands = brands.map((brand) =>
+        brand.id === id ? { ...brand, name: updatedName } : brand
+      );
+      setBrands(updatedBrands);
+      alert("แก้ไขยี่ห้อสำเร็จ");
     } catch (error) {
       console.error("Error updating brand:", error);
       alert("เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ");
@@ -449,7 +492,7 @@ const handleCloseBrandModal = () => {
         <button className="delete-selected-btn" onClick={handleDeleteSelected}>
           ลบรายการที่เลือก
         </button>
-        <button className="custom-btn" onClick={fetchCategories}>
+        <button className="custom-btn" onClick={handleShowModal}>
           <span className="custom-btn-icon">🖉</span> ประเภท
         </button>
         <button className="custom-btn" onClick={handleShowEquipmentsModal}>
@@ -464,10 +507,10 @@ const handleCloseBrandModal = () => {
             <tr>
             <th>เลือก</th>
             <th>ชื่อ</th>
-            <th>หมายเลขครุภัณฑ์</th>
             <th>ประเภท</th>
             <th>อุปกรณ์</th>
             <th>ยี่ห้อ</th>
+            <th>หมายเลขครุภัณฑ์</th>
             <th>จำนวน</th>
             <th>คงเหลือ</th>
             <th>รายละเอียด</th> 
@@ -485,12 +528,12 @@ const handleCloseBrandModal = () => {
                 />
               </td>
               <td>{item.material}</td>
-              <td>{item.serial_number || "-"}</td>
-              <td>{item.category}</td>
+              <td>{item.category || "-"}</td>
               <td>{item.equipment}</td>
               <td>{item.brand}</td>
-              <td>{item.quantity}</td>
-              <td>--</td>
+              <td>{item.serial_number}</td>
+              <td>{item.inventory_number}</td>
+              <td>{item.remaining}</td> {/* จำนวน */}
               <td>{item.details || "ไม่มีรายละเอียด"}</td> {/* เพิ่มการแสดงผล */}
               <td>
                 <button className="edit-btn">แก้ไข</button> {/* ปุ่มจัดการ */}
@@ -501,90 +544,90 @@ const handleCloseBrandModal = () => {
         </table>
       </div>
       {showModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2 className="modal-title">รายละเอียดประเภท</h2>
-            <button className="close-btn" onClick={handleCloseModal}>X</button>
-            <div className="modal-input-group">
-              <input
-                type="text"
-                className="modal-input"
-                value={newCategory}
-                placeholder="เพิ่มประเภทใหม่"
-                onChange={(e) => setNewCategory(e.target.value)}
-              />
-              <button className="modal-add-btn" onClick={handleAddCategory}>เพิ่ม</button>
-            </div>
-            <table className="modal-table">
-            <thead>
-              <tr>
-                <th>ลำดับ</th>
-                <th>ชื่อประเภท</th>
-                <th>จัดการ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((category, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                    <td>
-                    {editingRow === index ? (
-                      <input
-                        type="text"
-                        value={category.category_name}
-                          onChange={(e) => {
-                            const updatedCategories = [...categories];
-                            updatedCategories[index].category_name = e.target.value;
-                            setCategories(updatedCategories);
-                          }}
-                      />
-                    ) : (
-                    <span>{category.category_name}</span> // แสดงเป็นข้อความเมื่อไม่ได้อยู่ในโหมดแก้ไข
-                    )}
-                  </td>
-                  <td>
-                    {editingRow === index ? (
-                      <>
-                          <button
-                            className="save-btn"
-                            onClick={() => {
-                                handleSaveCategory(index, category.category_name);
-                                setEditingRow(null);
-                              }}
-                            >
-                              บันทึก
-                          </button>
-                          <button
-                              className="cancel-btn"
-                              onClick={() => setEditingRow(null)}
-                            >
-                              ยกเลิก
-                          </button>
-                      </>
-                    ) : (
-                    <>
-                      <button
-                        className="edit-btn"
-                        onClick={() => setEditingRow(index)}
-                      >
-                      แก้ไข
-                      </button>
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDeleteCategory(index)}
-                      >
-                      ลบ
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+  <div className="modal">
+    <div className="modal-content modal-wide">
+      <h2 className="modal-title">รายละเอียดประเภท</h2>
+      <button className="close-btn" onClick={handleCloseModal}>
+        X
+      </button>
+      <div className="modal-input-group">
+      <input
+        type="text"
+        placeholder="ชื่อประเภทใหม่"
+        value={newCategoryName} // เชื่อมค่า state
+        onChange={(e) => setNewCategoryName(e.target.value)} // อัปเดต state เมื่อพิมพ์
+      />
+
+        <button className="modal-add-btn" onClick={handleAddCategory}>
+          เพิ่ม
+        </button>
       </div>
+      <table className="modal-table">
+        <thead>
+          <tr>
+            <th>ลำดับ</th>
+            <th>ชื่อประเภท</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {categories.map((category, index) => (
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td>
+                {editingRow === index ? (
+                  <input
+                    type="text"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                  />
+                ) : (
+                  category.category_name
+                )}
+              </td>
+              <td>
+                {editingRow === index ? (
+                  <>
+                    <button
+                      className="save-btn"
+                      onClick={() => handleSaveCategory(index, newCategory)}
+                    >
+                      บันทึก
+                    </button>
+                    <button
+                      className="cancel-btn"
+                      onClick={() => setEditingRow(null)}
+                    >
+                      ยกเลิก
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="edit-btn"
+                      onClick={() => {
+                        setEditingRow(index);
+                        setNewCategory(category.category_name);
+                      }}
+                    >
+                      แก้ไข
+                    </button>
+                    <button
+                      className="delete-btn"
+                      onClick={() => handleDeleteCategory(category.id)}
+                    >
+                      ลบ
+                    </button>
+                  </>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-  )}
+  </div>
+)}
   {showEquipmentsModal && (
           <div className="modal">
             <div className="modal-content modal-wide">
@@ -668,37 +711,21 @@ const handleCloseBrandModal = () => {
           </div>
         )}
         {/* Modal สำหรับจัดการยี่ห้อ */}
-{showBrandModal && (
+        {showBrandModal && (
   <div className="modal">
     <div className="modal-content">
       <h2 className="modal-title">รายละเอียดยี่ห้อ</h2>
-      <button className="close-btn" onClick={handleCloseBrandModal}>
-        X
-      </button>
+      <button className="close-btn" onClick={handleCloseBrandModal}>X</button>
       <div className="modal-input-group">
-  <input
-    type="text"
-    className="modal-input"
-    value={newBrand}
-    placeholder="เพิ่มยี่ห้อใหม่"
-    onChange={(e) => setNewBrand(e.target.value)}
-  />
-  <select
-    className="modal-select"
-    value={selectedCategory || ""}
-    onChange={(e) => setSelectedCategory(e.target.value)}
-  >
-    <option value="">เลือกประเภท</option>
-    {categories.map((category) => (
-      <option key={category.id} value={category.name}>
-        {category.name}
-      </option>
-    ))}
-  </select>
-  <button className="modal-add-btn" onClick={handleAddBrand}>
-    เพิ่ม
-  </button>
-</div>
+        <input
+          type="text"
+          className="modal-input"
+          value={newBrand}
+          placeholder="เพิ่มยี่ห้อใหม่"
+          onChange={(e) => setNewBrand(e.target.value)}
+        />
+        <button className="modal-add-btn" onClick={handleAddBrand}>เพิ่ม</button>
+      </div>
       <table className="modal-table">
         <thead>
           <tr>
@@ -709,7 +736,7 @@ const handleCloseBrandModal = () => {
         </thead>
         <tbody>
           {brands.map((brand, index) => (
-            <tr key={index}>
+            <tr key={brand.id}>
               <td>{index + 1}</td>
               <td>
                 {editingBrandIndex === index ? (
@@ -719,42 +746,22 @@ const handleCloseBrandModal = () => {
                     onChange={(e) => setEditingBrandName(e.target.value)}
                   />
                 ) : (
-                  <span>{brand.name}</span>
+                  brand.name
                 )}
               </td>
               <td>
                 {editingBrandIndex === index ? (
                   <>
-                    <button
-                      className="save-btn"
-                      onClick={() => handleSaveBrand(index)}
-                    >
-                      บันทึก
-                    </button>
-                    <button
-                      className="cancel-btn"
-                      onClick={() => setEditingBrandIndex(null)}
-                    >
-                      ยกเลิก
-                    </button>
+                    <button onClick={() => handleEditBrand(brand.id, editingBrandName)}>บันทึก</button>
+                    <button onClick={() => setEditingBrandIndex(null)}>ยกเลิก</button>
                   </>
                 ) : (
                   <>
-                    <button
-                      className="edit-btn"
-                      onClick={() => {
-                        setEditingBrandIndex(index);
-                        setEditingBrandName(brand.name);
-                      }}
-                    >
-                      แก้ไข
-                    </button>
-                    <button
-                      className="delete-btn"
-                      onClick={() => handleDeleteBrand(index)}
-                    >
-                      ลบ
-                    </button>
+                    <button onClick={() => {
+                      setEditingBrandIndex(index);
+                      setEditingBrandName(brand.name);
+                    }}>แก้ไข</button>
+                    <button onClick={() => handleDeleteBrand(brand.id)}>ลบ</button>
                   </>
                 )}
               </td>
@@ -765,6 +772,7 @@ const handleCloseBrandModal = () => {
     </div>
   </div>
 )}
+
     </div>
   );
 };

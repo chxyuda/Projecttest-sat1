@@ -1,3 +1,7 @@
+body {
+  font-family: 'Sriracha', sans-serif; /* ใช้ฟอนต์จาก Google Fonts */
+}
+
 .inventory-container {
   margin: 15px auto; /* ระยะห่างจากด้านบน */
   padding: 20px; /* เพิ่ม Padding ด้านใน */
@@ -11,10 +15,11 @@
 
 /* หัวข้อ */
 .inventory-title {
-  margin-bottom: 20px; /* เพิ่มระยะห่างระหว่างหัวข้อกับตาราง */
+  margin-bottom: 30px; /* เพิ่มระยะห่างระหว่างหัวข้อกับตาราง */
   text-align: center; /* จัดให้อยู่กลาง */
   font-size: 24px; /* ขนาดตัวอักษร */
   font-weight: bold; /* ตัวหนา */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
 }
 
 /* ส่วนกรองข้อมูล */
@@ -62,6 +67,7 @@
 /* ตาราง */
 .inventory-table {
   width: 100%;
+  font-family: 'Sriracha', sans-serif;
   border-collapse: collapse;
   margin-top: 20px;
   font-size: 18px; /* ลดขนาดฟอนต์เล็กน้อย */
@@ -76,10 +82,17 @@
 }
 
 .inventory-table th {
-  background-color: #0078d7;
+  background-color: #0078d7 !important; /* ใช้ !important เพื่อบังคับสี */
   color: white;
   font-weight: bold;
+  text-align: center;
+  padding: 15px;
+  border: 1px solid #ddd;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
 }
+
+
 
 .inventory-table tr:nth-child(even) {
   background-color: #f9f9f9;
@@ -87,6 +100,20 @@
 
 .inventory-table tr:hover {
   background-color: #e6f7ff;
+}
+
+.inventory-table tr:hover {
+  background-color: #eaf6ff; /* สีพื้นหลังเมื่อชี้เมาส์ */
+  transform: scale(1.01); /* ขยายเล็กน้อยเมื่อชี้เมาส์ */
+  transition: all 0.2s ease;
+}
+
+.inventory-table th {
+  text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+  background-color: #005a9e; /* สีที่เข้ากับปุ่ม */
+  color: #ffffff;
+  text-transform: uppercase; /* เปลี่ยนข้อความเป็นตัวพิมพ์ใหญ่ */
+  padding: 15px; /* เพิ่ม Padding */
 }
 
 /* ปุ่มดูรายละเอียด */
@@ -148,6 +175,27 @@
     gap: 10px; /* ระยะห่างระหว่างตัวเลือก */
     align-items: center; /* จัดให้อยู่กึ่งกลางในแนวตั้ง */
   }
+  .filter-controls button,
+  .details-btn {
+  background-color: #0078d7;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+  transition: all 0.3s ease;
+}
+
+.filter-controls button:hover,
+.details-btn:hover {
+  background-color: #005a9e;
+  transform: translateY(-2px); /* เพิ่มเอฟเฟกต์ยกตัว */
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+
   .filter-controls select {
     flex: 1; /* ให้ dropdown ขยายตามพื้นที่ */
     min-width: 150px; /* กำหนดความกว้างขั้นต่ำ */
@@ -156,6 +204,7 @@
   .filter-buttons {
     display: flex;
     gap: 10px; /* ระยะห่างระหว่างปุ่ม */
+    align-items: center;
   }
   .filter-buttons button {
     padding: 10px 15px;
@@ -166,23 +215,32 @@
     font-weight: bold;
   }
   
-  .filter-buttons button:first-child {
-    background-color: #0078d7;
-    color: white;
+  button {
+    display: flex;
+    align-items: center; /* จัดข้อความและไอคอนให้อยู่ในแนวเดียวกัน */
+    justify-content: center; /* จัดให้อยู่ตรงกลาง */
+    gap: 100px; /* ระยะห่างระหว่างไอคอนและข้อความ */
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: 'Sriracha', sans-serif;
+    line-height: 1.5;
   }
   
-  .filter-buttons button:first-child:hover {
-    background-color: #005a9e;
+  button:hover {
+    background: #0056b3;
   }
   
-  .filter-buttons button.history-btn {
-    background-color: #ffa500; /* สีปุ่มประวัติการค้นหา */
-    color: white;
+  button i, button span, button img {
+    font-size: 18px; /* สำหรับ Font Awesome/Material Icons */
+    width: 20px; /* สำหรับรูปภาพ */
+    height: 20px; /* สำหรับรูปภาพ */
   }
   
-  .filter-buttons button.history-btn:hover {
-    background-color: #cc8400; /* สีเมื่อ hover ปุ่มประวัติการค้นหา */
-  }
 
   .pagination {
     gap: 3px; /* ลดช่องว่างระหว่างปุ่ม */
@@ -224,13 +282,13 @@
 }
 
 .modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  width: 90%;
-  max-width: 600px;
-  position: relative;
+  background: linear-gradient(135deg, #ffffff, #f0f8ff);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.4s ease-out;
 }
+
 
 .close-btn {
   position: absolute;
@@ -265,3 +323,109 @@
   background: #0078d7;
   color: #fff;
 }
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content {
+  background: #ffffff;
+  padding: 20px 30px;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  position: relative;
+  font-family: 'Arial', sans-serif;
+  animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    background: rgba(0, 0, 0, 0);
+  }
+  to {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-content h3 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.modal-content p {
+  font-size: 16px;
+  margin: 5px 0;
+  color: #555;
+  text-align: left;
+}
+
+.modal-content p strong {
+  color: #333;
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.close-btn:hover {
+  background: #0056b3;
+}
+
+.modal-details {
+  display: flex;
+  flex-wrap: wrap; /* ให้รองรับหลายบรรทัด */
+  justify-content: space-between; /* จัดระยะห่างให้เหมาะสม */
+  gap: 10px; /* ระยะห่างระหว่างข้อมูล */
+  margin-top: 15px; /* ระยะห่างด้านบนจากหัวข้อ */
+  text-align: left; /* จัดข้อความชิดซ้าย */
+}
+
+.modal-details p {
+  flex: 1 1 48%; /* แต่ละข้อมูลจะใช้พื้นที่ครึ่งหนึ่ง */
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #555;
+}
+
+.modal-details p strong {
+  color: #333;
+}
+
+
+
