@@ -169,7 +169,7 @@ const Inventory = () => {
                   <td>{item.category}</td> {/* ประเภท */}
                   <td>{item.equipment}</td> {/* อุปกรณ์ */}
                   <td>{item.brand}</td> {/* ยี่ห้อ */}
-                  <td>{item.serial_number}</td> {/* หมายเลขครุภัณฑ์ */}
+                  <td>{item.equipment_number}</td> {/* หมายเลขครุภัณฑ์ */}
                   <td>{item.inventory_number}</td> {/* จำนวน */}
                   <td>
                     <button onClick={() => handleShowDetails(item)} className="details-btn">
@@ -242,7 +242,8 @@ const Inventory = () => {
                       <p><strong>ประเภท:</strong> {selectedItem.category}</p>
                       <p><strong>อุปกรณ์:</strong> {selectedItem.equipment}</p>
                       <p><strong>ยี่ห้อ:</strong> {selectedItem.brand}</p>
-                      <p><strong>หมายเลขครุภัณฑ์:</strong> {selectedItem.serial_number}</p>
+                      <p><strong>หมายเลขครุภัณฑ์:</strong> {selectedItem.equipment_number}</p>
+                      <p><strong>serial:</strong> {selectedItem.serial_number}</p>
                       <p><strong>จำนวนทั้งหมด:</strong> {selectedItem.inventory_number}</p>
                       <p><strong>คงเหลือ:</strong> {selectedItem.remaining}</p>
                       <p><strong>รายละเอียด:</strong> {selectedItem.details || "ไม่มีข้อมูลเพิ่มเติม"}</p>
