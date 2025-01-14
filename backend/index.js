@@ -1,17 +1,17 @@
 const express = require('express');
-const cors = require('cors');
+const cors = require('cors'); // ประกาศตัวแปร cors เพียงครั้งเดียว
 const bodyParser = require('body-parser');
 const mysql = require('mysql2');
-const nodemailer = require('nodemailer'); // สำหรับส่งอีเมล
-require('dotenv').config(); // ใช้สำหรับโหลดตัวแปรจากไฟล์ .env
+const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 const router = express.Router();
 
-// Middleware
-app.use(cors());
+app.use(cors()); // เรียกใช้งาน cors
 app.use(bodyParser.json());
+
 
 // MySQL Connection
 const db = mysql.createConnection({
@@ -430,17 +430,15 @@ app.post('/api/brands', (req, res) => {
   }
 
   const checkQuery = "SELECT * FROM brands WHERE name = ?";
-  db.query(checkQuery, [name], (err, results) => {
-    if (err) {
-      console.error("Error during SELECT query:", err);
-      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
-    }
+db.query(checkQuery, [name], (err, results) => {
+  if (err) {
+    console.error("Error during SELECT query:", err);
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการตรวจสอบยี่ห้อ" });
+  }
 
-    if (results.length > 0) {
-      console.warn("Brand name already exists:", name);
-      return res.status(409).json({ success: false, message: "ชื่อยี่ห้อนี้มีอยู่ในระบบแล้ว" });
-    }
-
+  if (results.length > 0) {
+    return res.status(409).json({ success: false, message: "ชื่อยี่ห้อนี้มีอยู่ในระบบแล้ว" });
+  }
     const insertQuery = "INSERT INTO brands (name, category) VALUES (?, ?)";
     db.query(insertQuery, [name, category], (err, result) => {
       if (err) {
@@ -455,41 +453,47 @@ app.post('/api/brands', (req, res) => {
 
 // อัปเดตยี่ห้อ
 app.put('/api/brands/:id', (req, res) => {
-  const { id } = req.params; // ดึง ID จาก URL
-  const { name } = req.body; // ดึง Name จาก Body
+  const { id } = req.params;
+  const { name } = req.body;
 
-  console.log("ID received:", id); // Debug ค่า ID ที่ได้รับ
-  console.log("Name received:", name); // Debug ค่า Name ที่ได้รับ
+  // Debug ค่าที่ได้รับจาก Frontend
+  console.log("Request Params ID:", id);
+  console.log("Request Body Name:", name);
 
-  if (!name) {
-    console.error("Error: No name provided.");
-    return res.status(400).json({ success: false, message: "กรุณากรอกชื่อยี่ห้อ" });
+  if (!id || !name) {
+    return res.status(400).json({ success: false, message: "กรุณาระบุ ID และชื่อยี่ห้อ" });
   }
 
   const updateQuery = "UPDATE brands SET name = ? WHERE id = ?";
   db.query(updateQuery, [name, id], (err, result) => {
     if (err) {
-      console.error("Error during SQL UPDATE:", err); // แสดงข้อผิดพลาด SQL
-      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ" });
+      // Debug ข้อผิดพลาดจาก Query
+      console.error("Query Error:", err);
+      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
     }
 
+    // Debug ผลลัพธ์ของ Query
+    console.log("Query Result:", result);
+
     if (result.affectedRows === 0) {
-      console.warn("No brand found with ID:", id); // ไม่มีข้อมูลที่ตรงกับ ID
       return res.status(404).json({ success: false, message: "ไม่พบยี่ห้อที่ต้องการแก้ไข" });
     }
 
-    console.log("Brand updated successfully:", { id, name });
-    res.status(200).json({ success: true, message: "แก้ไขยี่ห้อสำเร็จ" });
+    return res.status(200).json({ success: true, message: "แก้ไขสำเร็จ" });
   });
 });
-
 
 
 // ลบยี่ห้อ
 app.delete('/api/brands/:id', (req, res) => {
   const { id } = req.params;
 
-  console.log("Request to delete ID:", id); // Log ID ที่รับมา
+  console.log("Request to delete ID:", id);
+
+  if (!id) {
+    console.error("Missing ID");
+    return res.status(400).json({ success: false, message: "กรุณาระบุ ID" });
+  }
 
   const checkQuery = "SELECT * FROM brands WHERE id = ?";
   db.query(checkQuery, [id], (checkErr, checkResults) => {

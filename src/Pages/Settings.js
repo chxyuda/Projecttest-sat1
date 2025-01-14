@@ -26,14 +26,17 @@ const Settings = () => {
   const [newCategoryName, setNewCategoryName] = useState(""); // สำหรับเก็บชื่อประเภทใหม่
   const [newModel, setNewModel] = useState(""); // เพิ่มตัวแปร state
   const [editingBrandId, setEditingBrandId] = useState(null);
-
+  const [showEditModal, setShowEditModal] = useState(false); // เปิด/ปิด Modal แก้ไข
+  const [currentEditItem, setCurrentEditItem] = useState(null); // เก็บข้อมูลรายการที่จะแก้ไข
+  
 
 
   console.log("Selected Items:", selectedItems);
   console.log({ newModel, newEquipment });
   console.log("Name being sent:", newBrand);
-  console.log("Editing Brand Name:", editingBrandName);
-  console.log("Brand Name Being Sent:", editingBrandName);
+  console.log("Editing Index Cleared:", editingBrandIndex); // Debug
+  console.log("Editing Brand Cleared:", editingBrandName); // Debug
+
 
 
   
@@ -52,6 +55,12 @@ const Settings = () => {
     }
   };
 
+  useEffect(() => {
+    fetchEquipments();
+    fetchBrands();
+  }, []);
+  
+
   const handleCheckboxChange = (index) => {
     setSelectedItems((prevSelected) =>
       prevSelected.includes(index)
@@ -60,10 +69,11 @@ const Settings = () => {
     );
   };
   
-  const handleEditClick = (index, item) => {
-    setEditingIndex(index); // ตั้ง index ของแถวที่แก้ไข
-    setEditedItem(item); // คัดลอกข้อมูลในแถวนั้นมาแก้ไข
-  };
+  const handleEditClick = (item) => {
+    setCurrentEditItem(item);
+    setShowEditModal(true); // เปิด Modal แก้ไข
+};
+
 
   const handleInputChange = (field, value) => {
     setEditedItem((prev) => ({ ...prev, [field]: value })); // อัปเดตฟิลด์ที่แก้ไข
@@ -71,20 +81,23 @@ const Settings = () => {
 
   const handleSave = async () => {
     try {
-      await axios.put(`http://localhost:5001/api/products/${editedItem.id}`, editedItem);
-      setData((prevData) =>
-        prevData.map((item, index) =>
-          index === editingIndex ? editedItem : item
-        )
-      );
-      setEditingIndex(null);
-      setEditedItem({});
-      alert("บันทึกข้อมูลสำเร็จ");
+        const response = await axios.put(
+            `http://localhost:5001/api/products/${currentEditItem.id}`,
+            currentEditItem
+        );
+        if (response.data.success) {
+            alert("แก้ไขข้อมูลสำเร็จ");
+            fetchData(); // โหลดข้อมูลใหม่
+            setShowEditModal(false); // ปิด Modal
+        } else {
+            alert(response.data.message || "เกิดข้อผิดพลาด");
+        }
     } catch (error) {
-      console.error("Error saving data:", error);
-      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+        console.error("Error saving data:", error);
+        alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
     }
-  };
+};
+
 
   const handleCancel = () => {
     setEditingIndex(null);
@@ -227,10 +240,7 @@ const Settings = () => {
     fetchEquipments();
   }, []);
   
-  useEffect(() => {
-    fetchEquipments(); // ดึงข้อมูลอุปกรณ์เมื่อเริ่มต้น
-  }, []);
-
+  
   
   const fetchEquipments = async () => {
     try {
@@ -373,10 +383,6 @@ const Settings = () => {
   }, [categories]);
   
 
-  useEffect(() => {
-    handleFetchBrands();
-  }, []);
-
   const fetchBrands = async () => {
     try {
       const response = await axios.get("http://localhost:5001/api/brands");
@@ -390,10 +396,6 @@ const Settings = () => {
       alert("เกิดข้อผิดพลาดในการดึงข้อมูลยี่ห้อ");
     }
   };
-
-useEffect(() => {
-    fetchBrands();
-}, []);
 
   
   const handleFetchBrands = async () => {
@@ -437,7 +439,7 @@ useEffect(() => {
   
   const handleDeleteBrand = async (id) => {
     if (!window.confirm("คุณต้องการลบยี่ห้อนี้หรือไม่?")) return;
-
+  
     try {
       const response = await axios.delete(`http://localhost:5001/api/brands/${id}`);
       if (response.data.success) {
@@ -449,15 +451,16 @@ useEffect(() => {
       alert("เกิดข้อผิดพลาดในการลบยี่ห้อ");
     }
   };
+  
 
   const handleEditBrand = async (id, name) => {
     if (!name.trim()) {
       alert("กรุณากรอกชื่อยี่ห้อ");
       return;
     }
-
+  
     try {
-      const response = await axios.put(`http://localhost:5001/api/brands/:id`, { name });
+      const response = await axios.put(`http://localhost:5001/api/brands/${id}`, { name });
       if (response.data.success) {
         alert("แก้ไขยี่ห้อสำเร็จ");
         fetchBrands();
@@ -469,10 +472,14 @@ useEffect(() => {
       alert("เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ");
     }
   };
+  
 
   const handleSaveBrand = async (index) => {
     const brandId = brands[index]?.id;
     const updatedName = editingBrandName.trim();
+  
+    console.log("Brand ID:", brandId);
+    console.log("Updated Name:", updatedName);
   
     if (!updatedName) {
       alert("กรุณากรอกชื่อยี่ห้อ");
@@ -480,23 +487,25 @@ useEffect(() => {
     }
   
     try {
-      const response = await axios.put(`http://localhost:5001/api/brands/${brandId}`, {
-        name: updatedName,
-      });
+      const response = await axios.put(
+        `http://localhost:5001/api/brands/${brandId}`,
+        { name: updatedName }
+      );
+  
+      console.log("API Response:", response.data);
   
       if (response.data.success) {
-        fetchBrands(); // ดึงข้อมูลใหม่
-        setEditingBrandIndex(null);
-        setEditingBrandName("");
-        alert("แก้ไขยี่ห้อสำเร็จ");
+        alert("แก้ไขสำเร็จ");
+        fetchBrands(); // โหลดข้อมูลใหม่
       } else {
         alert(response.data.message || "เกิดข้อผิดพลาด");
       }
     } catch (error) {
-      console.error("Error updating brand:", error.response?.data || error.message);
-      alert(error.response?.data?.message || "เกิดข้อผิดพลาดในการแก้ไข");
+      console.error("Error:", error.response?.data || error.message);
+      alert(error.response?.data?.message || "เกิดข้อผิดพลาด");
     }
   };
+  
   
   
   const handleShowBrandModal = (index) => {
@@ -537,6 +546,7 @@ const handleCloseBrandModal = () => {
             <th>อุปกรณ์</th>
             <th>ยี่ห้อ</th>
             <th>หมายเลขครุภัณฑ์</th>
+            <th>serial</th>
             <th>จำนวน</th>
             <th>คงเหลือ</th>
             <th>รายละเอียด</th> 
@@ -558,11 +568,15 @@ const handleCloseBrandModal = () => {
               <td>{item.equipment}</td>
               <td>{item.brand}</td>
               <td>{item.equipment_number}</td>
+              <td>{item.serial_number}</td>
               <td>{item.inventory_number}</td>
               <td>{item.remaining}</td> {/* จำนวน */}
               <td>{item.details || "ไม่มีรายละเอียด"}</td> {/* เพิ่มการแสดงผล */}
               <td>
-                <button className="edit-btn">แก้ไข</button> {/* ปุ่มจัดการ */}
+              <button className="edit-btn" onClick={() => handleEditClick(item)}>
+                แก้ไข
+              </button>
+
               </td>
               </tr>
             ))}
@@ -570,91 +584,90 @@ const handleCloseBrandModal = () => {
         </table>
       </div>
       {showModal && (
-  <div className="modal">
-    <div className="modal-content modal-wide">
-      <h2 className="modal-title">รายละเอียดประเภท</h2>
-      <button className="close-btn" onClick={handleCloseModal}>
-        X
-      </button>
-      <div className="modal-input-group">
-      <input
-        type="text"
-        placeholder="ชื่อประเภทใหม่"
-        value={newCategoryName} // เชื่อมค่า state
-        onChange={(e) => setNewCategoryName(e.target.value)} // อัปเดต state เมื่อพิมพ์
-      />
-
-        <button className="modal-add-btn" onClick={handleAddCategory}>
-          เพิ่ม
-        </button>
-      </div>
-      <table className="modal-table">
-        <thead>
-          <tr>
-            <th>ลำดับ</th>
-            <th>ชื่อประเภท</th>
-            <th>จัดการ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {categories.map((category, index) => (
-            <tr key={index}>
-              <td>{index + 1}</td>
-              <td>
-                {editingRow === index ? (
-                  <input
-                    type="text"
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                  />
-                ) : (
-                  category.category_name
-                )}
-              </td>
-              <td>
-                {editingRow === index ? (
-                  <>
-                    <button
-                      className="save-btn"
-                      onClick={() => handleSaveCategory(index, newCategory)}
-                    >
-                      บันทึก
-                    </button>
-                    <button
-                      className="cancel-btn"
-                      onClick={() => setEditingRow(null)}
-                    >
-                      ยกเลิก
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className="edit-btn"
-                      onClick={() => {
-                        setEditingRow(index);
-                        setNewCategory(category.category_name);
-                      }}
-                    >
-                      แก้ไข
-                    </button>
-                    <button
-                      className="delete-btn"
-                      onClick={() => handleDeleteCategory(category.id)}
-                    >
-                      ลบ
-                    </button>
-                  </>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-)}
-  {showEquipmentsModal && (
+        <div className="modal">
+          <div className="modal-content modal-wide">
+            <h2 className="modal-title">รายละเอียดประเภท</h2>
+            <button className="close-btn" onClick={handleCloseModal}>
+              X
+            </button>
+            <div className="modal-input-group">
+              <input
+                type="text"
+                placeholder="ชื่อประเภทใหม่"
+                value={newCategoryName} // เชื่อมค่า state
+                onChange={(e) => setNewCategoryName(e.target.value)} // อัปเดต state เมื่อพิมพ์
+              />
+              <button className="modal-add-btn" onClick={handleAddCategory}>
+                เพิ่ม
+              </button>
+            </div>
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>ลำดับ</th>
+                  <th>ชื่อประเภท</th>
+                  <th>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map((category, index) => (
+                  <tr key={index}>
+                    <td>{index + 1}</td>
+                     <td>
+                        {editingRow === index ? (
+                          <input
+                            type="text"
+                            value={newCategory}
+                            onChange={(e) => setNewCategory(e.target.value)}
+                          />
+                      ) : (
+                        category.category_name
+                      )}
+                    </td>
+                    <td>
+                      {editingRow === index ? (
+                        <>
+                          <button
+                            className="save-btn"
+                            onClick={() => handleSaveCategory(index, newCategory)}
+                          >
+                            บันทึก
+                          </button>
+                          <button
+                            className="cancel-btn"
+                            onClick={() => setEditingRow(null)}
+                          >
+                            ยกเลิก
+                          </button>
+                        </>
+                      ) : (
+                      <>
+                        <button
+                          className="edit-btn"
+                          onClick={() => {
+                            setEditingRow(index);
+                            setNewCategory(category.category_name);
+                          }}
+                        >
+                          แก้ไข
+                        </button>
+                        <button
+                          className="delete-btn"
+                          onClick={() => handleDeleteCategory(category.id)}
+                        >
+                          ลบ
+                        </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {showEquipmentsModal && (
           <div className="modal">
             <div className="modal-content modal-wide">
               <h2 className="modal-title">รายละเอียดอุปกรณ์</h2>
@@ -766,54 +779,186 @@ const handleCloseBrandModal = () => {
                 </thead>
                 <tbody>
                   {brands.map((brand, index) => (
-                  <tr key={brand.id}>
-                  <td>{index + 1}</td>
-                  <td>
-                    {editingBrandIndex === index ? (
-                      <input
+                    <tr key={brand.id}>
+                      <td>{index + 1}</td>
+                      <td>
+                        {editingBrandIndex === index ? (
+                          <input
+                            type="text"
+                            value={editingBrandName}
+                            onChange={(e) => setEditingBrandName(e.target.value)}
+                          />
+                          ) : (
+                          brand.name
+                        )}
+                      </td>
+                      <td>
+                        {editingBrandIndex === index ? (
+                            <>
+                              <button onClick={() => handleSaveBrand(index)}>
+                                บันทึก
+                              </button>
+                              <button onClick={() => setEditingBrandIndex(null)}>ยกเลิก</button>
+                            </>
+                          ) : (
+                          <>
+                            <button
+                              onClick={() => {
+                                setEditingBrandIndex(index);
+                                setEditingBrandName(brand.name);
+                              }}
+                            >
+                              แก้ไข
+                            </button>
+                            <button
+                              className="delete-btn"
+                              onClick={() => handleDeleteBrand(brand.id)}
+                            >
+                              ลบ
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                 ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        {showEditModal && currentEditItem && (
+          <div className="modal">
+              <div className="modal-content">
+                <h2>แก้ไขรายละเอียด</h2>
+                <button className="close-btn" onClick={() => setShowEditModal(false)}>X</button>
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                      try {
+                        const response = await axios.put(
+                          `http://localhost:5001/api/products/${currentEditItem.id}`,
+                          currentEditItem
+                        );
+                        if (response.data.success) {
+                            alert("แก้ไขสำเร็จ");
+                            fetchData(); // โหลดข้อมูลใหม่
+                            setShowEditModal(false);
+                        }
+                      } catch (error) {
+                        console.error("Error editing item:", error);
+                        alert("เกิดข้อผิดพลาด");
+                      }
+                  }}
+                >
+                <div className="form-row">
+                  <label>ชื่อ:</label>
+                     <input
+                       type="text"
+                       value={currentEditItem.material}
+                       onChange={(e) =>
+                         setCurrentEditItem({ ...currentEditItem, material: e.target.value })
+                       }
+                     />
+                 </div>
+                 <div className="form-row">
+                    <label>ประเภท:</label>
+                    <input
                         type="text"
-                        value={editingBrandName}
-                        onChange={(e) => setEditingBrandName(e.target.value)}
-                      />
-                      ) : (
-                      brand.name
-                    )}
-                  </td>
-                  <td>
-                    {editingBrandIndex === index ? (
-                      <>
-                        <button onClick={() => handleSaveBrand(index)}>
-                          บันทึก
-                        </button>
-                        <button onClick={() => setEditingBrandIndex(null)}>ยกเลิก</button>
-                      </>
-                    ) : (
-                    <>
-                      <button
-                        onClick={() => {
-                          setEditingBrandIndex(index);
-                          setEditingBrandName(brand.name);
-                        }}
-                      >
-                        แก้ไข
-                      </button>
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDeleteBrand(brand.id)}
-                      >
-                        ลบ
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-)}
-
+                        value={currentEditItem.category}
+                        onChange={(e) =>
+                          setCurrentEditItem({ ...currentEditItem, category: e.target.value })
+                        }
+                    />
+                </div>
+                <div className="form-row">
+                    <label>อุปกรณ์:</label>
+                    <input
+                        type="text"
+                        value={currentEditItem.equipment}
+                        onChange={(e) =>
+                            setCurrentEditItem({ ...currentEditItem, equipment: e.target.value })
+                        }
+                    />
+                </div>
+                <div className="form-row">
+                    <label>ยี่ห้อ:</label>
+                    <input
+                        type="text"
+                        value={currentEditItem.brand}
+                        onChange={(e) =>
+                            setCurrentEditItem({ ...currentEditItem, brand: e.target.value })
+                        }
+                    />
+                </div>
+                <div className="form-row">
+                    <label>หมายเลขครุภัณฑ์:</label>
+                    <input
+                        type="text"
+                        value={currentEditItem.equipment_number}
+                        onChange={(e) =>
+                            setCurrentEditItem({
+                                ...currentEditItem,
+                                equipment_number: e.target.value,
+                            })
+                        }
+                    />
+                </div>
+                <div className="form-row">
+                    <label>Serial:</label>
+                    <input
+                        type="text"
+                        value={currentEditItem.serial_number}
+                        onChange={(e) =>
+                            setCurrentEditItem({
+                                ...currentEditItem,
+                                serial_number: e.target.value,
+                            })
+                        }
+                    />
+                </div>
+                <div className="form-row">
+                    <label>จำนวน:</label>
+                    <input
+                        type="number"
+                        value={currentEditItem.inventory_number}
+                        onChange={(e) =>
+                            setCurrentEditItem({
+                                ...currentEditItem,
+                                inventory_number: e.target.value,
+                            })
+                        }
+                    />
+                </div>
+                <div className="form-row">
+                    <label>คงเหลือ:</label>
+                    <input
+                        type="number"
+                        value={currentEditItem.remaining}
+                        onChange={(e) =>
+                            setCurrentEditItem({ ...currentEditItem, remaining: e.target.value })
+                        }
+                    />
+                </div>
+                <div className="form-row">
+                    <label>รายละเอียด:</label>
+                    <input
+                        type="text"
+                        value={currentEditItem.details}
+                        onChange={(e) =>
+                            setCurrentEditItem({ ...currentEditItem, details: e.target.value })
+                        }
+                    />
+                </div>
+                <div className="modal-actions">
+                    <button type="submit" className="save-btn">บันทึก</button>
+                    <button type="button" className="cancel-btn" onClick={() => setShowEditModal(false)}>
+                        ยกเลิก
+                    </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
     </div>
   );
 };
