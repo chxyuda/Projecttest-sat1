@@ -223,15 +223,16 @@ app.post('/api/signup', (req, res) => {
 app.get('/api/products', (req, res) => { 
   const query = `
     SELECT 
+      id,
       model AS material,
       COALESCE(serial_number, '-') AS serial_number,
       category_name AS category,
       name AS equipment,
       brand_name AS brand,
-      inventory_number, -- จำนวนทั้งหมด
-      COALESCE(inventory_number - borrowed_number, 0) AS remaining, -- คำนวณคงเหลือ
+      inventory_number,
+      COALESCE(inventory_number - borrowed_number, 0) AS remaining,
       details,
-      equipment_number -- เพิ่ม equipment_number
+      equipment_number
     FROM products
   `;
   db.query(query, (err, results) => {
@@ -245,68 +246,118 @@ app.get('/api/products', (req, res) => {
 
 // เพิ่มข้อมูลใหม่
 app.post('/api/products', (req, res) => {
-  const { name, brand_name, model, equipment_number } = req.body;
+  const {
+    name,
+    brand_name,
+    model,
+    equipment_number,
+    serial_number,
+    inventory_number,
+    remaining,
+    details,
+  } = req.body;
 
-  console.log("Data received:", { name, brand_name, model, equipment_number });
-
-  if (!name) {
-    return res.status(400).json({ success: false, message: "กรุณากรอกชื่ออุปกรณ์" });
+  // ตรวจสอบว่าข้อมูลทั้งหมดครบถ้วน
+  if (
+    !name ||
+    !brand_name ||
+    !model ||
+    !equipment_number ||
+    !serial_number ||
+    !inventory_number ||
+    !remaining ||
+    !details
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "กรุณากรอกข้อมูลให้ครบถ้วน",
+    });
   }
 
   const checkQuery = "SELECT * FROM products WHERE name = ?";
   db.query(checkQuery, [name], (err, results) => {
     if (err) {
       console.error("Database error:", err);
-      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+      return res.status(500).json({
+        success: false,
+        message: "เกิดข้อผิดพลาดในระบบ",
+      });
     }
 
     if (results.length > 0) {
-      return res.status(409).json({ success: false, message: "ชื่ออุปกรณ์นี้มีอยู่ในระบบแล้ว" });
+      return res.status(409).json({
+        success: false,
+        message: "ชื่ออุปกรณ์นี้มีอยู่ในระบบแล้ว",
+      });
     }
 
     const insertQuery = `
-      INSERT INTO products (name, brand_name, model, equipment_number) 
-      VALUES (?, ?, ?, ?)
+      INSERT INTO products (
+        name,
+        brand_name,
+        model,
+        equipment_number,
+        serial_number,
+        inventory_number,
+        remaining,
+        details
+      ) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    db.query(insertQuery, [name, brand_name, model || "รุ่นทั่วไป", equipment_number || null], (err, result) => {
-      if (err) {
-        console.error("Error adding product:", err);
-        return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์" });
+    db.query(
+      insertQuery,
+      [
+        name,
+        brand_name,
+        model,
+        equipment_number,
+        serial_number,
+        inventory_number,
+        remaining,
+        details,
+      ],
+      (err, result) => {
+        if (err) {
+          console.error("Error adding product:", err);
+          return res.status(500).json({
+            success: false,
+            message: "เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์",
+          });
+        }
+        res.status(201).json({
+          success: true,
+          id: result.insertId,
+          message: "เพิ่มอุปกรณ์สำเร็จ",
+        });
       }
-      res.status(201).json({ success: true, id: result.insertId, message: "เพิ่มอุปกรณ์สำเร็จ" });
-    });
+    );
   });
 });
-
 
 // อัปเดตข้อมูล
 app.put('/api/products/:id', (req, res) => {
   const { id } = req.params;
-  const { name, brand_name, model, equipment_number } = req.body;
+  const data = req.body;
+  console.log('Data received for update:', { id, ...data }); // Log ข้อมูล
 
-  if (!name) {
-    return res.status(400).json({ success: false, message: "กรุณากรอกชื่อสินค้า" });
-  }
+  const query = `
+    UPDATE products
+    SET name = ?, brand_name = ?, category_name = ?, model = ?, 
+        equipment_number = ?, serial_number = ?, inventory_number = ?, 
+        details = ?
+    WHERE id = ?
+  `;
 
-  const checkQuery = "SELECT * FROM products WHERE id = ?";
-  db.query(checkQuery, [id], (checkErr, checkResults) => {
-    if (checkErr || checkResults.length === 0) {
-      return res.status(404).json({ success: false, message: "ไม่พบสินค้าที่ต้องการอัปเดต" });
+  db.query(query, [
+    data.name, data.brand_name, data.category_name, data.model, 
+    data.equipment_number, data.serial_number, data.inventory_number, 
+    data.details, id
+  ], (err, results) => {
+    if (err) {
+      console.error('Database update error:', err);
+      return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการอัปเดตข้อมูล' });
     }
-
-    const updateQuery = `
-      UPDATE products 
-      SET name = ?, brand_name = ?, model = ?, equipment_number = ? 
-      WHERE id = ?
-    `;
-    db.query(updateQuery, [name, brand_name, model || "รุ่นทั่วไป", equipment_number || null, id], (err) => {
-      if (err) {
-        console.error("Error updating product:", err);
-        res.status(500).json({ success: false, error: "Database error" });
-      } else {
-        res.status(200).json({ success: true, message: "อัปเดตข้อมูลสำเร็จ" });
-      }
-    });
+    res.status(200).json({ success: true, message: 'บันทึกข้อมูลสำเร็จ' });
   });
 });
 
