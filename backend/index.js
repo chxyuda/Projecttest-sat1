@@ -220,7 +220,13 @@ app.post('/api/signup', (req, res) => {
 
 // ดึงรายการ products
 // ดึงข้อมูลทั้งหมด
-app.get('/api/products', (req, res) => { 
+app.get('/api/products', (req, res) => {
+  const { sortColumn = 'id', sortOrder = 'ASC' } = req.query; // Default sorting
+  const validColumns = ['id', 'model', 'category_name', 'inventory_number']; // คอลัมน์ที่อนุญาต
+  if (!validColumns.includes(sortColumn)) {
+    return res.status(400).json({ success: false, error: 'Invalid sort column' });
+  }
+
   const query = `
     SELECT 
       id,
@@ -231,135 +237,140 @@ app.get('/api/products', (req, res) => {
       brand_name AS brand,
       inventory_number,
       COALESCE(inventory_number - borrowed_number, 0) AS remaining,
-      details,
-      equipment_number
+      COALESCE(details, '-') AS details,
+      COALESCE(equipment_number, '-') AS equipment_number
     FROM products
+    ORDER BY ${sortColumn} ${sortOrder};
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    console.log('Query Results:', results); // ล็อกข้อมูลผลลัพธ์
+    res.status(200).json({ success: true, data: results });
+  });  
+});
+
+
+// เพิ่มข้อมูลใหม่
+app.post("/api/products", (req, res) => {
+  const { name, brand_name, equipment_number, serial_number, inventory_number, details } = req.body;
+
+  if (!name || !brand_name || !equipment_number || !serial_number || !inventory_number || !details) {
+    return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" });
+  }
+
+  const query = `
+    INSERT INTO products (name, brand_name, equipment_number, serial_number, inventory_number, details)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [name, brand_name, equipment_number, serial_number, inventory_number, details], (err) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+    }
+    res.status(201).json({ success: true, message: "เพิ่มอุปกรณ์สำเร็จ" });
+  });
+});
+
+
+// อัปเดตข้อมูล
+app.put('/api/products/:id', (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+
+  const query = `
+    UPDATE products
+    SET 
+      model = COALESCE(?, model), 
+      category_name = COALESCE(?, category_name), 
+      name = COALESCE(?, name), 
+      brand_name = COALESCE(?, brand_name),
+      equipment_number = COALESCE(?, equipment_number),
+      serial_number = COALESCE(?, serial_number),
+      inventory_number = COALESCE(?, inventory_number),
+      details = COALESCE(?, details)
+    WHERE id = ?
+  `;
+
+  db.query(
+    query,
+    [
+      data.name,
+      data.category,
+      data.equipment,
+      data.brand,
+      data.equipment_number,
+      data.serial_number,
+      data.inventory_number,
+      data.details,
+      id,
+    ],
+    (err, results) => {
+      if (err) {
+        console.error("Database update error:", err);
+        return res
+          .status(500)
+          .json({ success: false, message: "เกิดข้อผิดพลาดในการอัปเดตข้อมูล" });
+      }
+      res.status(200).json({ success: true, message: "บันทึกข้อมูลสำเร็จ" });
+    }
+  );
+});
+
+app.get('/api/options', (req, res) => {
+  const query = `
+    SELECT DISTINCT category_name AS category FROM products;
+    SELECT DISTINCT name AS equipment FROM products;
+    SELECT DISTINCT brand_name AS brand FROM products;
   `;
   db.query(query, (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ success: false, error: 'Server error' });
     }
-    res.status(200).json({ success: true, data: results });
-  });
-});
-
-// เพิ่มข้อมูลใหม่
-app.post('/api/products', (req, res) => {
-  const {
-    name,
-    brand_name,
-    model,
-    equipment_number,
-    serial_number,
-    inventory_number,
-    remaining,
-    details,
-  } = req.body;
-
-  // ตรวจสอบว่าข้อมูลทั้งหมดครบถ้วน
-  if (
-    !name ||
-    !brand_name ||
-    !model ||
-    !equipment_number ||
-    !serial_number ||
-    !inventory_number ||
-    !remaining ||
-    !details
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "กรุณากรอกข้อมูลให้ครบถ้วน",
+    res.status(200).json({
+      success: true,
+      categories: results[0],
+      equipments: results[1],
+      brands: results[2],
     });
-  }
+  });
+});
+// ดึงข้อมูลตัวเลือก
+app.get('/api/filters', (req, res) => {
+  const queries = {
+    categories: 'SELECT DISTINCT category_name FROM products',
+    equipment: 'SELECT DISTINCT name FROM products',
+    brands: 'SELECT DISTINCT brand_name FROM products',
+  };
 
-  const checkQuery = "SELECT * FROM products WHERE name = ?";
-  db.query(checkQuery, [name], (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({
-        success: false,
-        message: "เกิดข้อผิดพลาดในระบบ",
-      });
-    }
+  const results = {};
 
-    if (results.length > 0) {
-      return res.status(409).json({
-        success: false,
-        message: "ชื่ออุปกรณ์นี้มีอยู่ในระบบแล้ว",
-      });
-    }
-
-    const insertQuery = `
-      INSERT INTO products (
-        name,
-        brand_name,
-        model,
-        equipment_number,
-        serial_number,
-        inventory_number,
-        remaining,
-        details
-      ) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    db.query(
-      insertQuery,
-      [
-        name,
-        brand_name,
-        model,
-        equipment_number,
-        serial_number,
-        inventory_number,
-        remaining,
-        details,
-      ],
-      (err, result) => {
+  const promises = Object.keys(queries).map((key) => {
+    return new Promise((resolve, reject) => {
+      db.query(queries[key], (err, data) => {
         if (err) {
-          console.error("Error adding product:", err);
-          return res.status(500).json({
-            success: false,
-            message: "เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์",
-          });
+          reject(err);
+        } else {
+          results[key] = data.map((item) => item[Object.keys(item)[0]]);
+          resolve();
         }
-        res.status(201).json({
-          success: true,
-          id: result.insertId,
-          message: "เพิ่มอุปกรณ์สำเร็จ",
-        });
-      }
-    );
+      });
+    });
   });
+
+  Promise.all(promises)
+    .then(() => res.status(200).json({ success: true, data: results }))
+    .catch((error) => {
+      console.error('Error fetching filters:', error);
+      res.status(500).json({ success: false, message: 'Error fetching filters' });
+    });
 });
 
-// อัปเดตข้อมูล
-app.put('/api/products/:id', (req, res) => {
-  const { id } = req.params;
-  const data = req.body;
-  console.log('Data received for update:', { id, ...data }); // Log ข้อมูล
-
-  const query = `
-    UPDATE products
-    SET name = ?, brand_name = ?, category_name = ?, model = ?, 
-        equipment_number = ?, serial_number = ?, inventory_number = ?, 
-        details = ?
-    WHERE id = ?
-  `;
-
-  db.query(query, [
-    data.name, data.brand_name, data.category_name, data.model, 
-    data.equipment_number, data.serial_number, data.inventory_number, 
-    data.details, id
-  ], (err, results) => {
-    if (err) {
-      console.error('Database update error:', err);
-      return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการอัปเดตข้อมูล' });
-    }
-    res.status(200).json({ success: true, message: 'บันทึกข้อมูลสำเร็จ' });
-  });
-});
 
 // ลบข้อมูล
 app.post('/api/products/delete', (req, res) => {
