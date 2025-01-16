@@ -44,7 +44,7 @@ body {
   justify-content: center;
   align-items: center;
   flex: 1; /* ใช้พื้นที่กลาง */
-  gap: 30px; /* ระยะห่างระหว่างเมนู */
+  gap: 20px; /* ระยะห่างระหว่างเมนู */
 }
 
 /* กลุ่มเมนู */

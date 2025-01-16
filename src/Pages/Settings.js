@@ -32,7 +32,8 @@ const Settings = () => {
   const [newSerial, setNewSerial] = useState(""); // สำหรับ Serial Number
   const [newInventory, setNewInventory] = useState(1); // สำหรับจำนวนสินค้า (ค่าดีฟอลต์ 1)
   const [newDetails, setNewDetails] = useState(""); // สำหรับรายละเอียด
-  
+  const [editingBrand, setEditingBrand] = useState(""); // State สำหรับเก็บชื่อยี่ห้อที่กำลังแก้ไข
+
 
 
   console.log("Selected Items:", selectedItems);
@@ -541,16 +542,14 @@ const handleDeleteConfirm = async () => {
     try {
       const response = await axios.get("http://localhost:5001/api/brands");
       if (response.data.success) {
-        setBrands(response.data.data || []);
-      } else {
-        alert("ไม่พบข้อมูลยี่ห้อ");
+        setBrands(response.data.data); // เก็บข้อมูลใน state
       }
     } catch (error) {
       console.error("Error fetching brands:", error);
-      alert("เกิดข้อผิดพลาดในการดึงข้อมูลยี่ห้อ");
+      alert("ไม่สามารถดึงข้อมูลยี่ห้อได้");
     }
   };
-
+  
   
   const handleFetchBrands = async () => {
     try {
@@ -571,26 +570,28 @@ const handleDeleteConfirm = async () => {
       alert("กรุณากรอกชื่อยี่ห้อ");
       return;
     }
-
-    const category = "ทั่วไป"; // กำหนด category เป็นค่าเริ่มต้น
+  
     try {
       const response = await axios.post("http://localhost:5001/api/brands", {
-        name: newBrand,
-        category,
+        name: newBrand.trim(),
+        category: "ทั่วไป",
       });
+  
       if (response.data.success) {
         alert("เพิ่มยี่ห้อสำเร็จ");
-        setBrands([...brands, { id: response.data.id, name: newBrand }]); // เพิ่มข้อมูลใหม่ใน state
-        setNewBrand(""); // ล้างค่า input
-      } else {
-        alert(response.data.message || "เกิดข้อผิดพลาด");
+  
+        // อัปเดต state โดยเพิ่มข้อมูลใหม่
+        setBrands([...brands, { id: response.data.id, name: newBrand.trim() }]);
+  
+        setNewBrand(""); // รีเซ็ตค่า input
       }
     } catch (error) {
-      console.error("Error adding brand:", error.response?.data);
-      alert(error.response?.data?.message || "เกิดข้อผิดพลาด");
+      console.error("Error adding brand:", error);
+      alert("เกิดข้อผิดพลาดในการเพิ่มยี่ห้อ");
     }
   };
   
+
   const handleDeleteBrand = async (id) => {
     if (!window.confirm("คุณต้องการลบยี่ห้อนี้หรือไม่?")) return;
   
@@ -598,7 +599,9 @@ const handleDeleteConfirm = async () => {
       const response = await axios.delete(`http://localhost:5001/api/brands/${id}`);
       if (response.data.success) {
         alert("ลบยี่ห้อสำเร็จ");
-        fetchBrands();
+  
+        // อัปเดต state โดยการกรองข้อมูลที่ถูกลบออก
+        setBrands((prevBrands) => prevBrands.filter((brand) => brand.id !== id));
       }
     } catch (error) {
       console.error("Error deleting brand:", error);
@@ -606,20 +609,39 @@ const handleDeleteConfirm = async () => {
     }
   };
   
+  
+  const handleEditBrand = (index) => {
+    console.log("Editing Brand Index:", editingBrandIndex);
+    console.log("Editing Brand Name:", editingBrand);
 
-  const handleEditBrand = async (id, name) => {
-    if (!name.trim()) {
-      alert("กรุณากรอกชื่อยี่ห้อ");
+    setEditingBrand(brands[index]?.name || ""); // ดึงค่าชื่อยี่ห้อมาแก้ไข
+    setEditingBrandIndex(index); // เก็บ index ที่แก้ไข
+  };
+  
+  
+  const handleSaveBrand = async (id) => {
+    if (!editingBrand || !editingBrand.trim()) {
+      alert("ชื่อยี่ห้อไม่สามารถเว้นว่างได้");
       return;
     }
   
+    console.log("Editing Brand ID:", id);
+    console.log("Editing Brand Name:", editingBrand);
+  
     try {
-      const response = await axios.put(`http://localhost:5001/api/brands/${id}`, { name });
+      const response = await axios.put(`http://localhost:5001/api/brands/${id}`, {
+        name: editingBrand.trim(),
+      });
+  
+      console.log("API Response:", response.data);
+  
       if (response.data.success) {
-        alert("แก้ไขยี่ห้อสำเร็จ");
+        alert("แก้ไขสำเร็จ");
         fetchBrands();
-        setEditingBrandId(null);
-        setEditingBrandName("");
+        setEditingBrand(""); // รีเซ็ตค่า
+        setEditingBrandIndex(null);
+      } else {
+        alert(response.data.message || "เกิดข้อผิดพลาดในการแก้ไข");
       }
     } catch (error) {
       console.error("Error editing brand:", error);
@@ -628,40 +650,6 @@ const handleDeleteConfirm = async () => {
   };
   
 
-  const handleSaveBrand = async (index) => {
-    const brandId = brands[index]?.id;
-    const updatedName = editingBrandName.trim();
-  
-    console.log("Brand ID:", brandId);
-    console.log("Updated Name:", updatedName);
-  
-    if (!updatedName) {
-      alert("กรุณากรอกชื่อยี่ห้อ");
-      return;
-    }
-  
-    try {
-      const response = await axios.put(
-        `http://localhost:5001/api/brands/${brandId}`,
-        { name: updatedName }
-      );
-  
-      console.log("API Response:", response.data);
-  
-      if (response.data.success) {
-        alert("แก้ไขสำเร็จ");
-        fetchBrands(); // โหลดข้อมูลใหม่
-      } else {
-        alert(response.data.message || "เกิดข้อผิดพลาด");
-      }
-    } catch (error) {
-      console.error("Error:", error.response?.data || error.message);
-      alert(error.response?.data?.message || "เกิดข้อผิดพลาด");
-    }
-  };
-  
-  
-  
   const handleShowBrandModal = (index) => {
     setShowBrandModal(true); // เปิด Modal
 };
@@ -893,7 +881,6 @@ const handleCloseBrandModal = () => {
     </tr>
   )}
 </tbody>
-
               </table>
             </div>
           </div>
@@ -944,21 +931,15 @@ const handleCloseBrandModal = () => {
                       <td>
                         {editingBrandIndex === index ? (
                             <>
-                              <button onClick={() => handleSaveBrand(index)}>
+                            
+                              <button onClick={() => handleSaveBrand(brand.id)}>
                                 บันทึก
                               </button>
                               <button onClick={() => setEditingBrandIndex(null)}>ยกเลิก</button>
                             </>
                           ) : (
                           <>
-                            <button
-                              onClick={() => {
-                                setEditingBrandIndex(index);
-                                setEditingBrandName(brand.name);
-                              }}
-                            >
-                              แก้ไข
-                            </button>
+                            <button onClick={() => handleEditBrand(index)}>แก้ไข</button>
                             <button
                               className="delete-btn"
                               onClick={() => handleDeleteBrand(brand.id)}

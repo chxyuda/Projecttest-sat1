@@ -518,30 +518,26 @@ app.put('/api/brands/:id', (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
 
-  // Debug ค่าที่ได้รับจาก Frontend
   console.log("Request Params ID:", id);
   console.log("Request Body Name:", name);
 
   if (!id || !name) {
-    return res.status(400).json({ success: false, message: "กรุณาระบุ ID และชื่อยี่ห้อ" });
+      return res.status(400).json({ success: false, message: "กรุณาระบุ ID และชื่อยี่ห้อ" });
   }
 
   const updateQuery = "UPDATE brands SET name = ? WHERE id = ?";
   db.query(updateQuery, [name, id], (err, result) => {
-    if (err) {
-      // Debug ข้อผิดพลาดจาก Query
-      console.error("Query Error:", err);
-      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
-    }
+      if (err) {
+          console.error("Query Error:", err);
+          return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+      }
 
-    // Debug ผลลัพธ์ของ Query
-    console.log("Query Result:", result);
+      console.log("Query Result:", result);
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ success: false, message: "ไม่พบยี่ห้อที่ต้องการแก้ไข" });
+      }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ success: false, message: "ไม่พบยี่ห้อที่ต้องการแก้ไข" });
-    }
-
-    return res.status(200).json({ success: true, message: "แก้ไขสำเร็จ" });
+      return res.status(200).json({ success: true, message: "แก้ไขสำเร็จ" });
   });
 });
 
