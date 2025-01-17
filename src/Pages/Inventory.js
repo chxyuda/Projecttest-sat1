@@ -187,7 +187,7 @@ const Inventory = () => {
         </table>
         {showHistory && (
           <div className="modal-overlay">
-            <div className="modal-content">
+            <div className="modal-content1">
               <h3>ประวัติการค้นหา</h3>
               <button onClick={handleCloseHistory} className="close-btn">
                 ปิด

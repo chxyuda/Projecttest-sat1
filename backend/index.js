@@ -256,26 +256,44 @@ app.get('/api/products', (req, res) => {
 
 // เพิ่มข้อมูลใหม่
 app.post("/api/products", (req, res) => {
-  const { name, brand_name, equipment_number, serial_number, inventory_number, details } = req.body;
+  const {
+    material, // ชื่อสินค้า
+    serial_number = "-", // ค่าเริ่มต้นหากไม่ได้ส่งมา
+    category, // ประเภท
+    equipment, // อุปกรณ์
+    brand, // ยี่ห้อ
+    inventory_number, // จำนวน
+    details = "-", // รายละเอียด
+    equipment_number = "-" // หมายเลขครุภัณฑ์
+  } = req.body;
 
-  if (!name || !brand_name || !equipment_number || !serial_number || !inventory_number || !details) {
+  // ตรวจสอบว่าข้อมูลสำคัญครบถ้วนหรือไม่
+  if (!material || !category || !equipment || !brand || !inventory_number) {
     return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" });
   }
 
+  // ตรวจสอบว่า inventory_number เป็นตัวเลขที่มากกว่า 0
+  if (isNaN(inventory_number) || inventory_number <= 0) {
+    return res.status(400).json({ success: false, message: "จำนวนสินค้าต้องเป็นตัวเลขที่มากกว่า 0" });
+  }
+
   const query = `
-    INSERT INTO products (name, brand_name, equipment_number, serial_number, inventory_number, details)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO products (material, serial_number, category, equipment, brand, inventory_number, details, equipment_number)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-  db.query(query, [name, brand_name, equipment_number, serial_number, inventory_number, details], (err) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+  db.query(
+    query,
+    [material, serial_number, category, equipment, brand, inventory_number, details, equipment_number],
+    (err) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+      }
+      res.status(201).json({ success: true, message: "เพิ่มข้อมูลสำเร็จ" });
     }
-    res.status(201).json({ success: true, message: "เพิ่มอุปกรณ์สำเร็จ" });
-  });
+  );
 });
-
 
 // อัปเดตข้อมูล
 app.put('/api/products/:id', (req, res) => {
@@ -518,63 +536,52 @@ app.put('/api/brands/:id', (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
 
-  console.log("Request Params ID:", id);
-  console.log("Request Body Name:", name);
+  console.log("Received ID:", id); // Log ID
+  console.log("Received Name:", name); // Log Name
 
   if (!id || !name) {
-      return res.status(400).json({ success: false, message: "กรุณาระบุ ID และชื่อยี่ห้อ" });
+    return res.status(400).json({ success: false, message: "กรุณาระบุ ID และชื่อยี่ห้อ" });
   }
 
   const updateQuery = "UPDATE brands SET name = ? WHERE id = ?";
   db.query(updateQuery, [name, id], (err, result) => {
-      if (err) {
-          console.error("Query Error:", err);
-          return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
-      }
+    if (err) {
+      console.error("Error updating brand:", err);
+      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ" });
+    }
 
-      console.log("Query Result:", result);
-      if (result.affectedRows === 0) {
-          return res.status(404).json({ success: false, message: "ไม่พบยี่ห้อที่ต้องการแก้ไข" });
-      }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "ไม่พบยี่ห้อที่ต้องการแก้ไข" });
+    }
 
-      return res.status(200).json({ success: true, message: "แก้ไขสำเร็จ" });
+    res.status(200).json({ success: true, message: "แก้ไขยี่ห้อสำเร็จ" });
   });
 });
+
 
 
 // ลบยี่ห้อ
 app.delete('/api/brands/:id', (req, res) => {
   const { id } = req.params;
 
-  console.log("Request to delete ID:", id);
+  console.log("Request to delete ID:", id); // Log ID
 
   if (!id) {
-    console.error("Missing ID");
     return res.status(400).json({ success: false, message: "กรุณาระบุ ID" });
   }
 
-  const checkQuery = "SELECT * FROM brands WHERE id = ?";
-  db.query(checkQuery, [id], (checkErr, checkResults) => {
-    if (checkErr) {
-      console.error("Error during SELECT query:", checkErr);
-      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+  const deleteQuery = "DELETE FROM brands WHERE id = ?";
+  db.query(deleteQuery, [id], (err, result) => {
+    if (err) {
+      console.error("Error deleting brand:", err);
+      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการลบยี่ห้อ" });
     }
 
-    if (checkResults.length === 0) {
-      console.warn("No brand found with ID:", id);
+    if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "ไม่พบยี่ห้อที่ต้องการลบ" });
     }
 
-    const deleteQuery = "DELETE FROM brands WHERE id = ?";
-    db.query(deleteQuery, [id], (deleteErr, result) => {
-      if (deleteErr) {
-        console.error("Error during DELETE query:", deleteErr);
-        return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการลบยี่ห้อ" });
-      }
-
-      console.log("Brand deleted successfully:", id);
-      res.status(200).json({ success: true, message: "ลบยี่ห้อสำเร็จ" });
-    });
+    res.status(200).json({ success: true, message: "ลบยี่ห้อสำเร็จ" });
   });
 });
 
