@@ -55,12 +55,13 @@
   height: 50px;
   left: 50%; /* จัดให้อยู่ตรงกลาง */
   transform: translateX(-50%); /* แก้ไขตำแหน่งให้อยู่กึ่งกลาง */
+  margin-top: -15px;
 }
 
 
 /* Header */
 .login-box h3 {
-  margin-top: 30px; /* เพิ่มระยะห่างด้านบน */
+  margin-top: 10px; /* เพิ่มระยะห่างด้านบน */
   font-size: 24px;
   text-align: center;
 }

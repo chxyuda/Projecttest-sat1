@@ -50,7 +50,18 @@ const Settings = () => {
 
 
 
-
+  useEffect(() => {
+    const fetchAllData = async () => {
+      await fetchDropdownData(); // ดึงข้อมูล Dropdown
+      await fetchProducts(); // ดึงข้อมูล Products
+      await fetchBrands(); // ดึงข้อมูล Brands
+      await fetchEquipments();
+      
+    };
+  
+    fetchAllData();
+  }, []);
+  
   const fetchData = async () => {
     try {
       const response = await axios.get('http://localhost:5001/api/products');
@@ -88,13 +99,6 @@ const Settings = () => {
     fetchData();
   }, []);
   
-  
-  
-
-  useEffect(() => {
-    fetchEquipments();
-    fetchBrands();
-  }, []);
   
 
   const handleCheckboxChange = (itemId) => {
@@ -393,6 +397,8 @@ const handleDeleteConfirm = async () => {
 
     fetchEquipments();
 }, []);
+
+
   
   const fetchEquipments = async () => {
     try {
@@ -702,27 +708,26 @@ const handleCloseBrandModal = () => {
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
-  
-    // ตรวจสอบว่าฟิลด์สำคัญครบถ้วน
-    if (!formData.material || !formData.category || !formData.equipment || !formData.brand || !formData.inventory_number) {
+    if (!formData.name || !formData.category || !formData.equipment || !formData.brand || !formData.inventory_number) {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
     }
-  
+
     try {
       const response = await axios.post("http://localhost:5001/api/products", formData);
       if (response.data.success) {
         alert("เพิ่มข้อมูลสำเร็จ");
         setFormData({
-          material: "",
-          serial_number: "",
+          name: "",
           category: "",
           equipment: "",
           brand: "",
+          equipment_number: "",
+          serial_number: "",
           inventory_number: 1,
           details: "",
-          equipment_number: ""
         });
+        fetchProducts(); // อัปเดตข้อมูลสินค้าใหม่
       } else {
         alert(response.data.message);
       }
@@ -732,41 +737,47 @@ const handleCloseBrandModal = () => {
     }
   };
   
-  const resetAddProductForm = () => {
-    setNewProductName("");
-    setNewProductBrand("");
-    setNewProductCategory("");
-    setNewProductDetails("");
-  };
+
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/products');
+      const response = await axios.get("http://localhost:5001/api/products");
       if (response.data.success) {
         setProducts(response.data.data);
-      } else {
-        alert('ไม่พบข้อมูลสินค้า');
+        console.log("Products:", response.data.data);
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
-      alert('ไม่สามารถดึงข้อมูลสินค้าได้');
+      console.error("Error fetching products:", error);
     }
   };
 
+
   const fetchDropdownData = async () => {
     try {
-      const equipmentResponse = await axios.get("http://localhost:5001/api/equipments");
+      const equipmentResponse = await axios.get("http://localhost:5001/api/products");
       const categoryResponse = await axios.get("http://localhost:5001/api/categories");
       const brandResponse = await axios.get("http://localhost:5001/api/brands");
   
       if (equipmentResponse.data.success) {
-        setEquipments(equipmentResponse.data.data);
+        const uniqueEquipments = equipmentResponse.data.data.map((item) => ({
+          id: item.id,
+          name: item.name || item.material || "N/A",
+        }));
+        setEquipments(uniqueEquipments);
       }
+  
       if (categoryResponse.data.success) {
-        setCategories(categoryResponse.data.data);
+        setCategories(categoryResponse.data.data.map((item) => ({
+          id: item.id,
+          name: item.category_name,
+        })));
       }
+  
       if (brandResponse.data.success) {
-        setBrands(brandResponse.data.data);
+        setBrands(brandResponse.data.data.map((item) => ({
+          id: item.id,
+          name: item.name,
+        })));
       }
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
@@ -775,38 +786,65 @@ const handleCloseBrandModal = () => {
   
 
   useEffect(() => {
+    fetchDropdownData();
+  }, []);
+  
+  
+  useEffect(() => {
     fetchProducts();
   }, []);
   
 const handleShowAddProductModal = () => setShowAddProductModal(true);
 
+useEffect(() => {
+  fetchDropdownData(); // ดึงข้อมูลทั้งหมดสำหรับ dropdown
+}, []);
+
+
 const handleCloseAddProductModal = () => {
-  resetAddProductForm(); // รีเซ็ตข้อมูลในฟอร์ม
   setShowAddProductModal(false); // ปิด Modal
 };
 
 const [formData, setFormData] = useState({
-  name: "",
-  category: "",
-  equipment: "",
-  brand: "",
-  equipment_number: "",
-  serial_number: "",
-  inventory_number: 0,
-  details: "",
+  name: "", // ชื่อสินค้า
+  category: "", // ประเภทสินค้า
+  equipment: "", // อุปกรณ์
+  brand: "", // ยี่ห้อ
+  equipment_number: "", // หมายเลขครุภัณฑ์
+  serial_number: "", // Serial Number
+  inventory_number: 1, // จำนวนสินค้า (ค่าเริ่มต้น 1)
+  details: "", // รายละเอียดสินค้า
 });
+
 
 const handleChange = (e) => {
   const { name, value } = e.target;
-  setFormData((prevState) => ({ ...prevState, [name]: value }));
+
+  // ค้นหาอุปกรณ์ตาม id
+  if (name === "equipment") {
+    const selectedEquipment = equipments.find((item) => item.id === parseInt(value, 10));
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: selectedEquipment ? selectedEquipment.name : "",
+    }));
+  } else {
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  }
 };
 
 
+
+
 useEffect(() => {
-  console.log("Categories:", categories);
   console.log("Equipments:", equipments);
+  console.log("Categories:", categories);
   console.log("Brands:", brands);
-}, [categories, equipments, brands]);
+}, [equipments, categories, brands]);
+
+
 
 
   return (
@@ -1270,129 +1308,138 @@ useEffect(() => {
     <div className="modal-content">
       <h2>เพิ่มวัสดุ</h2>
       <form onSubmit={handleAddProduct}>
-  <div className="form-grid">
-    {/* ชื่อสินค้า */}
-    <div className="form-row">
-      <label>ชื่อสินค้า:</label>
-      <input
-        type="text"
-        name="name"
-        value={formData.name || ""}
-        onChange={handleChange}
-      />
-    </div>
+        <div className="form-grid">
+          {/* ชื่อสินค้า */}
+          <div className="form-row">
+            <label>ชื่อสินค้า:</label>
+            <input
+              type="text"
+              name="name"
+              placeholder="กรอกชื่อสินค้า"
+              value={formData.name || ""}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-    {/* ประเภท */}
-    <div className="form-row">
-  <label>ประเภท:</label>
-  <select
-    name="category_name"
-    value={formData.category_name || ""}
-    onChange={handleChange}
-  >
-    <option value="">เลือกประเภท</option>
-    {categories && categories.length > 0 ? (
-      categories.map((category) => (
-        <option key={category.id} value={category.category_name}>
-          {category.category_name}
+          {/* ประเภท */}
+          <div className="form-row">
+            <label>ประเภท:</label>
+            <select
+              name="category"
+              value={formData.category || ""}
+              onChange={handleChange}
+              required
+            >
+              <option value="">เลือกประเภท</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.name}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* อุปกรณ์ */}
+          
+          <div className="form-row">
+  <label>อุปกรณ์:</label>
+  <select name="equipment" value={formData.equipment} onChange={handleChange}>
+    <option value="">เลือกอุปกรณ์</option>
+    {equipments.length > 0 ? (
+      equipments.map((equipment) => (
+        <option key={equipment.id} value={equipment.name}>
+          {equipment.name}
         </option>
       ))
     ) : (
-      <option value="">ไม่มีข้อมูลประเภท</option>
+      <option value="">ไม่มีข้อมูล</option>
     )}
   </select>
 </div>
 
+          {/* ยี่ห้อ */}
+          <div className="form-row">
+            <label>ยี่ห้อ:</label>
+            <select
+              name="brand"
+              value={formData.brand || ""}
+              onChange={handleChange}
+              required
+            >
+              <option value="">เลือกยี่ห้อ</option>
+              {brands.map((brand) => (
+                <option key={brand.id} value={brand.name}>
+                  {brand.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-    {/* อุปกรณ์ */}
-    <div className="form-row">
-      <label>อุปกรณ์:</label>
-      <select
-        name="equipment"
-        value={formData.equipment || ""}
-        onChange={handleChange}
-      >
-        <option value="">เลือกอุปกรณ์</option>
-        {equipments.map((equipment, index) => (
-          <option key={index} value={equipment.name}>
-            {equipment.name}
-          </option>
-        ))}
-      </select>
-    </div>
+          {/* หมายเลขครุภัณฑ์ */}
+          <div className="form-row">
+            <label>หมายเลขครุภัณฑ์:</label>
+            <input
+              type="text"
+              name="equipment_number"
+              placeholder="กรอกหมายเลขครุภัณฑ์"
+              value={formData.equipment_number || ""}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-    {/* ยี่ห้อ */}
-    <div className="form-row">
-      <label>ยี่ห้อ:</label>
-      <select
-        name="brand"
-        value={formData.brand || ""}
-        onChange={handleChange}
-      >
-        <option value="">เลือกยี่ห้อ</option>
-        {brands.map((brand) => (
-          <option key={brand.id} value={brand.name}>
-            {brand.name}
-          </option>
-        ))}
-      </select>
-    </div>
+          {/* Serial */}
+          <div className="form-row">
+            <label>Serial:</label>
+            <input
+              type="text"
+              name="serial_number"
+              placeholder="กรอก Serial Number"
+              value={formData.serial_number || ""}
+              onChange={handleChange}
+            />
+          </div>
 
-    {/* หมายเลขครุภัณฑ์ */}
-    <div className="form-row">
-      <label>หมายเลขครุภัณฑ์:</label>
-      <input
-        type="text"
-        name="equipment_number"
-        value={formData.equipment_number || ""}
-        onChange={handleChange}
-      />
-    </div>
+          {/* จำนวน */}
+          <div className="form-row">
+            <label>จำนวน:</label>
+            <input
+              type="number"
+              name="inventory_number"
+              placeholder="ระบุจำนวน"
+              min="1"
+              value={formData.inventory_number || 1}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-    {/* Serial */}
-    <div className="form-row">
-      <label>Serial:</label>
-      <input
-        type="text"
-        name="serial_number"
-        value={formData.serial_number || ""}
-        onChange={handleChange}
-      />
-    </div>
+          {/* รายละเอียด */}
+          <div className="form-row">
+            <label>รายละเอียด:</label>
+            <textarea
+              name="details"
+              placeholder="กรอกรายละเอียดสินค้า (ถ้ามี)"
+              value={formData.details || ""}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
 
-    {/* จำนวน */}
-    <div className="form-row">
-      <label>จำนวน:</label>
-      <input
-        type="number"
-        name="inventory_number"
-        value={formData.inventory_number || 0}
-        onChange={handleChange}
-      />
-    </div>
-
-    {/* รายละเอียด */}
-    <div className="form-row">
-      <label>รายละเอียด:</label>
-      <textarea
-        name="details"
-        value={formData.details || ""}
-        onChange={handleChange}
-      />
-    </div>
-  </div>
-
-  <div className="form-actions">
-    <button type="submit" className="save-btn">บันทึก</button>
-    <button
-      type="button"
-      className="cancel-btn"
-      onClick={() => setShowAddProductModal(false)}
-    >
-      ยกเลิก
-    </button>
-  </div>
-</form>
+        <div className="form-actions">
+          <button type="submit" className="save-btn">
+            บันทึก
+          </button>
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={() => setShowAddProductModal(false)}
+          >
+            ยกเลิก
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 )}
