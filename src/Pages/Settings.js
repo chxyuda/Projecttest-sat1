@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import ITDashboard from "./ITDashboard";
 import "./Settings.css";
 import axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCog } from "@fortawesome/free-solid-svg-icons";
 
 const Settings = () => {
   const [data, setData] = useState([]);
@@ -851,72 +853,70 @@ useEffect(() => {
     <div>
       <ITDashboard />
       <div className="settings-container">
-  <h1>การตั้งค่า</h1>
-  <div className="actions-container">
-    <button className="delete-selected-btn" onClick={handleDeleteSelected}>
-      ลบรายการที่เลือก
-    </button>
-    <button className="custom-btn" onClick={handleShowModal}>
-      <span className="custom-btn-icon">🖉</span> ประเภท
-    </button>
-    <button className="custom-btn" onClick={handleShowEquipmentsModal}>
-      <span className="custom-btn-icon">🖉</span> อุปกรณ์
-    </button>
-    <button className="custom-btn" onClick={() => handleShowBrandModal("brand")}>
-      <span className="custom-btn-icon">🖉</span> ยี่ห้อ
-    </button>
-    <button className="add-product-btn" onClick={handleShowAddProductForm}>
-  <span className="material-icons">add</span>
-  เพิ่ม
-</button>
-
-  </div>
-        <table className="settings-table">
-          <thead>
-            <tr>
-            <th>เลือก</th>
-            <th>ชื่อ</th>
-            <th>ประเภท</th>
-            <th>อุปกรณ์</th>
-            <th>ยี่ห้อ</th>
-            <th>หมายเลขครุภัณฑ์</th>
-            <th>serial</th>
-            <th>จำนวน</th>
-            <th>คงเหลือ</th>
-            <th>รายละเอียด</th> 
-            <th>จัดการ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((item, index) => ( // เพิ่ม index ใน map
-              <tr key={item.id}>
-              <td>
-                <input
-                  type="checkbox"
-                  checked={selectedItems.includes(index)} // ใช้ index ในการเช็ค
-                  onChange={() => handleCheckboxChange(index)} // ใช้ index สำหรับการเปลี่ยนสถานะ
-                />
-              </td>
-              <td>{item.material}</td>
-              <td>{item.category || "-"}</td>
-              <td>{item.equipment}</td>
-              <td>{item.brand}</td>
-              <td>{item.equipment_number}</td>
-              <td>{item.serial_number}</td>
-              <td>{item.inventory_number}</td>
-              <td>{item.remaining}</td> {/* จำนวน */}
-              <td>{item.details || "ไม่มีรายละเอียด"}</td> {/* เพิ่มการแสดงผล */}
-              <td>
-              <button className="edit-btn" onClick={() => handleEditClick(item)}>
-                แก้ไข
-              </button>
-
-              </td>
+          <h1><FontAwesomeIcon icon={faCog} style={{ marginRight: "10px" }} /> การตั้งค่า</h1>
+          <div className="actions-container">
+            <button className="delete-selected-btn" onClick={handleDeleteSelected}>
+              ลบรายการที่เลือก
+            </button>
+            <button className="custom-btn" onClick={handleShowModal}>
+              <span className="custom-btn-icon">🖉</span> ประเภท
+            </button>
+            <button className="custom-btn" onClick={handleShowEquipmentsModal}>
+              <span className="custom-btn-icon">🖉</span> อุปกรณ์
+            </button>
+            <button className="custom-btn" onClick={() => handleShowBrandModal("brand")}>
+              <span className="custom-btn-icon">🖉</span> ยี่ห้อ
+            </button>
+            <button className="add-product-btn" onClick={handleShowAddProductForm}>
+              <span className="material-icons">add</span>
+              เพิ่ม
+            </button>
+          </div>
+          <table className="settings-table">
+            <thead>
+              <tr>
+                <th>เลือก</th>
+                <th>ชื่อ</th>
+                <th>ประเภท</th>
+                <th>อุปกรณ์</th>
+                <th>ยี่ห้อ</th>
+                <th>หมายเลขครุภัณฑ์</th>
+                <th>serial</th>
+                <th>จำนวน</th>
+                <th>คงเหลือ</th>
+                <th>รายละเอียด</th> 
+                <th>จัดการ</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {data.map((item, index) => ( // เพิ่ม index ใน map
+                <tr key={item.id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedItems.includes(index)} // ใช้ index ในการเช็ค
+                      onChange={() => handleCheckboxChange(index)} // ใช้ index สำหรับการเปลี่ยนสถานะ
+                    />
+                  </td>
+                  <td>{item.material}</td>
+                  <td>{item.category || "-"}</td>
+                  <td>{item.equipment}</td>
+                  <td>{item.brand}</td>
+                  <td>{item.equipment_number}</td>
+                  <td>{item.serial_number}</td>
+                  <td>{item.inventory_number}</td>
+                  <td>{item.remaining}</td> {/* จำนวน */}
+                  <td>{item.details || "ไม่มีรายละเอียด"}</td> {/* เพิ่มการแสดงผล */}
+                  <td>
+                    <button className="edit-btn" onClick={() => handleEditClick(item)}>
+                      แก้ไข
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       {showModal && (
         <div className="modal">
           <div className="modal-content modal-wide">

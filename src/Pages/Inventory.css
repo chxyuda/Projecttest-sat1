@@ -9,60 +9,94 @@ body {
   border-radius: 10px; /* มุมโค้ง */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
   max-width: 1800px; /* ความกว้างสูงสุด */
-  width: 100%; /* ใช้ 90% ของหน้าจอ */
+  width: 100%; /* ใช้ 100% ของหน้าจอ */
   margin-top: 190px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
 }
 
 /* หัวข้อ */
 .inventory-title {
-  margin-bottom: 30px; /* เพิ่มระยะห่างระหว่างหัวข้อกับตาราง */
-  text-align: center; /* จัดให้อยู่กลาง */
+  display: flex;
+  align-items: center; /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+  justify-content: left; /* จัดให้อยู่กลางหน้าจอ */
+  gap: 10px; /* เพิ่มระยะห่างระหว่างไอคอนและข้อความ */
   font-size: 24px; /* ขนาดตัวอักษร */
   font-weight: bold; /* ตัวหนา */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+  color: #333; /* สีของข้อความ */
+  margin-bottom: 20px; /* เพิ่มระยะห่างระหว่างหัวข้อและส่วนอื่น */
 }
 
-/* ส่วนกรองข้อมูล */
+.inventory-icon {
+  font-size: 26px; /* ขนาดไอคอน */
+  color: #444242; /* สีของไอคอน */
+
+}
+
+/* ปรับระยะห่างระหว่าง dropdown และปุ่ม */
 .filter-section {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px; /* เพิ่มระยะห่างระหว่างตัวเลือก */
-  margin-bottom: 20px;
-  font-family: 'Prompt', sans-serif;
+  justify-content: space-between; /* กระจายเนื้อหา */
+  align-items: center; /* จัดกึ่งกลางแนวตั้ง */
+  gap: 10px; /* เพิ่มระยะห่างระหว่างองค์ประกอบ */
+  margin-bottom: 20px; /* เพิ่มระยะห่างด้านล่าง */
 }
 
+
 .filter-controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 15px; /* ลดช่องว่าง */
-  width: 100%;
+  display: flex; /* ใช้ Flexbox */
+  flex-wrap: nowrap; /* ไม่ให้ลงบรรทัดใหม่ */
+  align-items: center; /* จัดให้อยู่กึ่งกลางในแนวตั้ง */
+  justify-content: space-between; /* กระจายช่องว่างเท่าๆ กัน */
+  gap: 20px; /* ระยะห่างระหว่างองค์ประกอบ */
+  margin-bottom: 20px; /* เพิ่มระยะห่างจากส่วนถัดไป */
+}
+
+
+
+/* เมื่อวางเมาส์ */
+.filter-controls button:hover {
+  background-color: #005a9e; /* สีเมื่อ hover */
 }
 
 .filter-controls select,
 .filter-controls button {
-  padding: 10px 15px;
-  font-size: 1ุpx;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  cursor: pointer;
-  font-family: 'Prompt', sans-serif;
-  min-width: 200px; /* เพิ่มความกว้างขั้นต่ำ */
-  max-width: 300px; /* กำหนดความกว้างสูงสุด */
+  width: 190px; /* กำหนดความกว้างเท่ากัน */
+  padding: 10px; /* เพิ่ม Padding */
+  font-size: 16px; /* ขนาดฟอนต์ */
+  text-align: center; /* จัดข้อความกลาง */
+  border-radius: 5px; /* มุมโค้ง */
+  box-sizing: border-box; /* Padding ไม่กระทบขนาด */
 }
 
 .filter-controls button {
-  background-color: #0078d7;
+  background-color: #0078d7; /* สีปุ่ม */
+  color: white; /* สีตัวอักษร */
+  border: none; /* ไม่มีขอบ */
+  cursor: pointer; /* เปลี่ยนรูปเมาส์ */
+  transition: background-color 0.3s ease; /* เอฟเฟกต์เมื่อ hover */
+}
+
+
+.filter-buttons {
+  display: flex; /* ใช้ Flexbox */
+  gap: 20px; /* ระยะห่างระหว่างปุ่ม */
+}
+
+/* ปรับปุ่มค้นหาและประวัติการค้นหา */
+.filter-buttons button {
+  background-color: #007bff;
   color: white;
-  font-weight: bold;
+  padding: 10px 15px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.filter-controls button:hover {
-  background-color: #005a9e;
+.filter-buttons button:hover {
+  background-color: #0056b3;
 }
-
 
 /* ตาราง */
 .inventory-table {
@@ -82,38 +116,22 @@ body {
 }
 
 .inventory-table th {
-  background-color: #0078d7 !important; /* ใช้ !important เพื่อบังคับสี */
+  background-color: #0078d7;
   color: white;
   font-weight: bold;
-  text-align: center;
-  padding: 15px;
-  border: 1px solid #ddd;
   text-transform: uppercase;
+  padding: 15px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
 }
-
-
 
 .inventory-table tr:nth-child(even) {
   background-color: #f9f9f9;
 }
 
 .inventory-table tr:hover {
-  background-color: #e6f7ff;
-}
-
-.inventory-table tr:hover {
   background-color: #eaf6ff; /* สีพื้นหลังเมื่อชี้เมาส์ */
   transform: scale(1.01); /* ขยายเล็กน้อยเมื่อชี้เมาส์ */
   transition: all 0.2s ease;
-}
-
-.inventory-table th {
-  text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
-  background-color: #005a9e; /* สีที่เข้ากับปุ่ม */
-  color: #ffffff;
-  text-transform: uppercase; /* เปลี่ยนข้อความเป็นตัวพิมพ์ใหญ่ */
-  padding: 15px; /* เพิ่ม Padding */
 }
 
 /* ปุ่มดูรายละเอียด */
@@ -158,116 +176,7 @@ body {
   cursor: not-allowed;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .inventory-container {
-    padding: 20px; /* ลด Padding */
-    max-width: 100%; /* กำหนดความกว้างเป็น 100% */
-  }
-  .filter-section {
-    flex-direction: column; /* จัดตัวเลือกเป็นแนวตั้ง */
-    align-items: flex-start; /* จัดตัวเลือกชิดซ้าย */
-  }
-
-  .filter-controls {
-    display: flex;
-    flex-wrap: wrap; /* จัดองค์ประกอบลงบรรทัดใหม่ถ้าพื้นที่ไม่พอ */
-    gap: 10px; /* ระยะห่างระหว่างตัวเลือก */
-    align-items: center; /* จัดให้อยู่กึ่งกลางในแนวตั้ง */
-  }
-  .filter-controls button,
-  .details-btn {
-  background-color: #0078d7;
-  color: #fff;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
-  transition: all 0.3s ease;
-}
-
-.filter-controls button:hover,
-.details-btn:hover {
-  background-color: #005a9e;
-  transform: translateY(-2px); /* เพิ่มเอฟเฟกต์ยกตัว */
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
-}
-
-
-  .filter-controls select {
-    flex: 1; /* ให้ dropdown ขยายตามพื้นที่ */
-    min-width: 150px; /* กำหนดความกว้างขั้นต่ำ */
-  }
-  
-  .filter-buttons {
-    display: flex;
-    gap: 10px; /* ระยะห่างระหว่างปุ่ม */
-    align-items: center;
-  }
-  .filter-buttons button {
-    padding: 10px 15px;
-    font-size: 14px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  
-  button {
-    display: flex;
-    align-items: center; /* จัดข้อความและไอคอนให้อยู่ในแนวเดียวกัน */
-    justify-content: center; /* จัดให้อยู่ตรงกลาง */
-    gap: 100px; /* ระยะห่างระหว่างไอคอนและข้อความ */
-    background: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 16px;
-    font-family: 'Sriracha', sans-serif;
-    line-height: 1.5;
-  }
-  
-  button:hover {
-    background: #0056b3;
-  }
-  
-  button i, button span, button img {
-    font-size: 18px; /* สำหรับ Font Awesome/Material Icons */
-    width: 20px; /* สำหรับรูปภาพ */
-    height: 20px; /* สำหรับรูปภาพ */
-  }
-  
-
-  .pagination {
-    gap: 3px; /* ลดช่องว่างระหว่างปุ่ม */
-  }
-
-  .details-btn {
-    font-size: 12px; /* ลดขนาดฟอนต์ปุ่ม */
-  }
-}
-.search-history-btn {
-  margin-left: 5px; /* ระยะห่างระหว่างปุ่ม */
-}
-
-.history-btn {
-  padding: 10px 20px;
-  font-size: 14px;
-  background-color: #f39c12;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.history-btn:hover {
-  background-color: #d35400;
-}
+/* Modal */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -281,151 +190,111 @@ body {
   z-index: 1000;
 }
 
-.modal-content1 {
-  background: linear-gradient(135deg, #ffffff, #f0f8ff);
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.4s ease-out;
+.modal-content {
+  background: linear-gradient(135deg, #ffffff, #f9f9f9);
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  max-width: 700px;
+  width: 90%;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-icon {
+  color: #0078d7;
+  font-size: 24px;
+}
+
+.modal-header .close-btn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #333;
+}
 
 .close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #f44336;
-  color: #fff;
+  background: none;
   border: none;
-  padding: 5px 10px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #999;
   cursor: pointer;
-  border-radius: 5px;
+  transition: color 0.3s ease;
 }
 
 .close-btn:hover {
-  background: #d32f2f;
+  color: #f44336;
 }
 
 .history-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  margin-top: 15px;
+  font-family: 'Prompt', sans-serif;
 }
 
 .history-table th,
 .history-table td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 10px;
   text-align: center;
+  font-size: 16px;
 }
 
 .history-table th {
   background: #0078d7;
   color: #fff;
+  text-transform: uppercase;
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  animation: fadeIn 0.3s ease-in-out;
+.history-table tr:nth-child(even) {
+  background: #f9f9f9;
 }
 
-.modal-content {
-  background: #ffffff;
-  padding: 20px 30px;
-  border-radius: 10px;
-  max-width: 600px;
-  width: 90%;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  position: relative;
-  font-family: 'Arial', sans-serif;
-  animation: slideIn 0.3s ease-in-out;
+.history-table tr:hover {
+  background: #eaf6ff;
+  transition: background-color 0.2s ease;
 }
 
+/* Animation */
 @keyframes fadeIn {
   from {
-    background: rgba(0, 0, 0, 0);
-  }
-  to {
-    background: rgba(0, 0, 0, 0.5);
-  }
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateY(-30px);
     opacity: 0;
+    transform: scale(0.9);
   }
   to {
-    transform: translateY(0);
     opacity: 1;
+    transform: scale(1);
   }
 }
+/* Responsive Design */
+@media (max-width: 768px) {
+  .filter-section {
+    flex-direction: column; /* จัดให้อยู่แนวตั้ง */
+    align-items: stretch; /* ยืดเต็มความกว้าง */
+  }
 
-.modal-content h3 {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 15px;
-  color: #333;
+  .filter-controls {
+    justify-content: center; /* จัดให้อยู่กลาง */
+    gap: 10px;
+  }
 }
-
-.modal-content p {
-  font-size: 16px;
-  margin: 5px 0;
-  color: #555;
-  text-align: left;
-}
-
-.modal-content p strong {
-  color: #333;
-}
-
-.close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: #007bff;
-  color: #ffffff;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.close-btn:hover {
-  background: #0056b3;
-}
-
-.modal-details {
-  display: flex;
-  flex-wrap: wrap; /* ให้รองรับหลายบรรทัด */
-  justify-content: space-between; /* จัดระยะห่างให้เหมาะสม */
-  gap: 10px; /* ระยะห่างระหว่างข้อมูล */
-  margin-top: 15px; /* ระยะห่างด้านบนจากหัวข้อ */
-  text-align: left; /* จัดข้อความชิดซ้าย */
-}
-
-.modal-details p {
-  flex: 1 1 48%; /* แต่ละข้อมูลจะใช้พื้นที่ครึ่งหนึ่ง */
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.5;
-  color: #555;
-}
-
-.modal-details p strong {
-  color: #333;
-}
-
-
-

@@ -612,6 +612,116 @@ app.put('/api/brands/:id', (req, res) => {
 });
 
 
+// ดึงข้อมูลบุคลากรทั้งหมด
+app.get("/api/users", (req, res) => {
+  const query = `
+    SELECT 
+      id, 
+      username, 
+      password, 
+      fullName, 
+      phone, 
+      email, 
+      department_name AS department, 
+      section_name, 
+      task_name, 
+      role, 
+      status, 
+      createdAt, 
+      updatedAt, 
+      image 
+    FROM users
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching users:", err.sqlMessage || err.message || err);
+      res.status(500).json({ error: "Failed to fetch users" });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+
+// ดึงข้อมูลบุคลากรตาม ID
+app.get("/api/users/:id", (req, res) => {
+  const userId = req.params.id;
+  const query = `
+    SELECT 
+      id, 
+      fullName, 
+      department, 
+      image 
+    FROM users
+    WHERE id = ?
+  `;
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching user details:", err);
+      res.status(500).json({ error: "Failed to fetch user details" });
+      return;
+    }
+    if (results.length === 0) {
+      res.status(404).json({ error: "User not found" });
+    } else {
+      res.json(results[0]);
+    }
+  });
+});
+
+// เพิ่มข้อมูลบุคลากร
+app.post("/api/users", (req, res) => {
+  const { fullName, department, image } = req.body;
+  const query = `
+    INSERT INTO users (fullName, department, image)
+    VALUES (?, ?, ?)
+  `;
+  db.query(query, [fullName, department, image], (err, results) => {
+    if (err) {
+      console.error("Error adding user:", err);
+      res.status(500).json({ error: "Failed to add user" });
+      return;
+    }
+    res.status(201).json({ message: "User added successfully", userId: results.insertId });
+  });
+});
+
+// อัปเดตข้อมูลบุคลากร
+app.put("/api/users/:id", (req, res) => {
+  const userId = req.params.id;
+  const { fullName, department, image } = req.body;
+  const query = `
+    UPDATE users 
+    SET fullName = ?, department = ?, image = ?
+    WHERE id = ?
+  `;
+  db.query(query, [fullName, department, image, userId], (err, results) => {
+    if (err) {
+      console.error("Error updating user:", err);
+      res.status(500).json({ error: "Failed to update user" });
+      return;
+    }
+    res.json({ message: "User updated successfully" });
+  });
+});
+
+// ลบข้อมูลบุคลากร
+app.delete("/api/users/:id", (req, res) => {
+  const userId = req.params.id;
+  const query = `
+    DELETE FROM users WHERE id = ?
+  `;
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error deleting user:", err);
+      res.status(500).json({ error: "Failed to delete user" });
+      return;
+    }
+    res.json({ message: "User deleted successfully" });
+  });
+});
+
 app.get('/api/names', (req, res) => {
   const { type } = req.query;
 

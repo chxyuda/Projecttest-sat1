@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./Inventory.css";
 import ITDashboard from "./ITDashboard";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faWarehouse } from '@fortawesome/free-solid-svg-icons';
+
 
 const Inventory = () => {
   const [data, setData] = useState([]);
@@ -28,7 +31,11 @@ const Inventory = () => {
         const categoriesResponse = await axios.get("http://localhost:5001/api/categories");
         const brandsResponse = await axios.get("http://localhost:5001/api/brands");
   
-        setData(productsResponse.data.data || []); // ดึงเฉพาะ data ที่ซ้อนอยู่ใน response
+        console.log("Products Response:", productsResponse.data.data);
+        console.log("Categories Response:", categoriesResponse.data.data);
+        console.log("Brands Response:", brandsResponse.data.data);
+  
+        setData(productsResponse.data.data || []);
         setFilteredData(productsResponse.data.data || []);
         setCategories(categoriesResponse.data.data || []);
         setBrands(brandsResponse.data.data || []);
@@ -41,37 +48,55 @@ const Inventory = () => {
       }
     };
     fetchData();
-  }, []);  
-
+  }, []);
+  
   const handleFilter = () => {
-    const filters = [
-      { key: "category", value: category }, // เปลี่ยน "category_name" เป็น "category" ถ้า API ใช้คีย์นี้
-      { key: "equipment", value: device },
-      { key: "brand", value: brand },
-    ];
-  
-    const filtered = filters.reduce((acc, filter) => {
-      if (filter.value !== "all") {
-        return acc.filter((item) => item[filter.key] === filter.value);
-      }
-      return acc;
-    }, data);
-  
-    console.log("Filtered Data:", filtered); // ตรวจสอบข้อมูลหลังจากกรอง
-    setFilteredData(filtered);
-    setCurrentPage(1);
-  
-    const newSearch = {
-      category: category !== "all" ? category : "ประเภททั้งหมด",
-      device: device !== "all" ? device : "อุปกรณ์ทั้งหมด",
-      brand: brand !== "all" ? brand : "ยี่ห้อทั้งหมด",
-      timestamp: new Date().toLocaleString("th-TH"),
-    };
-    setSearchHistory((prevHistory) => [newSearch, ...prevHistory]);
-  };
-  
-  
+  console.log("Original Data:", data);
+  console.log("Filters:", { category, device, brand });
 
+  // ตรวจสอบว่า data มีข้อมูลหรือไม่
+  if (data.length === 0) {
+    console.warn("No data available.");
+    return;
+  }
+
+  const filters = [
+    { key: "category", value: category },
+    { key: "equipment", value: device },
+    { key: "brand", value: brand },
+  ];
+
+  // กรองข้อมูล
+  const filtered = filters.reduce((acc, filter) => {
+    if (filter.value !== "all") {
+      const temp = acc.filter((item) => item[filter.key] && item[filter.key] === filter.value);
+      console.log(`Filtering by ${filter.key} (${filter.value}):`, temp);
+      return temp;
+    }
+    return acc;
+  }, data);
+
+  console.log("Filtered Data:", filtered);
+
+  // แสดงข้อความเมื่อไม่มีข้อมูลที่ตรงกับการกรอง
+  if (filtered.length === 0) {
+    console.warn("No data matched the filters.");
+  }
+
+  setFilteredData(filtered);
+  setCurrentPage(1);
+
+  // เพิ่มประวัติการค้นหา
+  const newSearch = {
+    category: category !== "all" ? category : "ประเภททั้งหมด",
+    device: device !== "all" ? device : "อุปกรณ์ทั้งหมด",
+    brand: brand !== "all" ? brand : "ยี่ห้อทั้งหมด",
+    timestamp: new Date().toLocaleString("th-TH"),
+  };
+  setSearchHistory((prevHistory) => [newSearch, ...prevHistory]);
+};
+
+  
   const paginate = (pageNumber) => {
     console.log(`เปลี่ยนไปยังหน้า: ${pageNumber}`);
     setCurrentPage(pageNumber);
@@ -112,7 +137,10 @@ const Inventory = () => {
     <>
       <ITDashboard />
       <div className="inventory-container">
-        <h1>คลังวัสดุ / รายการ</h1>
+  <h1 className="inventory-title">
+    <FontAwesomeIcon icon={faWarehouse} className="inventory-icon" />
+    คลังวัสดุ / รายการ
+  </h1>
         <div className="filter-section">
         <div className="filter-controls">
         <select onChange={(e) => setCategory(e.target.value)}>
@@ -186,51 +214,40 @@ const Inventory = () => {
           </tbody>
         </table>
         {showHistory && (
-          <div className="modal-overlay">
-            <div className="modal-content1">
-              <h3>ประวัติการค้นหา</h3>
-              <button onClick={handleCloseHistory} className="close-btn">
-                ปิด
-              </button>
-              <table className="history-table">
-                <thead>
-                  <tr>
-                    <th>ประเภท</th>
-                    <th>อุปกรณ์</th>
-                    <th>ยี่ห้อ</th>
-                    <th>เวลา</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {searchHistory.map((history, index) => (
-                    <tr key={index}>
-                      <td>{history.category}</td>
-                      <td>{history.device}</td>
-                      <td>{history.brand}</td>
-                      <td>{history.timestamp}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-       <div className="pagination">
-          <button onClick={goBack} disabled={currentPage === 1}>
-            ย้อนกลับ
-          </button>
-          {Array.from(
-            { length: Math.ceil(filteredData.length / itemsPerPage) },
-            (_, i) => (
-              <button
-                key={i}
-                onClick={() => paginate(i + 1)}
-                className={currentPage === i + 1 ? "active" : ""}
-                >
-                {i + 1}
-              </button>
-            ) 
-          )}
+  <div className="modal-overlay">
+    <div className="modal-content">
+      <div className="modal-header">
+        <h3 className="modal-title">
+          <FontAwesomeIcon icon={handleShowHistory} className="modal-icon" />
+          ประวัติการค้นหา
+        </h3>
+        <button onClick={handleCloseHistory} className="close-btn">
+          &times;
+        </button>
+      </div>
+      <table className="history-table">
+        <thead>
+          <tr>
+            <th>ประเภท</th>
+            <th>อุปกรณ์</th>
+            <th>ยี่ห้อ</th>
+            <th>เวลา</th>
+          </tr>
+        </thead>
+        <tbody>
+          {searchHistory.map((history, index) => (
+            <tr key={index}>
+              <td>{history.category}</td>
+              <td>{history.device}</td>
+              <td>{history.brand}</td>
+              <td>{history.timestamp}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
          {/* Modal สำหรับแสดงรายละเอียด */}
          {showDetails && selectedItem && (
             <div className="modal-overlay">
@@ -252,7 +269,6 @@ const Inventory = () => {
               </div>
             )}
           </div>
-      </div>
       </>
   );  
 };
