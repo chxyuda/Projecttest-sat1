@@ -163,9 +163,315 @@
   }
 
   .btn-view,
-.btn-edit {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  .btn-edit {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .modal-overlay1 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .modal-overlay2 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center; /* จัดกึ่งกลางแนวตั้ง */
+    justify-content: center; /* จัดกึ่งกลางแนวนอน */
+    z-index: 1000;
+  }
+  
+  .modal-content1 {
+    position: relative;
+    width: 50%;
+    max-width: 600px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-height: 90%; /* ป้องกันการล้นหน้าจอ */
+    overflow-y: auto; /* เพิ่ม Scroll ถ้าฟอร์มยาวเกิน */
+  }
+
+  .modal-content2 {
+    position: relative;
+    width: 50%;
+    max-width: 600px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-height: 90%; /* ป้องกันการล้นหน้าจอ */
+    overflow-y: auto; /* เพิ่ม Scroll ถ้าฟอร์มยาวเกิน */
+  }
+  
+  .enhanced-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .enhanced-close-btn:hover {
+    background-color: #c0392b;
+    transform: scale(1.1);
+  }
+  
+  
+  .modal-title1 {
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-size: 1.8rem; /* เพิ่มขนาดหัวข้อ */
+  }
+  
+  .modal-details1 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .modal-details1 p {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+  
+  .modal-details1 strong {
+    color: #333; /* สีเข้ม */
+    font-weight: bold;
+  }
+  
+  
+  .details-section1 {
+    flex: 1;
+  }
+
+  .details-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .details-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 70px; /* เพิ่มระยะห่างระหว่างคอลัมน์ */
+    flex-wrap: nowrap; /* ป้องกันไม่ให้คอลัมน์แตกบรรทัด */
+  }
+
+  .details-column {
+    flex: 1;
+    margin: 0 5px;
+    white-space: nowrap; /* บังคับให้อยู่ในบรรทัดเดียว */
+  }
+  
+  .details-column p {
+    margin: 10px 0; /* เพิ่มระยะห่างแต่ละบรรทัด */
+    font-size: 1rem; /* เพิ่มขนาดตัวอักษร */
+  }
+
+  .profile-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    margin: 20px auto;
+  }
+
+  .profile-image {
+    width: 120px; /* กำหนดขนาดความกว้าง */
+    height: 120px; /* กำหนดขนาดความสูง */
+    border-radius: 50%; /* ทำให้รูปภาพเป็นวงกลม */
+    object-fit: cover; /* ปรับรูปให้พอดีกับกรอบ */
+    margin: 0 auto; /* จัดกึ่งกลางในแนวแกน X */
+    border: 3px solid #007bff; /* เพิ่มเส้นขอบสีน้ำเงิน */
+    display: block; /* ทำให้ภาพเป็น Block Element */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* เพิ่มเงา */
+  }
+
+  .icon-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    border: 3px solid #007bff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .profile-icon {
+    font-size: 60px;
+    color: #007bff;
+  }
+  
+  
+  .info-section1 {
+    flex: 2;
+    padding-left: 20px;
+  }
+  
+  .info-section1 p {
+    margin: 5px 0;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: #e74c3c;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .close-btn:hover {
+    background: #c0392b;
+  }
+
+  .modal-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* สร้างสองคอลัมน์ */
+    gap: 20px; /* เพิ่มช่องว่างระหว่างคอลัมน์ */
+  }
+
+  .form-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px; /* เพิ่มช่องว่างระหว่างกลุ่มฟิลด์ */
+    margin-bottom: 15px;
+  }
+  
+  .form-group {
+    width: 100%; /* ให้ฟิลด์ใช้พื้นที่ในคอลัมน์ */
+  }
+  
+  .form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 3px; /* ลดระยะห่าง */
+    font-size: 13px; /* ลดขนาดตัวอักษร */
+  }
+  
+  
+  .form-group input {
+    width: 80%;
+    padding: 6px; /* ลด Padding */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px; /* ลดขนาดตัวอักษร */
+    height: 20px; /* เพิ่มความสูงให้คงที่ */
+  }
+  
+  
+  
+  .form-actions {
+    grid-column: span 2; /* ปุ่มครอบคลุมทั้งสองคอลัมน์ */
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .btn-save {
+    background-color: #28a745;
+    color: white;
+    font-size: 16px;
+    padding: 10px 30px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .btn-cancel {
+    background-color: #dc3545;
+    color: white;
+    font-size: 16px;
+    padding: 10px 30px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+  }
+
+.btn-save {
+    background-color: #28a745; /* สีเขียว */
+    color: white;
 }
+
+.btn-save:hover,
+.btn-cancel:hover {
+  opacity: 0.9;
+  transform: scale(1.05); /* ขยายปุ่มเล็กน้อยเมื่อ hover */
+  transition: all 0.3s ease;
+}
+
+.btn-cancel {
+    background-color: #dc3545; /* สีแดง */
+    color: white;
+}
+
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .form-row {
+      flex-direction: column;
+    }
+  
+    .form-group {
+      flex: 0 0 100%; /* ใช้พื้นที่เต็มสำหรับหน้าจอเล็ก */
+      margin-bottom: 10px;
+    }
+  
+    .btn-save,
+    .btn-cancel {
+      width: 50%;
+      margin-bottom: 10px;
+    }
+  }
+  
   

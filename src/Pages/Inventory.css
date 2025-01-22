@@ -1,5 +1,5 @@
 body {
-  font-family: 'Sriracha', sans-serif; /* ใช้ฟอนต์จาก Google Fonts */
+  font-family: 'Mitr', sans-serif; /* ใช้ฟอนต์จาก Google Fonts */
 }
 
 .inventory-container {
@@ -149,6 +149,42 @@ body {
   background-color: #45a049;
 }
 
+.modal-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin: 15px 0; /* เพิ่มระยะห่างระหว่างบรรทัด */
+  line-height: 2.5; /* ปรับระยะห่างระหว่างบรรทัด */
+  font-size: 16px; /* ขนาดฟอนต์ */
+}
+
+.details-section {
+  flex: 1 1 45%;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.details-section p {
+  margin: 5px 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #000000;
+  background: #f5faff;
+}
+
+.details-full {
+  flex: 1 1 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: #e4e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+
 /* Pagination */
 .pagination {
   display: flex;
@@ -181,8 +217,8 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -191,31 +227,46 @@ body {
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #ffffff, #f9f9f9);
-  padding: 25px;
+  font-family: 'Mitr', sans-serif; /* ฟอนต์พาดหัว */
+  font-size: 16px; /* ขนาดตัวอักษรมาตรฐาน */
+  background: #ffffff;
+  padding: 20px 30px;
   border-radius: 10px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-  max-width: 700px;
+  max-width: 600px;
   width: 90%;
-  animation: fadeIn 0.3s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  font-family: 'Arial', sans-serif;
+  animation: slideIn 0.3s ease-in-out;
 }
+
+
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 10px;
+  margin-bottom: 15px;
   border-bottom: 1px solid #ddd;
 }
 
+.modal-header .close-btn {
+  font-size: 20px;
+  color: #555;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 5px 10px;
+  transition: color 0.3s ease;
+}
+
 .modal-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: bold;
   color: #333;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  font-family: 'Itim', sans-serif; /* ฟอนต์พาดหัว */
 }
+
 
 .modal-icon {
   color: #0078d7;
@@ -232,18 +283,24 @@ body {
 }
 
 .close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  font-weight: bold;
-  color: #999;
-  cursor: pointer;
-  transition: color 0.3s ease;
+  position: absolute; /* ปุ่มจะลอยอยู่ในตำแหน่ง */
+  top: 10px; /* ระยะจากด้านบน */
+  right: -1px; /* ระยะจากด้านขวา */
+  background: none; /* ไม่มีพื้นหลัง */
+  border: none; /* ไม่มีเส้นขอบ */
+  font-size: 24px; /* ขนาดฟอนต์ */
+  font-weight: bold; /* ทำให้ตัวหนา */
+  color: #333; /* สีปุ่ม */
+  cursor: pointer; /* เปลี่ยนเคอร์เซอร์เป็นรูปมือ */
+  transition: transform 0.2s, color 0.2s; /* เพิ่มเอฟเฟกต์ */
 }
 
 .close-btn:hover {
-  color: #f44336;
+  color: #f44336; /* เปลี่ยนเป็นสีแดงเมื่อชี้เมาส์ */
+  transform: scale(1.2); /* ขยายเล็กน้อย */
 }
+
+
 
 .history-table {
   width: 100%;
@@ -296,5 +353,16 @@ body {
   .filter-controls {
     justify-content: center; /* จัดให้อยู่กลาง */
     gap: 10px;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }

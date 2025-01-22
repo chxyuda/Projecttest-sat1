@@ -108,12 +108,18 @@ const Inventory = () => {
 
 
   const handleShowHistory = () => {
-  setShowHistory(true);
-    };
-
-  const handleCloseHistory = () => {
-  setShowHistory(false);
+    setShowHistory(true);
   };
+  
+  const handleCloseHistory = () => {
+    setShowHistory(false);
+  };
+
+  useEffect(() => {
+    console.log("Show History State:", showHistory);
+    console.log("Show Details State:", showDetails);
+  }, [showHistory, showDetails]);
+  
 
   const goBack = () => {
     if (currentPage > 1) {
@@ -136,140 +142,145 @@ const Inventory = () => {
   return (
     <>
       <ITDashboard />
-      <div className="inventory-container">
-  <h1 className="inventory-title">
-    <FontAwesomeIcon icon={faWarehouse} className="inventory-icon" />
-    คลังวัสดุ / รายการ
-  </h1>
-        <div className="filter-section">
-        <div className="filter-controls">
-        <select onChange={(e) => setCategory(e.target.value)}>
-          <option value="all">ประเภททั้งหมด</option>
-          {categories.map((cat, index) => (
-          <option key={index} value={cat.category_name}>
-            {cat.category_name}
-          </option>
-          ))}
-        </select>
-        <select onChange={(e) => setDevice(e.target.value)}>
-          <option value="all">อุปกรณ์ทั้งหมด</option>
-            {[...new Set(data.map((item) => item.equipment))].map((uniqueDevice, index) => (
-            <option key={index} value={uniqueDevice}>
-            {uniqueDevice}
-          </option>
-            ))}
-          </select>
-            <select onChange={(e) => setBrand(e.target.value)}>
-              <option value="all">ยี่ห้อทั้งหมด</option>
-                {brands.map((brand, index) => (
-                <option key={index} value={brand.name}>
-                {brand.name}
-              </option>
-            ))}
-          </select>
-          <div className="filter-buttons">
-          <button onClick={handleFilter} className="search-btn">
-            <span className="material-icons">search</span> ค้นหา
-          </button>
-          <button onClick={handleShowHistory} className="history-btn">
-            <span className="material-icons">history</span> ประวัติการค้นหา
-        </button>
-          </div>
-        </div>
-      </div>
-        <table className="inventory-table">
-          <thead>
-            <tr>
-              <th>ชื่อ</th>
-              <th>ประเภท</th>
-              <th>อุปกรณ์</th>
-              <th>ยี่ห้อ</th>
-              <th>หมายเลขครุภัณฑ์</th>
-              <th>จำนวน</th>
-              <th>รายละเอียด</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.length > 0 ? (
-              currentItems.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.material}</td> {/* ชื่อ */}
-                  <td>{item.category}</td> {/* ประเภท */}
-                  <td>{item.equipment}</td> {/* อุปกรณ์ */}
-                  <td>{item.brand}</td> {/* ยี่ห้อ */}
-                  <td>{item.equipment_number}</td> {/* หมายเลขครุภัณฑ์ */}
-                  <td>{item.inventory_number}</td> {/* จำนวน */}
-                  <td>
-                    <button onClick={() => handleShowDetails(item)} className="details-btn">
-                      รายละเอียด
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
+        <div className="inventory-container">
+          <h1 className="inventory-title">
+            <FontAwesomeIcon icon={faWarehouse} className="inventory-icon" />
+            คลังวัสดุ / รายการ
+          </h1>
+          <div className="filter-section">
+            <div className="filter-controls">
+              <select onChange={(e) => setCategory(e.target.value)}>
+                  <option value="all">ประเภททั้งหมด</option>
+                  {categories.map((cat, index) => (
+                    <option key={index} value={cat.category_name}>
+                      {cat.category_name}
+                    </option>
+                  ))}
+                </select>
+                <select onChange={(e) => setDevice(e.target.value)}>
+                  <option value="all">อุปกรณ์ทั้งหมด</option>
+                    {[...new Set(data.map((item) => item.equipment))].map((uniqueDevice, index) => (
+                      <option key={index} value={uniqueDevice}>
+                        {uniqueDevice}
+                      </option>
+                    ))}
+                </select>
+                <select onChange={(e) => setBrand(e.target.value)}>
+                 <option value="all">ยี่ห้อทั้งหมด</option>
+                   {brands.map((brand, index) => (
+                     <option key={index} value={brand.name}>
+                       {brand.name}
+                     </option>
+                   ))}
+                </select>
+                <div className="filter-buttons">
+                  <button onClick={handleFilter} className="search-btn">
+                    <span className="material-icons">search</span> ค้นหา
+                  </button>
+                  <button onClick={handleShowHistory} className="history-btn">
+                    <span className="material-icons">history</span> ประวัติการค้นหา
+                  </button>
+                </div>
+            </div>
+         </div>
+          <table className="inventory-table">
+            <thead>
               <tr>
-                <td colSpan="7">ไม่พบข้อมูล</td>
+                <th>ชื่อ</th>
+                <th>ประเภท</th>
+                <th>อุปกรณ์</th>
+                <th>ยี่ห้อ</th>
+                <th>หมายเลขครุภัณฑ์</th>
+                <th>จำนวน</th>
+                <th>รายละเอียด</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-        {showHistory && (
-  <div className="modal-overlay">
-    <div className="modal-content">
-      <div className="modal-header">
-        <h3 className="modal-title">
-          <FontAwesomeIcon icon={handleShowHistory} className="modal-icon" />
-          ประวัติการค้นหา
-        </h3>
-        <button onClick={handleCloseHistory} className="close-btn">
-          &times;
-        </button>
-      </div>
-      <table className="history-table">
-        <thead>
-          <tr>
-            <th>ประเภท</th>
-            <th>อุปกรณ์</th>
-            <th>ยี่ห้อ</th>
-            <th>เวลา</th>
-          </tr>
-        </thead>
-        <tbody>
-          {searchHistory.map((history, index) => (
-            <tr key={index}>
-              <td>{history.category}</td>
-              <td>{history.device}</td>
-              <td>{history.brand}</td>
-              <td>{history.timestamp}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-)}
+            </thead>
+            <tbody>
+              {currentItems.length > 0 ? (
+                currentItems.map((item, index) => (
+                  <tr key={index}>
+                    <td>{item.material}</td> {/* ชื่อ */}
+                    <td>{item.category}</td> {/* ประเภท */}
+                    <td>{item.equipment}</td> {/* อุปกรณ์ */}
+                    <td>{item.brand}</td> {/* ยี่ห้อ */}
+                    <td>{item.equipment_number}</td> {/* หมายเลขครุภัณฑ์ */}
+                    <td>{item.inventory_number}</td> {/* จำนวน */}
+                    <td>
+                      <button onClick={() => handleShowDetails(item)} className="details-btn">
+                        รายละเอียด
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7">ไม่พบข้อมูล</td>
+                </tr>
+              )}
+           </tbody>
+          </table>
+          {showHistory && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h3 className="modal-title">ประวัติการค้นหา</h3>
+                  <button onClick={handleCloseHistory} className="close-btn">
+                    &times;
+                  </button>
+                </div>
+                <table className="history-table">
+                  <thead>
+                    <tr>
+                      <th>ประเภท</th>
+                      <th>อุปกรณ์</th>
+                      <th>ยี่ห้อ</th>
+                      <th>เวลา</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {searchHistory.map((history, index) => (
+                      <tr key={index}>
+                        <td>{history.category}</td>
+                        <td>{history.device}</td>
+                        <td>{history.brand}</td>
+                        <td>{history.timestamp}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
          {/* Modal สำหรับแสดงรายละเอียด */}
          {showDetails && selectedItem && (
             <div className="modal-overlay">
               <div className="modal-content">
-                <button onClick={handleCloseDetails} className="close-btn">ปิด</button>
-                  <h3>รายละเอียด</h3>
-                    <div className="modal-details">
-                      <p><strong>ชื่อ:</strong> {selectedItem.material}</p>
-                      <p><strong>ประเภท:</strong> {selectedItem.category}</p>
-                      <p><strong>อุปกรณ์:</strong> {selectedItem.equipment}</p>
-                      <p><strong>ยี่ห้อ:</strong> {selectedItem.brand}</p>
-                      <p><strong>หมายเลขครุภัณฑ์:</strong> {selectedItem.equipment_number}</p>
-                      <p><strong>serial:</strong> {selectedItem.serial_number}</p>
-                      <p><strong>จำนวนทั้งหมด:</strong> {selectedItem.inventory_number}</p>
-                      <p><strong>คงเหลือ:</strong> {selectedItem.remaining}</p>
-                      <p><strong>รายละเอียด:</strong> {selectedItem.details || "ไม่มีข้อมูลเพิ่มเติม"}</p>
-                    </div>
+                <div className="modal-header">
+                  <h3 className="modal-title">รายละเอียด</h3>
+                  <button onClick={handleCloseDetails} className="close-btn">&times;</button>
                 </div>
-              </div>
-            )}
-          </div>
-      </>
+                <div className="modal-details">
+                  <div className="details-section">
+                    <p><strong>ชื่อ:</strong> {selectedItem.material}</p>
+                    <p><strong>ประเภท:</strong> {selectedItem.category}</p>
+                    <p><strong>อุปกรณ์:</strong> {selectedItem.equipment}</p>
+                    <p><strong>ยี่ห้อ:</strong> {selectedItem.brand}</p>
+                  </div>
+                  <div className="details-section">
+                    <p><strong>หมายเลขครุภัณฑ์:</strong> {selectedItem.equipment_number || "-"}</p>
+                    <p><strong>Serial:</strong> {selectedItem.serial_number || "-"}</p>
+                    <p><strong>จำนวนทั้งหมด:</strong> {selectedItem.inventory_number}</p>
+                    <p><strong>คงเหลือ:</strong> {selectedItem.remaining}</p>
+                  </div>
+                  <div className="details-full">
+                    <p><strong>รายละเอียดเพิ่มเติม:</strong> {selectedItem.details || "ไม่มีข้อมูลเพิ่มเติม"}</p>
+                  </div>
+             </div>
+           </div>
+         </div>
+       )}
+      </div>
+    </>
   );  
 };
 
