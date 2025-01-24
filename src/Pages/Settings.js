@@ -1307,6 +1307,9 @@ useEffect(() => {
   <div className="modal">
     <div className="modal-content">
       <h2>เพิ่มวัสดุ</h2>
+      <button className="close-btn" onClick={handleCloseAddProductModal}>
+                &times;
+              </button>
       <form onSubmit={handleAddProduct}>
         <div className="form-grid">
           {/* ชื่อสินค้า */}

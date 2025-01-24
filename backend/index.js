@@ -643,7 +643,6 @@ app.get("/api/users", (req, res) => {
   });
 });
 
-
 // ดึงข้อมูลบุคลากรตาม ID
 app.get("/api/users/:id", (req, res) => {
   const userId = req.params.id;
@@ -690,20 +689,53 @@ app.post("/api/users", (req, res) => {
 // อัปเดตข้อมูลบุคลากร
 app.put("/api/users/:id", (req, res) => {
   const userId = req.params.id;
-  const { fullName, department, image } = req.body;
+  const {
+    fullName,
+    department, // ต้องแก้ชื่อ field นี้หากส่งมาจาก frontend
+    section_name,
+    task_name,
+    phone,
+    email,
+    username,
+    password,
+  } = req.body;
+
+  // ตรวจสอบว่ามีข้อมูลที่ต้องการหรือไม่
+  if (!fullName || !department || !email || !username || !password) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
   const query = `
     UPDATE users 
-    SET fullName = ?, department = ?, image = ?
+    SET 
+      fullName = ?, 
+      department_name = ?,  -- เปลี่ยนชื่อนี้
+      section_name = ?, 
+      task_name = ?, 
+      phone = ?, 
+      email = ?, 
+      username = ?, 
+      password = ?
     WHERE id = ?
   `;
-  db.query(query, [fullName, department, image, userId], (err, results) => {
-    if (err) {
-      console.error("Error updating user:", err);
-      res.status(500).json({ error: "Failed to update user" });
-      return;
+
+  db.query(
+    query,
+    [fullName, department, section_name, task_name, phone, email, username, password, userId],
+    (err, results) => {
+      if (err) {
+        console.error("Error updating user:", err);
+        return res.status(500).json({ error: "Failed to update user" });
+      }
+
+      // ตรวจสอบว่ามีแถวที่ถูกอัปเดตหรือไม่
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json({ message: "User updated successfully" });
     }
-    res.json({ message: "User updated successfully" });
-  });
+  );
 });
 
 // ลบข้อมูลบุคลากร

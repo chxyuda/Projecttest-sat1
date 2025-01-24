@@ -3,46 +3,78 @@ import axios from "axios";
 import ITDashboard from "./ITDashboard";
 import "./Personnel.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEdit, faList, faPlus, faUserCircle, faUsers, faTimes } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEye,
+  faEdit,
+  faList,
+  faPlus,
+  faUserCircle,
+  faUsers,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
 
 const Personnel = () => {
   const [personnelData, setPersonnelData] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [sections, setSections] = useState([]);
+  const [sections, setSections] = useState([6]);
   const [tasks, setTasks] = useState([]);
   const [allSections, setAllSections] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  const [selectedUser, setSelectedUser] = useState(null); // เก็บข้อมูลผู้ใช้ที่เลือก
-  const [showEditModal, setShowEditModal] = useState(false); // ควบคุมการแสดงผล Modal
 
   useEffect(() => {
     axios
       .get("http://localhost:5001/api/users")
-      .then((response) => setPersonnelData(response.data))
-      .catch((error) => console.error("Error fetching users:", error));
+      .then((response) => {
+        setPersonnelData(response.data);
+        console.log("Fetched Users:", response.data); // ตรวจสอบข้อมูล
+      })
+      .catch((error) => {
+        console.error("Error fetching users:", error);
+      });
+  }, []);
+  
 
+  useEffect(() => {
     axios
       .get("http://localhost:5001/api/departments")
-      .then((response) => setDepartments(response.data))
+      .then((response) => {
+        setDepartments(response.data);
+        console.log("Departments fetched:", response.data);
+      })
       .catch((error) => console.error("Error fetching departments:", error));
-
+  
     axios
       .get("http://localhost:5001/api/sections")
-      .then((response) => setAllSections(response.data))
+      .then((response) => {
+        setAllSections(response.data);
+        console.log("Sections fetched:", response.data);
+      })
       .catch((error) => console.error("Error fetching sections:", error));
-
+  
     axios
       .get("http://localhost:5001/api/tasks")
-      .then((response) => setAllTasks(response.data))
+      .then((response) => {
+        setAllTasks(response.data);
+        console.log("Tasks fetched:", response.data);
+      })
       .catch((error) => console.error("Error fetching tasks:", error));
   }, []);
-
-
+  
+  
   const filteredData = personnelData.filter(
     (user) =>
-      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.department?.toLowerCase().includes(searchTerm.toLowerCase())
+      user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      departments.find((d) => d.id === user.department_name)?.name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase())
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -63,83 +95,109 @@ const Personnel = () => {
 
   const handleViewDetails = (user) => {
     setSelectedUser(user);
+    console.log("Selected User:", user); // ตรวจสอบค่า
     setShowModal(true);
-  };
+};
+
+  
 
   const handleCloseModal = () => {
     setSelectedUser(null);
     setShowModal(false);
   };
 
+  const getDepartmentName = (id) => {
+    return departments.find((dept) => String(dept.id) === String(id))?.name || "ไม่ระบุ";
+  };
+  
+  const getSectionName = (id) => {
+    return allSections.find((sec) => String(sec.id) === String(id))?.name || "ไม่ระบุ";
+  };
+  
+  const getTaskName = (id) => {
+    return allTasks.find((task) => String(task.id) === String(id))?.name || "ไม่ระบุ";
+  };
+  
+  useEffect(() => {
+    console.log("Selected User:", selectedUser);
+    console.log("Departments:", departments);
+    console.log("Sections:", sections);
+    console.log("Tasks:", tasks);
+  }, [selectedUser, departments, sections, tasks]);
+  
+  
+  
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+  
+    // โหลด sections และ tasks ที่สัมพันธ์กับข้อมูลปัจจุบัน
+    if (user.department_name) {
+      fetchSections(user.department_name);
+    }
+  
+    if (user.section_name) {
+      fetchTasks(user.section_name);
+    }
+  
+    setShowEditModal(true); // เปิดฟอร์มแก้ไข
+  };
+  
 
-const handleEditUser = (user) => {
-  setSelectedUser(user); // เลือกผู้ใช้ที่จะแก้ไข
-  setShowEditModal(true); // เปิด Modal แก้ไข
-};
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setSelectedUser(null);
+  };
 
-const handleCloseEditModal = () => {
-  setShowEditModal(false); // ปิด Modal แก้ไข
-  setSelectedUser(null); // ล้างข้อมูลผู้ใช้ที่เลือก
-};
+  const handleUpdateUser = () => {
+    axios
+      .put(`http://localhost:5001/api/users/${selectedUser.id}`, selectedUser)
+      .then((response) => {
+        alert("บันทึกข้อมูลสำเร็จ!");
+        setShowEditModal(false);
+      })
+      .catch((error) => {
+        console.error("Error updating user:", error);
+        alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล!");
+      });
+  };
 
-const handleSaveEditedUser = (updatedUser) => {
-  setPersonnelData((prevData) =>
-    prevData.map((user) => (user.id === updatedUser.id ? updatedUser : user))
-  ); // อัปเดตข้อมูลใน state
-  handleCloseEditModal();
-};
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+  
+    setSelectedUser((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === "department_name" && { section_name: "", task_name: "" }), // รีเซ็ตกองและงาน
+      ...(name === "section_name" && { task_name: "" }), // รีเซ็ตงาน
+    }));
+  
+    // เรียก API โหลดข้อมูลถัดไป
+    if (name === "department_name") {
+      fetchSections(value);
+    } else if (name === "section_name") {
+      fetchTasks(value);
+    }
+  };
+  
 
-const handleUpdateUser = (user) => {
-  axios
-    .put(`http://localhost:5001/api/users/${user.id}`, user)
-    .then((response) => {
-      // อัปเดตข้อมูลใน state หลังจากที่บันทึกสำเร็จ
-      setPersonnelData((prevData) =>
-        prevData.map((item) => (item.id === user.id ? response.data : item))
-      );
-      setShowEditModal(false); // ปิด Modal
-    })
-    .catch((error) => {
-      console.error("Error updating user:", error);
-    });
-};
+  const fetchSections = (departmentId) => {
+    axios
+      .get(`http://localhost:5001/api/sections/${departmentId}`)
+      .then((response) => setSections(response.data))
+      .catch((error) => console.error("Error fetching sections:", error));
+  };
+  
+  const fetchTasks = (sectionId) => {
+    axios
+      .get(`http://localhost:5001/api/tasks/${sectionId}`)
+      .then((response) => setTasks(response.data))
+      .catch((error) => console.error("Error fetching tasks:", error));
+  };
+  useEffect(() => {
+    console.log("Selected User:", selectedUser);
+  }, [selectedUser]);
+  
 
-const fetchSections = (departmentId) => {
-  const filteredSections = allSections.filter(
-    (section) => section.departmentId === parseInt(departmentId)
-  );
-  setSections(filteredSections); // อัปเดต sections ที่จะแสดง
-};
-
-const fetchTasks = (sectionId) => {
-  const filteredTasks = allTasks.filter(
-    (task) => task.sectionId === parseInt(sectionId)
-  );
-  setTasks(filteredTasks); // อัปเดต tasks ที่จะแสดง
-};
-
-const handleInputChange = (e) => {
-  const { name, value } = e.target;
-  setSelectedUser((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-};
-
-const fetchSections = (departmentId) => {
-  const filteredSections = allSections.filter(
-    (section) => section.departmentId === parseInt(departmentId)
-  );
-  setSections(filteredSections);
-};
-
-// ฟังก์ชันกรอง tasks
-const fetchTasks = (sectionId) => {
-  const filteredTasks = allTasks.filter(
-    (task) => task.sectionId === parseInt(sectionId)
-  );
-  setTasks(filteredTasks);
-};
   return (
     <div>
       <ITDashboard />
@@ -166,8 +224,8 @@ const fetchTasks = (sectionId) => {
           </button>
         </div>
         <p className="summary">
-          ทั้งหมด {filteredData.length} รายการ แสดง {indexOfFirstItem + 1} ถึง{" "}
-          {Math.min(indexOfLastItem, filteredData.length)} หน้า {currentPage} จากทั้งหมด{" "}
+          ทั้งหมด {filteredData.length} รายการ แสดง {indexOfFirstItem + 1} ถึง {" "}
+          {Math.min(indexOfLastItem, filteredData.length)} หน้า {currentPage} จากทั้งหมด {" "}
           {Math.ceil(filteredData.length / itemsPerPage)} หน้า
         </p>
         <table className="personnel-table">
@@ -191,7 +249,9 @@ const fetchTasks = (sectionId) => {
                   <FontAwesomeIcon
                     icon={faUserCircle}
                     className="icon-profile"
-                    onClick={() => handleImageClick(user.image || "https://via.placeholder.com/50")}
+                    onClick={() =>
+                      handleImageClick(user.image || "https://via.placeholder.com/50")
+                    }
                   />
                 </td>
                 <td>{user.department || "ไม่ระบุ"}</td>
@@ -223,7 +283,9 @@ const fetchTasks = (sectionId) => {
             (_, index) => (
               <button
                 key={index}
-                className={`pagination-btn ${currentPage === index + 1 ? "active" : ""}`}
+                className={`pagination-btn ${
+                  currentPage === index + 1 ? "active" : ""
+                }`}
                 onClick={() => handlePageChange(index + 1)}
               >
                 {index + 1}
@@ -238,68 +300,80 @@ const fetchTasks = (sectionId) => {
             </div>
           </div>
         )}
-        {showModal && selectedUser && (
+
+{showModal && selectedUser && (
+  <div className="modal-overlay1">
+    <div className="modal-content1">
+      <button
+        className="close-btn enhanced-close-btn"
+        onClick={handleCloseModal}
+      >
+        &times;
+      </button>
+      <h2 className="modal-title1">ข้อมูลบุคลากร</h2>
+      <div className="modal-details1">
+        <div className="profile-container">
+          {selectedUser.image ? (
+            <img
+              src={selectedUser.image}
+              alt="Profile"
+              className="profile-image"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/120";
+              }}
+            />
+          ) : (
+            <div className="icon-placeholder">
+              <FontAwesomeIcon
+                icon={faUserCircle}
+                className="profile-icon"
+              />
+            </div>
+          )}
+        </div>
+        <div className="details-container">
+          <div className="details-column">
+            <p>
+              <strong>ชื่อ - นามสกุล:</strong> {selectedUser.fullName}
+            </p>
+            <p>
+  <strong>ชื่อฝ่าย/สำนัก:</strong>{" "}
+  {departments.find((dept) => String(dept.id) === String(selectedUser.department_name))?.name || "ไม่ระบุ"}
+</p>
+<p>
+  <strong>กอง:</strong>{" "}
+  {sections.find((section) => String(section.id) === String(selectedUser.section_name))?.name || "ไม่ระบุ"}
+</p>
+<p>
+  <strong>งาน:</strong>{" "}
+  {tasks.find((task) => String(task.id) === String(selectedUser.task_name))?.name || "ไม่ระบุ"}
+</p>
+
+            <p>
+              <strong>เบอร์ภายใน:</strong> {selectedUser.phone}
+            </p>
+          </div>
+          <div className="details-column">
+            <p>
+              <strong>Email:</strong> {selectedUser.email}
+            </p>
+            <p>
+              <strong>Username:</strong> {selectedUser.username}
+            </p>
+            <p>
+              <strong>Password:</strong> {selectedUser.password}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+        {showEditModal && selectedUser && (
           <div className="modal-overlay1">
             <div className="modal-content1">
-              <button className="close-btn enhanced-close-btn" onClick={handleCloseModal}>
-                &times;
-              </button>
-              <h2 className="modal-title1">ข้อมูลบุคลากร</h2>
-              <div className="modal-details1">
-                <div className="profile-container">
-                  {selectedUser.image ? (
-                    <img
-                      src={selectedUser.image}
-                      alt="Profile"
-                      className="profile-image"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "https://via.placeholder.com/120";
-                      }}
-                    />
-                  ) : (
-                    <div className="icon-placeholder">
-                      <FontAwesomeIcon icon={faUserCircle} className="profile-icon" />
-                    </div>
-                  )}
-                </div>
-                <div className="details-container">
-                  <div className="details-column">
-                    <p>
-                      <strong>ชื่อ - นามสกุล:</strong> {selectedUser.fullName}
-                    </p>
-                    <p>
-                      <strong>ชื่อฝ่าย/สำนัก:</strong> {selectedUser.department}
-                    </p>
-                    <p>
-                      <strong>กอง:</strong> {selectedUser.section_name}
-                    </p>
-                    <p>
-                      <strong>งาน:</strong> {selectedUser.task_name}
-                    </p>
-                    <p>
-                      <strong>เบอร์ภายใน:</strong> {selectedUser.phone}
-                    </p>
-                  </div>
-                  <div className="details-column">
-                    <p>
-                      <strong>Email:</strong> {selectedUser.email}
-                    </p>
-                    <p>
-                      <strong>Username:</strong> {selectedUser.username}
-                    </p>
-                    <p>
-                      <strong>Password:</strong> {selectedUser.password}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        {showEditModal && selectedUser && (
-          <div className="modal-overlay2">
-            <div className="modal-content2">
               <button className="close-btn" onClick={handleCloseEditModal}>
                 &times;
               </button>
@@ -310,99 +384,96 @@ const fetchTasks = (sectionId) => {
                   handleUpdateUser(selectedUser);
                 }}
               >
-                <div className="modal-details">
-                  <div className="form-group">
-                    <label>ชื่อ - นามสกุล</label>
-                    <input
-                      type="text"
-                      value={selectedUser.fullName}
-                      onChange={(e) =>
-                        setSelectedUser((prev) => ({
-                          ...prev,
-                          fullName: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="form-group">
-    <label>ฝ่าย/สำนัก</label>
-    <select
-      name="departmentName"
-      value={selectedUser.department || ""}
-      onChange={(e) => {
-        handleInputChange(e); // สำหรับจัดการอัปเดต
-        // คุณอาจเพิ่มฟังก์ชันเพื่อโหลดกองที่เกี่ยวข้อง
-        fetchSections(e.target.value); // โหลดข้อมูลกองตามฝ่ายที่เลือก
-      }}
-    >
-      <option value="">เลือก</option>
-      {departments.map((dept) => (
-        <option key={dept.id} value={dept.id}>
-          {dept.name}
-        </option>
-      ))}
-    </select>
-  </div>
-  <div className="form-group">
-    <label>กอง</label>
-    <select
-      name="sectionName"
-      value={selectedUser.section || ""}
-      onChange={(e) => {
-        handleInputChange(e);
-        fetchTasks(e.target.value); // โหลดข้อมูลงานตามกองที่เลือก
-      }}
-    >
-      <option value="">เลือก</option>
-      {sections.map((section) => (
-        <option key={section.id} value={section.id}>
-          {section.name}
-        </option>
-      ))}
-    </select>
-  </div>
+                <div className="form-group">
+                  <label>ชื่อ - นามสกุล</label>
+                  <input
+                    type="text"
+                    value={selectedUser.fullName}
+                    onChange={(e) =>
+                      setSelectedUser((prev) => ({
+                        ...prev,
+                        fullName: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="form-group">
+  <label>ฝ่าย/สำนัก</label>
+  <select
+  name="department_name"
+  value={selectedUser.department_name || ""}
+  onChange={handleInputChange}
+>
+  <option value="">เลือก</option>
+  {departments.map((dept) => (
+    <option key={dept.id} value={dept.id}>
+      {dept.name}
+    </option>
+  ))}
+</select>
+
 </div>
+
+<div className="form-group">
+  <label>กอง</label>
+  <select
+  name="section_name"
+  value={selectedUser.section_name || ""}
+  onChange={(e) => {
+    handleInputChange(e);
+    fetchTasks(e.target.value); // โหลดงานเมื่อเลือกกอง
+  }}
+>
+  <option value="">เลือก</option>
+  {sections.map((section) => (
+    <option key={section.id} value={section.id}>
+      {section.name}
+    </option>
+  ))}
+</select>
+</div>
+
 <div className="form-group">
   <label>งาน</label>
   <select
-    name="taskName"
-    value={selectedUser.task || ""}
-    onChange={handleInputChange}
-  >
-    <option value="">เลือก</option>
-    {tasks.map((task) => (
-      <option key={task.id} value={task.id}>
-        {task.name}
-      </option>
-    ))}
-  </select>
+  name="task_name"
+  value={selectedUser.task_name || ""}
+  onChange={handleInputChange}
+>
+  <option value="">เลือก</option>
+  {tasks.map((task) => (
+    <option key={task.id} value={task.id}>
+      {task.name}
+    </option>
+  ))}
+</select>
 </div>
-                  <div className="form-group">
-                    <label>เบอร์ภายใน</label>
-                    <input
-                      type="text"
-                      value={selectedUser.phone}
-                      onChange={(e) =>
-                        setSelectedUser((prev) => ({
-                          ...prev,
-                          phone: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Email</label>
-                    <input
-                      type="text"
-                      value={selectedUser.email}
-                      onChange={(e) =>
-                        setSelectedUser((prev) => ({
-                          ...prev,
-                          email: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
+                <div className="form-group">
+                  <label>เบอร์ภายใน</label>
+                  <input
+                    type="text"
+                    value={selectedUser.phone}
+                    onChange={(e) =>
+                      setSelectedUser((prev) => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={selectedUser.email}
+                    onChange={(e) =>
+                      setSelectedUser((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
                 <div className="form-group">
                   <label>Username</label>
                   <input
@@ -412,33 +483,46 @@ const fetchTasks = (sectionId) => {
                       setSelectedUser((prev) => ({
                         ...prev,
                         username: e.target.value,
-                     }))
+                      }))
                     }
                   />
                 </div>
                 <div className="form-group">
                   <label>Password</label>
-                    <input
-                      type="password"
-                      value={selectedUser.password}
-      onChange={(e) =>
-        setSelectedUser((prev) => ({
-          ...prev,
-          password: e.target.value,
-        }))
-      }
-    />
-  </div>
-  <div className="form-actions">
-    <button type="submit" className="btn-save">บันทึก</button>
-    <button type="button" className="btn-cancel" onClick={handleCloseEditModal}>ยกเลิก</button>
-  </div>
+                  <input
+                    type="password"
+                    value={selectedUser.password}
+                    onChange={(e) =>
+                      setSelectedUser((prev) => ({
+                        ...prev,
+                        password: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    className="btn-save"
+                    onClick={handleUpdateUser}
+                  >
+                    บันทึก
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={handleCloseEditModal}
+                  >
+                    ยกเลิก
+                  </button>
+                </div>
               </form>
+            </div>
           </div>
+        )}
         </div>
-      )}
       </div>
-    </div>
   );
 };
 
