@@ -671,20 +671,44 @@ app.get("/api/users/:id", (req, res) => {
 
 // เพิ่มข้อมูลบุคลากร
 app.post("/api/users", (req, res) => {
-  const { fullName, department, image } = req.body;
-  const query = `
-    INSERT INTO users (fullName, department, image)
-    VALUES (?, ?, ?)
+  const { fullName, department_id, section_id, task_id, phone, email, username, password } = req.body;
+
+  // Query หา department_name, section_name, task_name ตาม ID ที่ได้รับ
+  const getNamesQuery = `
+      SELECT d.name AS department_name, s.name AS section_name, t.name AS task_name
+      FROM departments d
+      LEFT JOIN sections s ON d.id = s.department_id
+      LEFT JOIN tasks t ON s.id = t.section_id
+      WHERE d.id = ? AND s.id = ? AND t.id = ?
   `;
-  db.query(query, [fullName, department, image], (err, results) => {
-    if (err) {
-      console.error("Error adding user:", err);
-      res.status(500).json({ error: "Failed to add user" });
-      return;
-    }
-    res.status(201).json({ message: "User added successfully", userId: results.insertId });
+
+  db.query(getNamesQuery, [department_id, section_id, task_id], (err, results) => {
+      if (err) {
+          console.error("Error fetching department/section/task names:", err);
+          res.status(500).json({ error: "Failed to fetch department/section/task names" });
+          return;
+      }
+
+      const { department_name, section_name, task_name } = results[0] || { department_name: "", section_name: "", task_name: "" };
+
+      // Query สำหรับบันทึกลงฐานข้อมูล
+      const insertQuery = `
+          INSERT INTO users (fullName, department_name, section_name, task_name, phone, email, username, password)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      db.query(insertQuery, [fullName, department_name, section_name, task_name, phone, email, username, password], (err, results) => {
+          if (err) {
+              console.error("Error adding user:", err);
+              res.status(500).json({ error: "Failed to add user" });
+              return;
+          }
+          res.status(201).json({ message: "User added successfully", userId: results.insertId });
+      });
   });
 });
+
+
 
 // อัปเดตข้อมูลบุคลากร
 app.put("/api/users/:id", (req, res) => {
@@ -739,20 +763,51 @@ app.put("/api/users/:id", (req, res) => {
 });
 
 // ลบข้อมูลบุคลากร
-app.delete("/api/users/:id", (req, res) => {
-  const userId = req.params.id;
-  const query = `
-    DELETE FROM users WHERE id = ?
-  `;
-  db.query(query, [userId], (err, results) => {
+app.delete("/api/users", (req, res) => {
+  const { ids } = req.body; // รับค่าที่ถูกส่งมาจาก frontend
+  if (!ids || ids.length === 0) {
+    return res.status(400).json({ error: "กรุณาระบุรายการที่ต้องการลบ" });
+  }
+
+  const placeholders = ids.map(() => "?").join(", "); // สร้าง `?,?,?` ตามจำนวน ID
+  const query = `DELETE FROM users WHERE id IN (${placeholders})`;
+
+  db.query(query, ids, (err, results) => {
     if (err) {
-      console.error("Error deleting user:", err);
-      res.status(500).json({ error: "Failed to delete user" });
-      return;
+      console.error("Error deleting users:", err);
+      return res.status(500).json({ error: "Failed to delete users" });
     }
-    res.json({ message: "User deleted successfully" });
+    res.json({ message: "ลบข้อมูลสำเร็จ!" });
   });
 });
+
+app.put("/api/users/approve/:id", (req, res) => {
+  const userId = req.params.id;
+  const query = `UPDATE users SET status = 'Approved' WHERE id = ?`;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error approving user:", err);
+      return res.status(500).json({ error: "Failed to approve user" });
+    }
+    res.json({ message: "User approved successfully" });
+  });
+});
+
+app.put("/api/users/reject/:id", (req, res) => {
+  const userId = req.params.id;
+  const query = `UPDATE users SET status = 'Rejected' WHERE id = ?`;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error rejecting user:", err);
+      return res.status(500).json({ error: "Failed to reject user" });
+    }
+    res.json({ message: "User rejected successfully" });
+  });
+});
+
+
 
 app.get('/api/names', (req, res) => {
   const { type } = req.query;

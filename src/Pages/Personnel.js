@@ -4,6 +4,8 @@ import ITDashboard from "./ITDashboard";
 import "./Personnel.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEdit, faList, faPlus, faUserCircle, faUsers, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from 'react-router-dom';
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
 const Personnel = () => {
   const [personnelData, setPersonnelData] = useState([]);
@@ -20,47 +22,97 @@ const Personnel = () => {
   const [departments, setDepartments] = useState([]); // สำหรับเก็บข้อมูลฝ่าย
 const [sections, setSections] = useState([]); // สำหรับเก็บข้อมูลกอง
 const [tasks, setTasks] = useState([]); // สำหรับเก็บข้อมูลงาน
+const [selectedUsers, setSelectedUsers] = useState([]);  // ✅ เก็บ ID ที่เลือก
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showPending, setShowPending] = useState(false); //
+  const [pendingUsers, setPendingUsers] = useState([]);
+  const [users, setUsers] = useState([]);
   const [newUser, setNewUser] = useState({
-    fullName: "",
-    department_name: "",
-    section_name: "",
-    task_name: "",
-    phone: "",
-    email: "",
-    username: "",
-    password: "",
-  });
+    fullName: '',
+    department_id: '',
+    section_id: '',
+    task_id: '',
+    phone: '',
+    email: '',
+    username: '',
+    password: '',
+});
   
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:5001/api/users")
-      .then((response) => {
-        setPersonnelData(response.data);
-      })
-      .catch((error) => console.error("Error fetching users:", error));
-  }, []);
+useEffect(() => {
+  axios.get('http://localhost:5001/api/users')
+      .then(response => setPersonnelData(response.data))
+      .catch(error => console.error('Error fetching users:', error));
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:5001/api/departments")
-      .then((response) => {
-        console.log("Departments:", response.data); // ตรวจสอบข้อมูล Departments
-        setDepartments(response.data);
-      })
-      .catch((error) => console.error("Error fetching departments:", error));
-  }, []);
-  
-  
+  axios.get('http://localhost:5001/api/departments')
+      .then(response => setDepartments(response.data))
+      .catch(error => console.error('Error fetching departments:', error));
 
-  const filteredData = personnelData.filter((user) =>
+  axios.get("http://localhost:5001/api/pending-users") // 📌 โหลดรายการสมัคร
+      .then(response => setPendingUsers(response.data))
+      .catch(error => console.error("Error fetching pending users:", error));
+
+}, []);
+
+// โหลด Sections เมื่อเลือก Department
+useEffect(() => {
+  if (newUser.department_id) {
+      axios.get(`http://localhost:5001/api/sections/${newUser.department_id}`)
+          .then(response => setSections(response.data))
+          .catch(error => console.error('Error fetching sections:', error));
+  } else {
+      setSections([]);
+      setTasks([]);
+  }
+}, [newUser.department_id]);
+
+// โหลด Tasks เมื่อเลือก Section
+useEffect(() => {
+  if (newUser.section_id) {
+      axios.get(`http://localhost:5001/api/tasks/${newUser.section_id}`)
+          .then(response => setTasks(response.data))
+          .catch(error => console.error('Error fetching tasks:', error));
+  } else {
+      setTasks([]);
+  }
+}, [newUser.section_id]);
+
+// ดึงข้อมูลบุคลากรที่ยังไม่อนุมัติ
+useEffect(() => {
+  axios.get("http://localhost:5001/api/users/pending")
+    .then(response => setUsers(response.data))
+    .catch(error => console.error("Error fetching pending users:", error));
+}, []);
+
+  // โหลดข้อมูลกองตามฝ่าย
+  const fetchSections = (departmentId) => {
+    if (!departmentId) return;
+    axios.get(`http://localhost:5001/api/sections/${departmentId}`)
+      .then((response) => setSections(response.data || []))
+      .catch((error) => console.error("Error fetching sections:", error));
+  };
+
+  // โหลดข้อมูลงานตามกอง
+  const fetchTasks = (sectionId) => {
+    if (!sectionId) return;
+    axios.get(`http://localhost:5001/api/tasks/${sectionId}`)
+      .then((response) => setTasks(response.data || []))
+      .catch((error) => console.error("Error fetching tasks:", error));
+  };
+
+  
+  const filteredData = personnelData.filter(user =>
     user.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    ? pendingUsers.filter(user => user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()))
+    : personnelData.filter(user => user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()))
+);
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+
+const indexOfLastItem = currentPage * itemsPerPage;
+const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+const navigate = useNavigate();  // ใช้ navigate เพื่อนำทางไปหน้าเดิม
 
   const handleDepartmentChange = (e) => {
     const departmentId = e.target.value;
@@ -113,22 +165,21 @@ const [tasks, setTasks] = useState([]); // สำหรับเก็บข้�
     setShowModal(false);
   };
 
+  const handleCheckboxChange = (userId) => {
+    setSelectedUsers(prevSelected =>
+        prevSelected.includes(userId) 
+        ? prevSelected.filter(id => id !== userId)  // ถ้าคลิกซ้ำให้ลบออก
+        : [...prevSelected, userId]  // เพิ่ม ID ที่เลือก
+    );
+};
+
   const handleEditUser = (user) => {
     setSelectedUser(user);
-  
-    // โหลดข้อมูล Sections (กอง) ตาม Department
-    if (user.department) {
-      fetchSections(user.department); // เรียกฟังก์ชันโหลดกอง
-    }
-  
-    // โหลดข้อมูล Tasks (งาน) ตาม Section
-    if (user.section_name) {
-      fetchTasks(user.section_name); // เรียกฟังก์ชันโหลดงาน
-    }
-  
+    if (user.department_id) fetchSections(user.department_id);
+    if (user.section_id) fetchTasks(user.section_id);
     setShowEditModal(true);
   };
-  
+
 
   const handleCloseEditModal = () => {
     setShowEditModal(false);
@@ -136,21 +187,11 @@ const [tasks, setTasks] = useState([]); // สำหรับเก็บข้�
   };
 
   const handleUpdateUser = () => {
-    axios
-      .put(`http://localhost:5001/api/users/${selectedUser.id}`, {
-        fullName: selectedUser.fullName,
-        department: selectedUser.department,
-        section_name: selectedUser.section_name,
-        task_name: selectedUser.task_name,
-        phone: selectedUser.phone,
-        email: selectedUser.email,
-        username: selectedUser.username,
-        password: selectedUser.password,
-      })
+    axios.put(`http://localhost:5001/api/users/${selectedUser.id}`, selectedUser)
       .then(() => {
         alert("อัปเดตข้อมูลสำเร็จ!");
         setShowEditModal(false);
-        window.location.reload(); // โหลดข้อมูลใหม่หลังอัปเดต
+        window.location.reload();
       })
       .catch((error) => {
         console.error("Error updating user:", error);
@@ -161,44 +202,15 @@ const [tasks, setTasks] = useState([]); // สำหรับเก็บข้�
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-  
-    setSelectedUser((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === "department" && { section_name: "", task_name: "" }), // รีเซ็ตกองและงาน
-      ...(name === "section_name" && { task_name: "" }), // รีเซ็ตงาน
+    setNewUser(prev => ({
+        ...prev,
+        [name]: value,
+        ...(name === 'department_id' && { section_id: '', task_id: '' }),
+        ...(name === 'section_id' && { task_id: '' })
     }));
+};
   
-    // โหลดข้อมูลใหม่
-    if (name === "department") {
-      fetchSections(value); // โหลด Sections ใหม่
-    } else if (name === "section_name") {
-      fetchTasks(value); // โหลด Tasks ใหม่
-    }
-  };
-  
-  
-  const fetchSections = (departmentId) => {
-    if (!departmentId) return; // หากไม่มี ID ก็ไม่ต้องดึงข้อมูล
-    axios
-      .get(`http://localhost:5001/api/sections/${departmentId}`)
-      .then((response) => {
-        setSections(response.data || []); // ตั้งค่า Sections
-      })
-      .catch((error) => console.error("Error fetching sections:", error));
-  };
-  
-  const fetchTasks = (sectionId) => {
-    if (!sectionId) return; // หากไม่มี ID ก็ไม่ต้องดึงข้อมูล
-    axios
-      .get(`http://localhost:5001/api/tasks/${sectionId}`)
-      .then((response) => {
-        setTasks(response.data || []); // ตั้งค่า Tasks
-      })
-      .catch((error) => console.error("Error fetching tasks:", error));
-  };
-  
-  
+
   useEffect(() => {
     if (selectedUser?.department) {
       fetchSections(selectedUser.department); // โหลด Sections
@@ -215,55 +227,129 @@ const [tasks, setTasks] = useState([]); // สำหรับเก็บข้�
     console.log("Tasks:", tasks);
   }, [selectedUser, sections, tasks]);
   
+
   const handleAddInputChange = (e) => {
     const { name, value } = e.target;
-  
+
     setNewUser((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === "department_name" && { section_name: "", task_name: "" }),
-      ...(name === "section_name" && { task_name: "" }),
+        ...prev,
+        [name]: value,
+        ...(name === "department_id" && { section_id: "", task_id: "" }), // รีเซ็ตกองและงานเมื่อเปลี่ยนฝ่าย
+        ...(name === "section_id" && { task_id: "" }), // รีเซ็ตงานเมื่อเปลี่ยนกอง
     }));
-  
-    if (name === "department_name") {
-      fetchSections(value); // โหลด Sections ใหม่
-    } else if (name === "section_name") {
-      fetchTasks(value); // โหลด Tasks ใหม่
-    }
-  };
 
+    if (name === "department_id") {
+        fetchSections(value); // โหลด Sections ใหม่
+    } else if (name === "section_id") {
+        fetchTasks(value); // โหลด Tasks ใหม่
+    }
+};
+
+
+  // จัดการการเพิ่มข้อมูลใหม่
   const handleAddUser = () => {
-    axios
-      .post("http://localhost:5001/api/users", newUser)
-      .then(() => {
-        alert("เพิ่มข้อมูลสำเร็จ!");
-        setShowAddModal(false);
-        window.location.reload(); // โหลดข้อมูลใหม่หลังเพิ่ม
-      })
-      .catch((error) => {
-        console.error("Error adding user:", error);
-        alert("เกิดข้อผิดพลาดในการเพิ่มข้อมูล!");
-      });
-  };
-  useEffect(() => {
-    if (newUser.department) {
-      fetchSections(newUser.department); // โหลด Sections เมื่อเลือกฝ่าย/สำนัก
-    } else {
-      setSections([]); // รีเซ็ตเมื่อไม่มีการเลือก
+    if (!newUser.department_id || !newUser.section_id || !newUser.task_id) {
+      alert("กรุณาเลือกฝ่าย กอง และ งาน ให้ครบถ้วน");
+      return;
     }
-  }, [newUser.department]);
   
-  useEffect(() => {
-    if (newUser.section_name) {
-      fetchTasks(newUser.section_name); // โหลด Tasks เมื่อเลือกกอง
-    } else {
-      setTasks([]); // รีเซ็ตเมื่อไม่มีการเลือก
+    const department = departments.find(d => d.id.toString() === newUser.department_id);
+    const section = sections.find(s => s.id.toString() === newUser.section_id);
+    const task = tasks.find(t => t.id.toString() === newUser.task_id);
+  
+    if (!department || !section || !task) {
+      alert("ฝ่าย กอง หรือ งานที่เลือกไม่ถูกต้อง");
+      return;
     }
-  }, [newUser.section_name]);
+  
+    axios.post('http://localhost:5001/api/users', {
+      fullName: newUser.fullName,
+      department_id: department.id,
+      department: department.name,
+      section_id: section.id,
+      section_name: section.name,
+      task_id: task.id,
+      task_name: task.name,
+      phone: newUser.phone,
+      email: newUser.email,
+      username: newUser.username,
+      password: newUser.password,
+    })
+    .then(response => {
+      console.log("✅ เพิ่มข้อมูลสำเร็จ!", response.data);
+      alert('เพิ่มข้อมูลสำเร็จ!');
+      
+      setShowAddModal(false); // ปิด Modal
+      navigate('/personnel'); // กลับไปยังหน้าเดิม
+      
+      // โหลดข้อมูลใหม่
+      axios.get('http://localhost:5001/api/users')
+        .then(response => setPersonnelData(response.data))
+        .catch(error => console.error('❌ โหลดข้อมูลใหม่ล้มเหลว:', error));
+    })
+    .catch(error => {
+      console.error('❌ เกิดข้อผิดพลาดในการเพิ่มข้อมูล:', error.response?.data || error);
+      alert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล!');
+    });
+  };
 
-  useEffect(() => {
-    console.log("New User Data:", newUser);
-  }, [newUser]);  
+  // ✅ ฟังก์ชันเพิ่ม/ลบผู้ใช้จากรายการที่เลือก
+const toggleUserSelection = (userId) => {
+  setSelectedUsers(prevSelected =>
+      prevSelected.includes(userId)
+          ? prevSelected.filter(id => id !== userId) // ถ้าเลือกไว้แล้ว ให้เอาออก
+          : [...prevSelected, userId] // ถ้ายังไม่ได้เลือก ให้เพิ่มเข้าไป
+  );
+};
+
+// ✅ ฟังก์ชันลบข้อมูลที่ถูกเลือก
+const handleDeleteSelected = async () => {
+  if (selectedUsers.length === 0) {
+      alert("กรุณาเลือกผู้ใช้ที่ต้องการลบ");
+      return;
+  }
+
+  if (!window.confirm(`คุณต้องการลบ ${selectedUsers.length} รายการหรือไม่?`)) return;
+
+  try {
+      const response = await axios.delete("http://localhost:5001/api/users", {
+          data: { ids: selectedUsers }, // ✅ ส่งค่าเป็น JSON
+          headers: { "Content-Type": "application/json" },
+      });
+
+      alert(response.data.message);
+      setSelectedUsers([]); // ✅ ล้างค่าที่เลือก
+      axios.get("http://localhost:5001/api/users") // โหลดข้อมูลใหม่
+          .then((response) => setPersonnelData(response.data))
+          .catch((error) => console.error("Error fetching updated users:", error));
+  } catch (error) {
+      console.error("Error deleting users:", error);
+      alert("เกิดข้อผิดพลาดในการลบข้อมูล!");
+  }
+};
+
+// ฟังก์ชันอนุมัติผู้ใช้
+const handleApprove = (id) => {
+  axios.put(`http://localhost:5001/api/users/approve/${id}`)
+    .then(() => {
+      alert("✅ อนุมัติสำเร็จ!");
+      setUsers(users.filter(user => user.id !== id));
+      setShowModal(false);
+    })
+    .catch(error => console.error("Error approving user:", error));
+};
+
+// ฟังก์ชันปฏิเสธผู้ใช้
+const handleReject = (id) => {
+  axios.put(`http://localhost:5001/api/users/reject/${id}`)
+    .then(() => {
+      alert("❌ ไม่อนุมัติ!");
+      setUsers(users.filter(user => user.id !== id));
+      setShowModal(false);
+    })
+    .catch(error => console.error("Error rejecting user:", error));
+};
+
   return (
     <div>
       <ITDashboard />
@@ -273,23 +359,32 @@ const [tasks, setTasks] = useState([]); // สำหรับเก็บข้�
           บุคลากร
         </h1>
         <div className="actions-container">
-          <input
-            type="text"
-            placeholder="ค้นหา"
-            className="search-box"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button className="btn btn-secondary">
-            <FontAwesomeIcon icon={faList} style={{ marginRight: "5px" }} />
-            รายการสมัครของบุคลากร
-          </button>
-          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-  <FontAwesomeIcon icon={faPlus} style={{ marginRight: "5px" }} />
-  เพิ่ม
-</button>
-
-        </div>
+    <input
+        type="text"
+        placeholder="ค้นหา"
+        className="search-box"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+    />
+     <button className="btn btn-secondary" onClick={() => navigate("/pending-users")}>
+                        <FontAwesomeIcon icon={faList} style={{ marginRight: "5px" }} />
+                        รายการสมัครของบุคลากร
+                    </button>
+    <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+        <FontAwesomeIcon icon={faPlus} style={{ marginRight: "5px" }} />
+        เพิ่ม
+    </button>
+    
+    {/* ✅ ปุ่มลบ (แสดงจำนวนที่เลือก) */}
+    <button 
+        className="btn btn-danger" 
+        onClick={handleDeleteSelected}
+        disabled={selectedUsers.length === 0} // ปิดปุ่มหากไม่มีรายการที่ถูกเลือก
+    >
+        <FontAwesomeIcon icon={faTrash} style={{ marginRight: "5px" }} />
+        ลบที่เลือก ({selectedUsers.length})
+    </button>
+</div>
         <p className="summary">
           ทั้งหมด {filteredData.length} รายการ แสดง {indexOfFirstItem + 1} ถึง {Math.min(indexOfLastItem, filteredData.length)} หน้า {currentPage} จากทั้งหมด {Math.ceil(filteredData.length / itemsPerPage)} หน้า
         </p>
@@ -304,33 +399,38 @@ const [tasks, setTasks] = useState([]); // สำหรับเก็บข้�
             </tr>
           </thead>
           <tbody>
-            {currentItems.map((user, index) => (
-              <tr key={user.id}>
-                <td>
-                  <input type="checkbox" />
-                </td>
-                <td>{indexOfFirstItem + index + 1}</td>
-                <td>
-                  <FontAwesomeIcon
+    {currentItems.map((user, index) => (
+        <tr key={user.id}>
+            <td>
+                <input 
+                    type="checkbox" 
+                    checked={selectedUsers.includes(user.id)}
+                    onChange={() => toggleUserSelection(user.id)}
+                />
+            </td>
+            <td>{indexOfFirstItem + index + 1}</td>
+            <td>
+                <FontAwesomeIcon
                     icon={faUserCircle}
                     className="icon-profile"
                     onClick={() => handleImageClick(user.image || "https://via.placeholder.com/50")}
-                  />
-                </td>
-                <td>{user.department || "ไม่ระบุ"}</td>
-                <td>
-                  <div className="action-buttons">
+                />
+            </td>
+            <td>{user.department || "ไม่ระบุ"}</td>
+            <td>
+                <div className="action-buttons">
                     <button className="btn btn-view" onClick={() => handleViewDetails(user)}>
-                      <FontAwesomeIcon icon={faEye} /> ดู
+                        <FontAwesomeIcon icon={faEye} /> ดู
                     </button>
                     <button className="btn btn-edit" onClick={() => handleEditUser(user)}>
-                      <FontAwesomeIcon icon={faEdit} /> แก้ไข
+                        <FontAwesomeIcon icon={faEdit} /> แก้ไข
                     </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+                </div>
+            </td>
+        </tr>
+    ))}
+</tbody>
+
         </table>
         <footer className="pagination">
           {Array.from({ length: Math.ceil(filteredData.length / itemsPerPage) }, (_, index) => (
@@ -544,35 +644,42 @@ const [tasks, setTasks] = useState([]); // สำหรับเก็บข้�
           />
         </div>
         <form>
-  <div>
-    <label>ฝ่าย</label>
-    <select value={selectedDepartment} onChange={handleDepartmentChange}>
-      <option value="">เลือกฝ่าย</option>
-      {departments.map(dept => (
-        <option key={dept.id} value={dept.id}>{dept.name}</option>
-      ))}
+        <div className="form-group">
+    <label>ฝ่าย/สำนัก</label>
+    <select name="department_id" value={newUser.department_id} onChange={handleAddInputChange}>
+        <option value="">เลือก</option>
+        {departments.map((dept) => (
+            <option key={dept.id} value={dept.id}>
+                {dept.name}
+            </option>
+        ))}
     </select>
-  </div>
+</div>
 
-  <div>
+<div className="form-group">
     <label>กอง</label>
-    <select value={selectedSection} onChange={handleSectionChange} disabled={!selectedDepartment}>
-      <option value="">เลือกกอง</option>
-      {sections.map(section => (
-        <option key={section.id} value={section.id}>{section.name}</option>
-      ))}
+    <select name="section_id" value={newUser.section_id} onChange={handleAddInputChange} disabled={!newUser.department_id}>
+        <option value="">เลือก</option>
+        {sections.map((section) => (
+            <option key={section.id} value={section.id}>
+                {section.name}
+            </option>
+        ))}
     </select>
-  </div>
+</div>
 
-  <div>
+<div className="form-group">
     <label>งาน</label>
-    <select value={selectedTask} onChange={(e) => setSelectedTask(e.target.value)} disabled={!selectedSection}>
-      <option value="">เลือกงาน</option>
-      {tasks.map(task => (
-        <option key={task.id} value={task.id}>{task.name}</option>
-      ))}
+    <select name="task_id" value={newUser.task_id} onChange={handleAddInputChange} disabled={!newUser.section_id}>
+        <option value="">เลือก</option>
+        {tasks.map((task) => (
+            <option key={task.id} value={task.id}>
+                {task.name}
+            </option>
+        ))}
     </select>
-  </div>
+</div>
+
 </form>
         <div className="form-group">
           <label>เบอร์ภายใน</label>
