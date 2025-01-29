@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors'); // ประกาศตัวแปร cors เพียงครั้งเดียว
 const bodyParser = require('body-parser');
-const mysql = require('mysql2/promise');  // ✅ ใช้ mysql2/promise
+const mysql = require('mysql2');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
@@ -11,30 +11,23 @@ const router = express.Router();
 
 app.use(cors()); // เรียกใช้งาน cors
 app.use(bodyParser.json());
-
+app.use(express.urlencoded({ extended: true }));  // ✅ รองรับ `x-www-form-urlencoded`
 
 // MySQL Connection
-const db = mysql.createPool({
+const db = mysql.createConnection({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '12345678',
   database: process.env.DB_NAME || 'inventory_management',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
 });
 
-
-(async () => {
-  try {
-    const connection = await db.getConnection(); // ใช้ getConnection()
-    console.log('✅ Connected to MySQL database.');
-    connection.release(); // คืน connection กลับ pool
-  } catch (err) {
-    console.error('❌ Error connecting to MySQL:', err);
-    process.exit(1); // ปิดโปรแกรมถ้าเชื่อมต่อไม่ได้
+db.connect((err) => {
+  if (err) {
+    console.error('Error connecting to MySQL:', err);
+    process.exit(1); // ปิดโปรแกรมถ้าการเชื่อมต่อไม่สำเร็จ
   }
-})();
+  console.log('Connected to MySQL database.');
+});
 
 // Nodemailer Transporter
 const transporter = nodemailer.createTransport({
@@ -96,116 +89,99 @@ app.post('/api/send-otp', (req, res) => {
   });
 });
 
-const bcrypt = require('bcrypt');
-
-app.post('/api/login', async (req, res) => {
+// API: Login ตรวจสอบ Username และ Password
+app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ success: false, message: 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน' });
   }
 
-  try {
-    // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
-    const query = 'SELECT username, password, role FROM users WHERE username = ?';
-    const [users] = await db.query(query, [username]);
-
-    if (users.length === 0) {
-      return res.status(401).json({ success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
+  const query = 'SELECT role FROM users WHERE username = ? AND password = ?';
+  db.query(query, [username, password], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
     }
-
-    const user = users[0];
-
-    // ตรวจสอบรหัสผ่านที่เข้ารหัส
-    const passwordMatch = await bcrypt.compare(password, user.password);
-
-    if (!passwordMatch) {
-      return res.status(401).json({ success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
-    }
-
-    // ✅ ส่งข้อมูล role กลับไปให้ frontend
-    return res.status(200).json({ success: true, role: user.role });
-
-  } catch (error) {
-    console.error('Database error:', error);
-    return res.status(500).json({ success: false, error: 'Server error' });
-  }
-});
-
-// ✅ ดึงข้อมูลบุคลากร (ไม่ต้องดึง password)
-app.get("/api/staff-info", async (req, res) => {
-  const { username } = req.query;
-  
-  console.log("Received username:", username);
-
-  try {
-    const query = `
-      SELECT 
-        users.fullName,
-        users.phone,
-        users.email,
-        users.username,
-        departments.name AS department_name
-      FROM users
-      LEFT JOIN departments ON users.department_id = departments.id
-      WHERE users.username = ?
-    `;
-
-    const [results] = await db.query(query, [username]);
 
     if (results.length > 0) {
-      return res.status(200).json(results[0]);
+      return res.status(200).json({ success: true, role: results[0].role });
     } else {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(401).json({ success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
     }
-  } catch (error) {
-    console.error("Database query error:", error);
-    return res.status(500).json({ error: "Database error" });
-  }
+  });
 });
 
-// ✅ ดึงข้อมูล departments ทั้งหมด
-app.get('/api/departments', async (req, res) => {
-  try {
-    const query = 'SELECT id, name FROM departments';
-    const [results] = await db.query(query);
-    return res.status(200).json(results);
-  } catch (error) {
-    console.error('Database error:', error);
-    return res.status(500).json({ success: false, error: 'Server error' });
-  }
+// API: ดึงข้อมูลบุคลากร
+app.get("/api/staff-info", (req, res) => {
+  const { username } = req.query;
+  console.log("Received username:", username);
+  console.log("API received username:", username);
+  
+  const query = `
+    SELECT 
+      users.fullName,
+      users.phone,
+      users.email,
+      users.username,
+      users.password,
+      departments.name AS department_name
+    FROM users
+    LEFT JOIN departments ON users.department_id = departments.id
+    WHERE users.username = ?
+  `;
+
+  db.query(query, [username], (err, results) => {
+    if (err) {
+      console.error("Database query error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    if (results.length > 0) {
+      res.status(200).json(results[0]);
+    } else {
+      res.status(404).json({ error: "User not found" });
+    }
+  });
 });
 
-// ✅ ดึงข้อมูล Sections ตาม Department ID
-app.get('/api/sections/:departmentId', async (req, res) => {
-  const { departmentId } = req.params;
-
-  try {
-    const query = 'SELECT id, name FROM sections WHERE department_id = ?';
-    const [results] = await db.query(query, [departmentId]);
-    return res.status(200).json(results);
-  } catch (error) {
-    console.error('Database error:', error);
-    return res.status(500).json({ success: false, error: 'Server error' });
-  }
+// API: ดึงข้อมูล departments ทั้งหมด
+app.get('/api/departments', (req, res) => {
+  const query = 'SELECT id, name FROM departments';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json(results);
+  });
+});
+// API: ดึงข้อมูล Sections ตาม Department ID
+app.get('/api/sections/:departmentId', (req, res) => {
+  const departmentId = req.params.departmentId;
+  const query = 'SELECT id, name FROM sections WHERE department_id = ?';
+  db.query(query, [departmentId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json(results);
+  });
 });
 
-// ✅ ดึงข้อมูล Tasks ตาม Section ID
-app.get('/api/tasks/:sectionId', async (req, res) => {
-  const { sectionId } = req.params;
-
-  try {
-    const query = 'SELECT id, name FROM tasks WHERE section_id = ?';
-    const [results] = await db.query(query, [sectionId]);
-    return res.status(200).json(results);
-  } catch (error) {
-    console.error('Error fetching tasks:', error);
-    return res.status(500).json({ success: false, error: 'Server error' });
-  }
+app.get('/api/tasks/:sectionId', (req, res) => {
+  const sectionId = req.params.sectionId;
+  const query = 'SELECT id, name FROM tasks WHERE section_id = ?';
+  db.query(query, [sectionId], (err, results) => {
+      if (err) {
+          console.error('Error fetching tasks:', err);
+          return res.status(500).json({ success: false, error: 'Server error' });
+      }
+      res.status(200).json(results);
+  });
 });
 
-// ✅ API: เพิ่มผู้ใช้งานใหม่ (ใช้ bcrypt เข้ารหัสรหัสผ่าน)
-app.post('/api/signup', async (req, res) => {
+// API: เพิ่มผู้ใช้งานใหม่
+app.post('/api/signup', (req, res) => {
   const { username, password, fullName, email, phone, departmentName, sectionName, taskName } = req.body;
 
   console.log("Received signup data:", req.body);
@@ -215,296 +191,434 @@ app.post('/api/signup', async (req, res) => {
     return res.status(400).json({ success: false, message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
   }
 
-  try {
-    // ตรวจสอบว่าชื่อผู้ใช้หรืออีเมลซ้ำหรือไม่
-    const checkQuery = `SELECT * FROM users WHERE username = ? OR email = ?`;
-    const [existingUsers] = await db.query(checkQuery, [username, email]);
+  // ตรวจสอบว่าชื่อผู้ใช้หรืออีเมลซ้ำหรือไม่
+  const checkQuery = `SELECT * FROM users WHERE username = ? OR email = ?`;
+  db.query(checkQuery, [username, email], (checkErr, checkResults) => {
+    if (checkErr) {
+      console.error('Database error during username/email check:', checkErr);
+      return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการตรวจสอบข้อมูล' });
+    }
 
-    if (existingUsers.length > 0) {
+    if (checkResults.length > 0) {
       return res.status(400).json({ success: false, message: 'ชื่อผู้ใช้หรืออีเมลนี้มีอยู่ในระบบแล้ว' });
     }
 
-    // ✅ เข้ารหัสรหัสผ่านก่อนบันทึกลงฐานข้อมูล
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // ✅ ดำเนินการเพิ่มผู้ใช้ในฐานข้อมูล
+    // ดำเนินการเพิ่มผู้ใช้ในฐานข้อมูล
     const insertQuery = `
       INSERT INTO users (username, password, fullName, email, phone, department_name, section_name, task_name)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    await db.query(insertQuery, [username, hashedPassword, fullName, email, phone, departmentName, sectionName, taskName]);
-
-    return res.status(201).json({ success: true, message: 'สมัครสมาชิกสำเร็จ' });
-
-  } catch (error) {
-    console.error('Database error during user insertion:', error);
-    return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
-  }
+    db.query(insertQuery, [username, password, fullName, email, phone, departmentName, sectionName, taskName], (insertErr) => {
+      if (insertErr) {
+        console.error('Database error during user insertion:', insertErr);
+        return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
+      }
+      res.status(201).json({ success: true, message: 'สมัครสมาชิกสำเร็จ' });
+    });
+  });
 });
 
-
-// ✅ ดึงข้อมูลสินค้าทั้งหมด
-app.get('/api/products', async (req, res) => {
-  const { sortColumn = 'id', sortOrder = 'ASC' } = req.query;
-  const validColumns = ['id', 'model', 'category_name', 'inventory_number'];
-
+// ดึงรายการ products
+// ดึงข้อมูลทั้งหมด
+app.get('/api/products', (req, res) => {
+  const { sortColumn = 'id', sortOrder = 'ASC' } = req.query; // Default sorting
+  const validColumns = ['id', 'model', 'category_name', 'inventory_number']; // คอลัมน์ที่อนุญาต
   if (!validColumns.includes(sortColumn)) {
     return res.status(400).json({ success: false, error: 'Invalid sort column' });
   }
 
-  try {
-    const query = `
-      SELECT 
-        id,
-        model AS material,
-        IFNULL(serial_number, '-') AS serial_number,
-        category_name AS category,
-        name AS equipment,
-        brand_name AS brand,
-        inventory_number,
-        IFNULL(inventory_number - borrowed_number, 0) AS remaining,
-        IFNULL(details, '-') AS details,
-        IFNULL(equipment_number, '-') AS equipment_number
-      FROM products
-      ORDER BY ${sortColumn} ${sortOrder};
-    `;
+  const query = `
+    SELECT 
+      id,
+      model AS material,
+      COALESCE(serial_number, '-') AS serial_number,
+      category_name AS category,
+      name AS equipment,
+      brand_name AS brand,
+      inventory_number,
+      COALESCE(inventory_number - borrowed_number, 0) AS remaining,
+      COALESCE(details, '-') AS details,
+      COALESCE(equipment_number, '-') AS equipment_number
+    FROM products
+    ORDER BY ${sortColumn} ${sortOrder};
+  `;
 
-    const [results] = await db.query(query);
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    console.log('Query Results:', results); // ล็อกข้อมูลผลลัพธ์
     res.status(200).json({ success: true, data: results });
-
-  } catch (error) {
-    console.error('Database error:', error);
-    res.status(500).json({ success: false, error: 'Server error' });
-  }
+  });  
 });
 
-// ✅ เพิ่มข้อมูลสินค้าใหม่
-app.post('/api/products', async (req, res) => {
-  const { material, serial_number = "-", category, equipment, brand, inventory_number, details = "-", equipment_number = "-" } = req.body;
 
+// เพิ่มข้อมูลใหม่
+app.post("/api/products", (req, res) => {
+  const {
+    material, // ชื่อสินค้า
+    serial_number = "-", // ค่าเริ่มต้นหากไม่ได้ส่งมา
+    category, // ประเภท
+    equipment, // อุปกรณ์
+    brand, // ยี่ห้อ
+    inventory_number, // จำนวน
+    details = "-", // รายละเอียด
+    equipment_number = "-" // หมายเลขครุภัณฑ์
+  } = req.body;
+
+  // ตรวจสอบว่าข้อมูลสำคัญครบถ้วนหรือไม่
   if (!material || !category || !equipment || !brand || !inventory_number) {
     return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" });
   }
 
+  // ตรวจสอบว่า inventory_number เป็นตัวเลขที่มากกว่า 0
   if (isNaN(inventory_number) || inventory_number <= 0) {
     return res.status(400).json({ success: false, message: "จำนวนสินค้าต้องเป็นตัวเลขที่มากกว่า 0" });
   }
 
-  try {
-    const query = `
-      INSERT INTO products (model, serial_number, category_name, name, brand_name, inventory_number, details, equipment_number)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+  const query = `
+    INSERT INTO products (material, serial_number, category, equipment, brand, inventory_number, details, equipment_number)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
 
-    await db.execute(query, [material, serial_number, category, equipment, brand, inventory_number, details, equipment_number]);
-    res.status(201).json({ success: true, message: "เพิ่มข้อมูลสำเร็จ" });
-
-  } catch (error) {
-    console.error("Database error:", error);
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
-  }
+  db.query(
+    query,
+    [material, serial_number, category, equipment, brand, inventory_number, details, equipment_number],
+    (err) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+      }
+      res.status(201).json({ success: true, message: "เพิ่มข้อมูลสำเร็จ" });
+    }
+  );
 });
 
-// ✅ อัปเดตข้อมูลสินค้า
-app.put('/api/products/:id', async (req, res) => {
+// อัปเดตข้อมูล
+app.put('/api/products/:id', (req, res) => {
   const { id } = req.params;
-  const { material, category, equipment, brand, equipment_number, serial_number, inventory_number, details } = req.body;
+  const data = req.body;
 
-  try {
-    const query = `
-      UPDATE products
-      SET 
-        model = IFNULL(?, model), 
-        category_name = IFNULL(?, category_name), 
-        name = IFNULL(?, name), 
-        brand_name = IFNULL(?, brand_name),
-        equipment_number = IFNULL(?, equipment_number),
-        serial_number = IFNULL(?, serial_number),
-        inventory_number = IFNULL(?, inventory_number),
-        details = IFNULL(?, details)
-      WHERE id = ?
-    `;
+  const query = `
+    UPDATE products
+    SET 
+      model = COALESCE(?, model), 
+      category_name = COALESCE(?, category_name), 
+      name = COALESCE(?, name), 
+      brand_name = COALESCE(?, brand_name),
+      equipment_number = COALESCE(?, equipment_number),
+      serial_number = COALESCE(?, serial_number),
+      inventory_number = COALESCE(?, inventory_number),
+      details = COALESCE(?, details)
+    WHERE id = ?
+  `;
 
-    await db.execute(query, [material, category, equipment, brand, equipment_number, serial_number, inventory_number, details, id]);
-    res.status(200).json({ success: true, message: "บันทึกข้อมูลสำเร็จ" });
-
-  } catch (error) {
-    console.error("Database update error:", error);
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการอัปเดตข้อมูล" });
-  }
+  db.query(
+    query,
+    [
+      data.name,
+      data.category,
+      data.equipment,
+      data.brand,
+      data.equipment_number,
+      data.serial_number,
+      data.inventory_number,
+      data.details,
+      id,
+    ],
+    (err, results) => {
+      if (err) {
+        console.error("Database update error:", err);
+        return res
+          .status(500)
+          .json({ success: false, message: "เกิดข้อผิดพลาดในการอัปเดตข้อมูล" });
+      }
+      res.status(200).json({ success: true, message: "บันทึกข้อมูลสำเร็จ" });
+    }
+  );
 });
 
-// ✅ ลบสินค้า
-app.post('/api/products/delete', async (req, res) => {
+app.get('/api/options', (req, res) => {
+  const query = `
+    SELECT DISTINCT category_name AS category FROM products;
+    SELECT DISTINCT name AS equipment FROM products;
+    SELECT DISTINCT brand_name AS brand FROM products;
+  `;
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json({
+      success: true,
+      categories: results[0],
+      equipments: results[1],
+      brands: results[2],
+    });
+  });
+});
+// ดึงข้อมูลตัวเลือก
+app.get('/api/filters', (req, res) => {
+  const queries = {
+    categories: 'SELECT DISTINCT category_name FROM products',
+    equipment: 'SELECT DISTINCT name FROM products',
+    brands: 'SELECT DISTINCT brand_name FROM products',
+  };
+
+  const results = {};
+
+  const promises = Object.keys(queries).map((key) => {
+    return new Promise((resolve, reject) => {
+      db.query(queries[key], (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          results[key] = data.map((item) => item[Object.keys(item)[0]]);
+          resolve();
+        }
+      });
+    });
+  });
+
+  Promise.all(promises)
+    .then(() => res.status(200).json({ success: true, data: results }))
+    .catch((error) => {
+      console.error('Error fetching filters:', error);
+      res.status(500).json({ success: false, message: 'Error fetching filters' });
+    });
+});
+
+
+// ลบข้อมูล
+app.post('/api/products/delete', (req, res) => {
   const { ids } = req.body;
 
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ success: false, message: "Invalid IDs" });
   }
 
-  try {
-    const query = `DELETE FROM products WHERE id IN (?)`;
-    await db.query(query, [ids]);
-    res.status(200).json({ success: true, message: "ลบข้อมูลสำเร็จ" });
-
-  } catch (error) {
-    console.error("Error deleting products:", error);
-    res.status(500).json({ success: false, message: "Database error" });
-  }
+  const query = `DELETE FROM products WHERE id IN (?)`;
+  db.query(query, [ids], (err, result) => {
+    if (err) {
+      console.error("Error deleting products:", err);
+      res.status(500).json({ success: false, message: "Database error" });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: "ลบข้อมูลสำเร็จ",
+        affectedRows: result.affectedRows,
+      });
+    }
+  });
 });
 
-// ✅ ดึงรายการ Categories
-app.get('/api/categories', async (req, res) => {
-  try {
-    const [results] = await db.query('SELECT id, name AS category_name, type FROM categories');
+// ดึงรายการ categories
+app.get('/api/categories', (req, res) => {
+  const query = 'SELECT id, name AS category_name, type FROM categories';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, message: 'Server error' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: 'ไม่มีข้อมูลประเภท' });
+    }
     res.status(200).json({ success: true, data: results });
-
-  } catch (error) {
-    console.error('Database error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
+  });
 });
 
-// ✅ เพิ่ม Category ใหม่
-app.post("/api/categories", async (req, res) => {
+
+app.post("/api/categories", (req, res) => {
   const { name, type } = req.body;
-  if (!name) return res.status(400).json({ success: false, message: "กรุณากรอกชื่อประเภท" });
 
-  try {
-    await db.execute("INSERT INTO categories (name, type) VALUES (?, ?)", [name, type || 'ประเภททั่วไป']);
-    res.status(201).json({ success: true, message: "เพิ่มประเภทสำเร็จ" });
-
-  } catch (error) {
-    console.error("Error adding category:", error);
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+  if (!name) {
+    return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" });
   }
+
+  const query = "INSERT INTO categories (name, type) VALUES (?, ?)";
+  db.query(query, [name, type || 'ประเภททั่วไป'], (err, result) => {
+    if (err) {
+      console.error("Error adding category:", err);
+      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+    }
+    res.status(201).json({ success: true, id: result.insertId });
+  });
 });
 
-// ✅ อัปเดต Category
-app.put('/api/categories/:id', async (req, res) => {
+
+app.put('/api/categories/:id', (req, res) => {
   const { id } = req.params;
   const { name, type } = req.body;
-  if (!name) return res.status(400).json({ success: false, message: "กรุณากรอกชื่อประเภท" });
 
-  try {
-    await db.execute('UPDATE categories SET name = ?, type = ? WHERE id = ?', [name, type || 'ประเภททั่วไป', id]);
-    res.status(200).json({ success: true, message: "แก้ไขประเภทสำเร็จ" });
-
-  } catch (error) {
-    console.error('Database error:', error);
-    res.status(500).json({ success: false, error: 'Server error' });
+  if (!name) {
+    return res.status(400).json({ success: false, message: "กรุณากรอกชื่อประเภท" });
   }
+
+  const query = 'UPDATE categories SET name = ?, type = ? WHERE id = ?';
+  db.query(query, [name, type || 'ประเภททั่วไป', id], (err) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json({ success: true });
+  });
 });
 
-// ✅ ลบ Category
-app.delete('/api/categories/:id', async (req, res) => {
+
+app.delete('/api/categories/:id', (req, res) => {
   const { id } = req.params;
 
-  try {
-    const [checkResults] = await db.query('SELECT * FROM categories WHERE id = ?', [id]);
-    if (checkResults.length === 0) {
+  const checkQuery = 'SELECT * FROM categories WHERE id = ?';
+  db.query(checkQuery, [id], (checkErr, checkResults) => {
+    if (checkErr || checkResults.length === 0) {
       return res.status(404).json({ success: false, message: 'ไม่พบข้อมูลที่ต้องการลบ' });
     }
 
-    await db.execute('DELETE FROM categories WHERE id = ?', [id]);
-    res.status(200).json({ success: true, message: "ลบประเภทสำเร็จ" });
-
-  } catch (error) {
-    console.error('Database error:', error);
-    res.status(500).json({ success: false, error: 'Server error' });
-  }
+    const deleteQuery = 'DELETE FROM categories WHERE id = ?';
+    db.query(deleteQuery, [id], (deleteErr) => {
+      if (deleteErr) {
+        console.error('Database error:', deleteErr);
+        return res.status(500).json({ success: false, error: 'Server error' });
+      }
+      res.status(200).json({ success: true });
+    });
+  });
 });
 
-// ✅ ดึงข้อมูลยี่ห้อทั้งหมด
-app.get('/api/brands', async (req, res) => {
-  try {
-    const [results] = await db.query('SELECT id, name, category FROM brands');
-    res.status(200).json({ success: true, data: results });
-  } catch (error) {
-    console.error('Database error:', error);
-    res.status(500).json({ success: false, error: 'Server error' });
-  }
-});
 
-// ✅ เพิ่มยี่ห้อใหม่
-app.post('/api/brands', async (req, res) => {
-  const { name, category = "ทั่วไป" } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ success: false, message: "กรุณากรอกชื่อยี่ห้อ" });
-  }
-
-  try {
-    const checkQuery = "SELECT * FROM brands WHERE name = ?";
-    const [existingBrand] = await db.query(checkQuery, [name]);
-
-    if (existingBrand.length > 0) {
-      return res.status(409).json({ success: false, message: "ชื่อยี่ห้อนี้มีอยู่ในระบบแล้ว" });
+// ดึงข้อมูลยี่ห้อทั้งหมด
+app.get('/api/brands', (req, res) => { 
+  const query = 'SELECT DISTINCT name FROM brands';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
     }
-
-    const insertQuery = "INSERT INTO brands (name, category) VALUES (?, ?)";
-    const [result] = await db.execute(insertQuery, [name, category]);
-
-    res.status(201).json({ success: true, id: result.insertId, message: "เพิ่มยี่ห้อสำเร็จ" });
-  } catch (error) {
-    console.error("Error adding brand:", error);
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการเพิ่มยี่ห้อ" });
-  }
+    res.status(200).json({ success: true, data: results });
+  });
 });
 
-// ✅ อัปเดตยี่ห้อ
-app.put('/api/brands/:id', async (req, res) => {
-  const { id } = req.params;
-  const { name, category } = req.body;
+// เพิ่มยี่ห้อใหม่
+app.post('/api/brands', (req, res) => {
+  const { name, category = "ทั่วไป" } = req.body; // กำหนดค่า default เป็น "ทั่วไป"
+  console.log("Data received from client:", { name, category });
 
   if (!name) {
+    console.error("Error: Brand name is missing.");
     return res.status(400).json({ success: false, message: "กรุณากรอกชื่อยี่ห้อ" });
   }
 
-  try {
-    const updateQuery = "UPDATE brands SET name = ?, category = ? WHERE id = ?";
-    const [result] = await db.execute(updateQuery, [name, category || "ทั่วไป", id]);
+  const checkQuery = "SELECT * FROM brands WHERE name = ?";
+db.query(checkQuery, [name], (err, results) => {
+  if (err) {
+    console.error("Error during SELECT query:", err);
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการตรวจสอบยี่ห้อ" });
+  }
+
+  if (results.length > 0) {
+    return res.status(409).json({ success: false, message: "ชื่อยี่ห้อนี้มีอยู่ในระบบแล้ว" });
+  }
+    const insertQuery = "INSERT INTO brands (name, category) VALUES (?, ?)";
+    db.query(insertQuery, [name, category], (err, result) => {
+      if (err) {
+        console.error("Error during INSERT query:", err);
+        return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการเพิ่มยี่ห้อ" });
+      }
+      console.log("Brand added successfully:", result);
+      res.status(201).json({ success: true, id: result.insertId });
+    });
+  });
+});
+
+// อัปเดตยี่ห้อ
+app.put('/api/brands/:id', (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  console.log("Received ID:", id); // Log ID
+  console.log("Received Name:", name); // Log Name
+
+  if (!id || !name) {
+    return res.status(400).json({ success: false, message: "กรุณาระบุ ID และชื่อยี่ห้อ" });
+  }
+
+  const updateQuery = "UPDATE brands SET name = ? WHERE id = ?";
+  db.query(updateQuery, [name, id], (err, result) => {
+    if (err) {
+      console.error("Error updating brand:", err);
+      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ" });
+    }
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "ไม่พบยี่ห้อที่ต้องการแก้ไข" });
     }
 
     res.status(200).json({ success: true, message: "แก้ไขยี่ห้อสำเร็จ" });
-  } catch (error) {
-    console.error("Error updating brand:", error);
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ" });
-  }
+  });
 });
 
-// ✅ ลบยี่ห้อ
-app.delete('/api/brands/:id', async (req, res) => {
+
+
+// ลบยี่ห้อ
+app.delete('/api/brands/:id', (req, res) => {
   const { id } = req.params;
+
+  console.log("Request to delete ID:", id); // Log ID
 
   if (!id) {
     return res.status(400).json({ success: false, message: "กรุณาระบุ ID" });
   }
 
-  try {
-    const deleteQuery = "DELETE FROM brands WHERE id = ?";
-    const [result] = await db.execute(deleteQuery, [id]);
+  const deleteQuery = "DELETE FROM brands WHERE id = ?";
+  db.query(deleteQuery, [id], (err, result) => {
+    if (err) {
+      console.error("Error deleting brand:", err);
+      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการลบยี่ห้อ" });
+    }
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "ไม่พบยี่ห้อที่ต้องการลบ" });
     }
 
     res.status(200).json({ success: true, message: "ลบยี่ห้อสำเร็จ" });
-  } catch (error) {
-    console.error("Error deleting brand:", error);
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการลบยี่ห้อ" });
-  }
+  });
 });
 
-// ✅ ดึงข้อมูลบุคลากรทั้งหมด (แก้ให้ใช้ `await`)
-app.get("/api/users", async (req, res) => {
+
+app.put('/api/brands/:id', (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ success: false, message: "กรุณากรอกชื่อยี่ห้อ" });
+  }
+
+  // SQL Query แก้ไขข้อมูล
+  const updateQuery = "UPDATE brands SET name = ? WHERE id = ?";
+  db.query(updateQuery, [name, id], (err, result) => {
+    if (err) {
+      console.error("Error updating brand:", err);
+      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ" });
+    }
+
+    // ตรวจสอบว่ามีการแก้ไขข้อมูลหรือไม่
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "ไม่พบยี่ห้อที่ต้องการแก้ไข" });
+    }
+
+    res.status(200).json({ success: true, message: "แก้ไขยี่ห้อสำเร็จ" });
+  });
+});
+
+
+// ดึงข้อมูลบุคลากรทั้งหมด
+app.get("/api/users", (req, res) => {
   const query = `
     SELECT 
       id, 
       username, 
+      password, 
       fullName, 
       phone, 
       email, 
@@ -517,189 +631,144 @@ app.get("/api/users", async (req, res) => {
       updatedAt, 
       image 
     FROM users
-    WHERE status = 'Approved'
   `;
 
-  try {
-    const [results] = await db.query(query); // ✅ ใช้ `await` และ destructure `[results]`
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching users:", err.sqlMessage || err.message || err);
+      res.status(500).json({ error: "Failed to fetch users" });
+      return;
+    }
     res.json(results);
-  } catch (error) {
-    console.error("Error fetching approved users:", error);
-    res.status(500).json({ error: "Failed to fetch users" });
-  }
+  });
 });
 
-
-// ✅ ดึงข้อมูลบุคลากรตาม ID
-app.get("/api/users/:id", async (req, res) => {
+// ดึงข้อมูลบุคลากรตาม ID
+app.get("/api/users/:id", (req, res) => {
   const userId = req.params.id;
-  try {
-    const query = `
-      SELECT 
-        id, 
-        fullName, 
-        department_name AS department, 
-        image 
-      FROM users
-      WHERE id = ?
-    `;
-    const [results] = await db.query(query, [userId]);
-
-    if (results.length === 0) {
-      return res.status(404).json({ error: "User not found" });
+  const query = `
+    SELECT 
+      id, 
+      fullName, 
+      department, 
+      image 
+    FROM users
+    WHERE id = ?
+  `;
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching user details:", err);
+      res.status(500).json({ error: "Failed to fetch user details" });
+      return;
     }
-
-    res.json(results[0]);
-  } catch (error) {
-    console.error("Error fetching user details:", error);
-    res.status(500).json({ error: "Failed to fetch user details" });
-  }
+    if (results.length === 0) {
+      res.status(404).json({ error: "User not found" });
+    } else {
+      res.json(results[0]);
+    }
+  });
 });
 
-// ✅ เพิ่มข้อมูลบุคลากร
-app.post("/api/users", async (req, res) => {
-  const { fullName, department_id, section_id, task_id, phone, email, username, password } = req.body;
+// เพิ่มข้อมูลบุคลากร
+// เพิ่มข้อมูลบุคลากร
+app.post("/api/users", (req, res) => {
+  const {
+    fullName,
+    department_name, // ชื่อคอลัมน์ตรงกับฐานข้อมูล
+    section_name,
+    task_name,
+    phone,
+    email,
+    username,
+    password,
+  } = req.body;
 
-  try {
-    // ดึงชื่อแผนก, แผนกย่อย, และงานที่เกี่ยวข้อง
-    const getNamesQuery = `
-      SELECT d.name AS department_name, s.name AS section_name, t.name AS task_name
-      FROM departments d
-      LEFT JOIN sections s ON d.id = s.department_id
-      LEFT JOIN tasks t ON s.id = t.section_id
-      WHERE d.id = ? AND s.id = ? AND t.id = ?
-    `;
-    const [results] = await db.query(getNamesQuery, [department_id, section_id, task_id]);
+  const query = `
+    INSERT INTO users (fullName, department_name, section_name, task_name, phone, email, username, password)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
 
-    if (results.length === 0) {
-      return res.status(400).json({ error: "Invalid department, section, or task" });
+  db.query(
+    query,
+    [fullName, department_name, section_name, task_name, phone, email, username, password],
+    (err, results) => {
+      if (err) {
+        console.error("Error adding user:", err);
+        res.status(500).json({ error: "Failed to add user" });
+        return;
+      }
+      res.status(201).json({ message: "User added successfully", userId: results.insertId });
     }
-
-    const { department_name, section_name, task_name } = results[0];
-
-    // เพิ่มผู้ใช้ใหม่
-    const insertQuery = `
-      INSERT INTO users (fullName, department_name, section_name, task_name, phone, email, username, password)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    const [insertResult] = await db.execute(insertQuery, [
-      fullName, department_name, section_name, task_name, phone, email, username, password
-    ]);
-
-    res.status(201).json({ message: "User added successfully", userId: insertResult.insertId });
-  } catch (error) {
-    console.error("Error adding user:", error);
-    res.status(500).json({ error: "Failed to add user" });
-  }
+  );
 });
 
-// ✅ อัปเดตข้อมูลบุคลากร
-app.put("/api/users/:id", async (req, res) => {
+// อัปเดตข้อมูลบุคลากร
+app.put("/api/users/:id", (req, res) => {
   const userId = req.params.id;
-  const { fullName, department, section_name, task_name, phone, email, username, password } = req.body;
+  const {
+    fullName,
+    department, // ต้องแก้ชื่อ field นี้หากส่งมาจาก frontend
+    section_name,
+    task_name,
+    phone,
+    email,
+    username,
+    password,
+  } = req.body;
 
+  // ตรวจสอบว่ามีข้อมูลที่ต้องการหรือไม่
   if (!fullName || !department || !email || !username || !password) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  try {
-    const query = `
-      UPDATE users 
-      SET 
-        fullName = ?, 
-        department_name = ?,  
-        section_name = ?, 
-        task_name = ?, 
-        phone = ?, 
-        email = ?, 
-        username = ?, 
-        password = ?
-      WHERE id = ?
-    `;
-    const [result] = await db.execute(query, [
-      fullName, department, section_name, task_name, phone, email, username, password, userId
-    ]);
+  const query = `
+    UPDATE users 
+    SET 
+      fullName = ?, 
+      department_name = ?,  -- เปลี่ยนชื่อนี้
+      section_name = ?, 
+      task_name = ?, 
+      phone = ?, 
+      email = ?, 
+      username = ?, 
+      password = ?
+    WHERE id = ?
+  `;
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "User not found" });
+  db.query(
+    query,
+    [fullName, department, section_name, task_name, phone, email, username, password, userId],
+    (err, results) => {
+      if (err) {
+        console.error("Error updating user:", err);
+        return res.status(500).json({ error: "Failed to update user" });
+      }
+
+      // ตรวจสอบว่ามีแถวที่ถูกอัปเดตหรือไม่
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json({ message: "User updated successfully" });
     }
-
-    res.json({ message: "User updated successfully" });
-  } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(500).json({ error: "Failed to update user" });
-  }
+  );
 });
 
-// ✅ ลบข้อมูลบุคลากร
-app.delete("/api/users", async (req, res) => {
-  const { ids } = req.body;
-
-  if (!ids || !Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ error: "กรุณาระบุรายการที่ต้องการลบ" });
-  }
-
-  try {
-    const query = `DELETE FROM users WHERE id IN (?)`;
-    const [result] = await db.query(query, [ids]);
-
-    res.json({ message: "ลบข้อมูลสำเร็จ!", affectedRows: result.affectedRows });
-  } catch (error) {
-    console.error("Error deleting users:", error);
-    res.status(500).json({ error: "Failed to delete users" });
-  }
-});
-
-// ✅ อนุมัติผู้ใช้
-app.put("/api/users/approve/:id", async (req, res) => {
+// ลบข้อมูลบุคลากร
+app.delete("/api/users/:id", (req, res) => {
   const userId = req.params.id;
-
-  try {
-    const query = `UPDATE users SET status = 'Approved' WHERE id = ?`;
-    const [result] = await db.execute(query, [userId]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "User not found or already approved" });
+  const query = `
+    DELETE FROM users WHERE id = ?
+  `;
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error deleting user:", err);
+      res.status(500).json({ error: "Failed to delete user" });
+      return;
     }
-
-    res.json({ message: "✅ อนุมัติสำเร็จ!" });
-  } catch (error) {
-    console.error("❌ Error approving user:", error);
-    res.status(500).json({ error: "Failed to approve user" });
-  }
+    res.json({ message: "User deleted successfully" });
+  });
 });
-
-// ✅ ปฏิเสธผู้ใช้
-app.put("/api/users/reject/:id", async (req, res) => {
-  const userId = req.params.id;
-
-  try {
-    const query = `UPDATE users SET status = 'Rejected' WHERE id = ?`;
-    const [result] = await db.execute(query, [userId]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "User not found or already rejected" });
-    }
-
-    res.json({ message: "❌ ไม่อนุมัติสำเร็จ!" });
-  } catch (error) {
-    console.error("❌ Error rejecting user:", error);
-    res.status(500).json({ error: "Failed to reject user" });
-  }
-});
-
-// ✅ ดึงผู้ใช้ที่ยังรอการอนุมัติ
-app.get("/api/pending-users", async (req, res) => {
-  try {
-    const query = "SELECT * FROM users WHERE status = 'Pending'";
-    const [pendingUsers] = await db.query(query);
-    res.json(pendingUsers);
-  } catch (error) {
-    console.error("❌ Error fetching pending users:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
 
 app.get('/api/names', (req, res) => {
   const { type } = req.query;
