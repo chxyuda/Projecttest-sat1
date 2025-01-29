@@ -29,20 +29,46 @@ const SignUp = () => {
             .catch(error => console.error('Error fetching departments:', error));
     }, []);
 
+    useEffect(() => {
+        if (formData.department_id) {
+            axios.get(`http://localhost:5001/api/sections/${formData.department_id}`)
+                .then(response => {
+                    console.log("🔍 Sections Loaded:", response.data); // Debug ตรวจสอบข้อมูล
+                    setSections(response.data);
+                })
+                .catch(error => console.error('❌ เกิดข้อผิดพลาดในการโหลดข้อมูลกอง:', error));
+        } else {
+            setSections([]);
+        }
+    }, [formData.department_id]);
+      
+    useEffect(() => {
+        if (formData.section_id) {
+            axios.get(`http://localhost:5001/api/tasks/${formData.section_id}`)
+                .then(response => {
+                    console.log("🔍 Tasks Loaded:", response.data); // Debug ตรวจสอบข้อมูล
+                    setTasks(response.data);
+                })
+                .catch(error => console.error('❌ เกิดข้อผิดพลาดในการโหลดข้อมูลงาน:', error));
+        } else {
+            setTasks([]);
+        }
+    }, [formData.section_id]);
+    
+    
     // Handle input change
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-
-        // ตรวจสอบรหัสผ่านตรงกันเมื่อกรอก
-        if (name === 'password' || name === 'confirmPassword') {
-            setPasswordMatch(
-                name === 'password'
-                    ? value === formData.confirmPassword
-                    : value === formData.password
-            );
-        }
+    
+        setFormData((prevState) => ({
+            ...prevState,
+            [name]: value,
+            ...(name === "department_id" && { section_id: "", task_id: "" }), // เคลียร์กองและงานเมื่อเปลี่ยนฝ่าย
+            ...(name === "section_id" && { task_id: "" }) // เคลียร์งานเมื่อเปลี่ยนกอง
+        }));
     };
+    
+    
 
     // Handle form submit
     const handleSubmit = (e) => {
@@ -141,31 +167,25 @@ const SignUp = () => {
                     <div className="row">
                         <div>
                             <label>ฝ่าย/สำนัก</label>
-                            <select name="departmentName" onChange={handleInputChange}>
-                                <option value="">เลือก</option>
-                                {departments.map(dept => (
-                                    <option key={dept.id} value={dept.id}>{dept.name}</option>
-                                ))}
-                            </select>
+                            <select name="department_id" value={formData.department_id} onChange={handleInputChange}>
+    <option value="">เลือก</option>
+    {departments.map(dept => <option key={dept.id} value={dept.id}>{dept.name}</option>)}
+</select>
                         </div>
                         <div>
                             <label>กอง</label>
-                            <select name="sectionName" onChange={handleInputChange}>
-                                <option value="">เลือก</option>
-                                {sections.map(section => (
-                                    <option key={section.id} value={section.id}>{section.name}</option>
-                                ))}
-                            </select>
+                            <select name="section_id" value={formData.section_id} onChange={handleInputChange} disabled={!formData.department_id}>
+    <option value="">เลือก</option>
+    {sections.map(section => <option key={section.id} value={section.id}>{section.name}</option>)}
+</select>
                         </div>
                     </div>
                     <div className="form-group">
                         <label>งาน</label>
-                        <select name="taskName" onChange={handleInputChange}>
-                            <option value="">เลือก</option>
-                            {tasks.map(task => (
-                                <option key={task.id} value={task.id}>{task.name}</option>
-                            ))}
-                        </select>
+                        <select name="task_id" value={formData.task_id} onChange={handleInputChange} disabled={!formData.section_id}>
+    <option value="">เลือก</option>
+    {tasks.map(task => <option key={task.id} value={task.id}>{task.name}</option>)}
+</select>
                     </div>
                     <button type="submit" disabled={!passwordMatch}>Sign Up</button>
                 </form>
