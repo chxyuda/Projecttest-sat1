@@ -38,6 +38,10 @@ const ITDashboard = () => {
     navigate(path);
   };
 
+  useEffect(() => {
+    console.log("✅ IT Dashboard Loaded");
+  }, []);
+  
   // ฟังก์ชันเปิด/ปิด Modal และดึงข้อมูลบุคลากร
   const toggleProfileModal = () => {
     setShowProfileModal(!showProfileModal);
@@ -152,6 +156,12 @@ const ITDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // ลบ Token ออกจาก LocalStorage (ถ้ามี)
+    localStorage.removeItem("user");  // ลบข้อมูล User (ถ้ามี)
+    navigate("/"); // กลับไปที่หน้า Login
+  };
+  console.log("✅ IT Dashboard Rendered");
   return (
     <div className="it-dashboard">
       <Header currentTime={currentTime} currentDate={currentDate} />
@@ -175,7 +185,7 @@ const ITDashboard = () => {
           <span onClick={() => handleNavigation("/dashboard")}>
             <FontAwesomeIcon icon={faTachometerAlt} /> Dashboard
           </span>
-          <span onClick={() => handleNavigation("/logout")} className="logout">
+          <span onClick={() => handleLogout("/logout")} className="logout">
             <FontAwesomeIcon icon={faSignOutAlt} /> ออกจากระบบ
           </span>
         <div className="it-info" onClick={toggleProfileModal}>

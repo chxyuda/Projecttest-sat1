@@ -15,6 +15,7 @@ import BorrowReturn from "./Pages/BorrowReturn";
 import Request from "./Pages/Request";
 import Dashboard from "./Pages/Dashboard";
 import StaffProfile from "./Pages/StaffProfile";
+
 function App() {
   const [currentTime, setCurrentTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
@@ -73,7 +74,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verify-code" element={<VerifyCode />} />
           <Route path="/set-new-password" element={<SetNewPassword />} />
-          <Route path="/it-dashboard" element={<ITDashboard />} />
+          <Route path="/ITDashboard" element={<ITDashboard />} />
           <Route path="/it-dashboard" element={<ITDashboard />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/settings" element={<Settings />} />

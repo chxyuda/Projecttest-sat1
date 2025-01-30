@@ -10,36 +10,34 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  // ✅ ฟังก์ชันเข้าสู่ระบบ
+  const handleLogin = async (e) => {
     e.preventDefault();
+    console.log("🔍 กำลังส่งข้อมูลเข้าสู่ระบบ...");
 
     try {
-      const response = await axios.post("http://localhost:5001/api/login", {
-        username,
-        password,
-      });
+        const response = await axios.post("http://localhost:5001/api/login", { username, password });
+        console.log("✅ Response:", response.data);
 
-      if (response.data.success) {
-        const role = response.data.role;
+        const { success, user } = response.data;
+        if (success) {
+            alert("🎉 เข้าสู่ระบบสำเร็จ!");
+            localStorage.setItem("user", JSON.stringify(user));
 
-        // แสดงข้อความแจ้งเตือน
-        window.alert("เข้าสู่ระบบสำเร็จ!");
-
-        // เปลี่ยนหน้าไปยัง dashboard ที่เหมาะสม
-        if (role === "IT") {
-          navigate("/it-dashboard");
-        } else if (role === "Approver") {
-          navigate("/approver-dashboard");
+            // ✅ เช็ค role แล้ว navigate ไปหน้าเหมาะสม
+            if (user.role === "IT") navigate("/it-dashboard");
+            else if (user.role === "Approver") navigate("/approver-dashboard");
+            else if (user.role === "User") navigate("/user-dashboard");
+            else alert("⚠️ บทบาทของคุณไม่ถูกต้อง");
         } else {
-          window.alert("บทบาทไม่ถูกต้อง!");
+            alert("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
         }
-      } else {
-        window.alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
-      }
     } catch (error) {
-      window.alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ. โปรดลองอีกครั้ง!");
+        console.error("❌ Login Error:", error);
+        alert(error.response?.data?.message || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
     }
-  };
+};
+
 
   return (
     <div className="login-page">
@@ -54,7 +52,7 @@ const Login = () => {
             <img src={userIcon} alt="User Icon" />
           </div>
           <h3>Login</h3>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleLogin}>
             <input
               type="text"
               placeholder="Username"

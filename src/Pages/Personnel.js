@@ -44,8 +44,12 @@ const [selectedUsers, setSelectedUsers] = useState([]);  // ✅ เก็บ ID 
 
 useEffect(() => {
   axios.get('http://localhost:5001/api/users')
-      .then(response => setPersonnelData(response.data))
-      .catch(error => console.error('Error fetching users:', error));
+    .then(response => {
+      console.log("✅ Pending Users (Before Filter):", response.data);  // ตรวจสอบค่าที่ได้
+      console.log("✅ Personnel Data (API Response):", response.data);
+      setPersonnelData(response.data);
+    })
+    .catch(error => console.error('❌ Error fetching users:', error));
 
   axios.get('http://localhost:5001/api/departments')
       .then(response => setDepartments(response.data))
@@ -53,8 +57,8 @@ useEffect(() => {
 
       axios.get("http://localhost:5001/api/pending-users")
       .then(response => {
-        console.log("✅ Pending Users from API:", response.data); // Debug
-        setPendingUsers(response.data);
+         console.log("✅ Pending Users from API:", response.data);
+         setPendingUsers(Array.isArray(response.data) ? response.data : []);  // ป้องกัน null
       })
       .catch(error => console.error("❌ Error fetching pending users:", error));
 }, []);
@@ -112,12 +116,13 @@ useEffect(() => {
     : personnelData.filter(user => user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()))
 );
 
-
-
 const indexOfLastItem = currentPage * itemsPerPage;
 const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 const navigate = useNavigate();  // ใช้ navigate เพื่อนำทางไปหน้าเดิม
+const filteredPendingUsers = Array.isArray(pendingUsers) 
+  ? pendingUsers.filter(user => user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()))
+  : [];
 
   const handleDepartmentChange = (e) => {
     const departmentId = e.target.value;
@@ -253,7 +258,7 @@ const navigate = useNavigate();  // ใช้ navigate เพื่อนำท�
 
   // จัดการการเพิ่มข้อมูลใหม่
   const handleAddUser = () => {
-    if (!newUser.department_id || !newUser.section_id || !newUser.task_id) {
+    if (!newUser.department_name || !newUser.section_id || !newUser.task_id) {
       alert("กรุณาเลือกฝ่าย กอง และ งาน ให้ครบถ้วน");
       return;
     }
@@ -308,30 +313,44 @@ const toggleUserSelection = (userId) => {
 };
 
 // ✅ ฟังก์ชันลบข้อมูลที่ถูกเลือก
-const handleDeleteSelected = async () => {
+const handleDeleteSelected = async () => { 
   if (selectedUsers.length === 0) {
-      alert("กรุณาเลือกผู้ใช้ที่ต้องการลบ");
-      return;
+    alert("กรุณาเลือกผู้ใช้ที่ต้องการลบ");
+    return;
   }
 
   if (!window.confirm(`คุณต้องการลบ ${selectedUsers.length} รายการหรือไม่?`)) return;
 
   try {
-      const response = await axios.delete("http://localhost:5001/api/users", {
-          data: { ids: selectedUsers }, // ✅ ส่งค่าเป็น JSON
-          headers: { "Content-Type": "application/json" },
-      });
+    const response = await axios.delete("http://localhost:5001/api/users", {
+      data: { ids: selectedUsers }, // ✅ ส่งค่าเป็น JSON
+      headers: { "Content-Type": "application/json" },
+    });
 
+    if (response.data.success) {
       alert(response.data.message);
       setSelectedUsers([]); // ✅ ล้างค่าที่เลือก
-      axios.get("http://localhost:5001/api/users") // โหลดข้อมูลใหม่
-          .then((response) => setPersonnelData(response.data))
-          .catch((error) => console.error("Error fetching updated users:", error));
+      await fetchPersonnelData(); // ✅ โหลดข้อมูลใหม่หลังลบ
+    } else {
+      alert(`❌ ไม่สามารถลบข้อมูลได้: ${response.data.message}`);
+    }
   } catch (error) {
-      console.error("Error deleting users:", error);
-      alert("เกิดข้อผิดพลาดในการลบข้อมูล!");
+    console.error("Error deleting users:", error.response?.data || error);
+    alert(`❌ เกิดข้อผิดพลาดในการลบข้อมูล: ${error.response?.data?.message || error.message}`);
   }
 };
+
+// ✅ ฟังก์ชันโหลดข้อมูลใหม่
+const fetchPersonnelData = async () => {
+  try {
+    const response = await axios.get("http://localhost:5001/api/users");
+    setPersonnelData(response.data);
+  } catch (error) {
+    console.error("Error fetching personnel data:", error);
+  }
+};
+
+
 const fetchApprovedUsers = async () => {
   try {
     const response = await axios.get("http://localhost:5001/api/users");
@@ -340,6 +359,21 @@ const fetchApprovedUsers = async () => {
     console.error("Error fetching approved users:", error);
   }
 };
+
+useEffect(() => {
+  const fetchApprovedUsers = async () => {
+     try {
+        const response = await axios.get("http://localhost:5001/api/users");
+        console.log("✅ Approved Users (Frontend):", response.data);
+        setUsers(Array.isArray(response.data) ? response.data : []); // ป้องกัน null
+     } catch (error) {
+        console.error("❌ Error fetching approved users:", error);
+     }
+  };
+
+  fetchApprovedUsers();
+}, []);
+
 const handleApprove = async (id) => {
   if (!window.confirm("คุณต้องการอนุมัติบุคลากรนี้ใช่หรือไม่?")) return;
 

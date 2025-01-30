@@ -75,48 +75,43 @@ const SignUp = () => {
     // ✅ Handle form submit
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // ✅ ตรวจสอบว่ามีข้อมูลครบถ้วน
+      
         const { username, password, confirmPassword, fullName, email, phone, department_id, section_id, task_id } = formData;
         if (!username || !password || !confirmPassword || !fullName || !email || !phone || !department_id || !section_id || !task_id) {
-            alert('กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง');
-            return;
+          alert('กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง');
+          return;
         }
-
-        // ✅ ตรวจสอบรหัสผ่านว่าตรงกัน
+      
         if (password !== confirmPassword) {
-            alert('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน');
-            return;
+          alert('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน');
+          return;
         }
-
+      
         try {
-            // ✅ ส่งข้อมูลไปยัง API
-            const response = await axios.post('http://localhost:5001/api/signup', {
-                username,
-                password,
-                fullName,
-                email,
-                phone,
-                department_id,  // ✅ ใช้ ID แทน Name
-                section_id,
-                task_id
-            }, {
-                headers: { "Content-Type": "application/json" }
-            });
-
-            // ✅ ตรวจสอบการตอบกลับจาก API
-            if (response.data.success) {
-                alert('สมัครสมาชิกสำเร็จ');
-                navigate('/');
-            } else {
-                alert(response.data.message);
-            }
+          const response = await axios.post('http://localhost:5001/api/signup', {
+            username,
+            password,
+            fullName,
+            email,
+            phone,
+            department_id,  // ✅ ส่ง ID ไป Backend
+            section_id,
+            task_id
+          }, {
+            headers: { "Content-Type": "application/json" }
+          });
+      
+          if (response.data.success) {
+            alert('✅ สมัครสมาชิกสำเร็จ! กรุณารอ IT อนุมัติบัญชีของคุณ');
+            navigate('/');
+          } else {
+            alert(response.data.message);
+          }
         } catch (error) {
-            console.error('Error during signup:', error.response?.data || error);
-            alert(error.response?.data?.message || 'เกิดข้อผิดพลาดในการสมัครสมาชิก');
+          alert(error.response?.data?.message || '❌ เกิดข้อผิดพลาดในการสมัครสมาชิก');
         }
-    };
-
+      };
+      
     return (
         <div className="signup-container">
             <div className="signup-box">
