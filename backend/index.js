@@ -1,60 +1,41 @@
-const express = require('express');
-const cors = require('cors'); // ประกาศตัวแปร cors เพียงครั้งเดียว
-const bodyParser = require('body-parser');
-const mysql = require('mysql2');
-const nodemailer = require('nodemailer');
-const saltRounds = 10; // จำนวนรอบการเข้ารหัส
-require('dotenv').config();  // ✅ โหลด .env ก่อนใช้ process.env
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
+const nodemailer = require("nodemailer");
+const db = require("./db"); // ✅ ใช้ `db.js` ที่เราแยกไว้
+require("dotenv").config();
 
-
-console.log("✅ ENV VARIABLES:", process.env);  // Debug ดูค่าจาก .env
 const app = express();
 const PORT = process.env.PORT || 5001;
 const router = express.Router();
 
-app.use(cors()); // เรียกใช้งาน cors
+app.use(cors());
 app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: true }));  // ✅ รองรับ `x-www-form-urlencoded`
+app.use(express.urlencoded({ extended: true }));
+app.use("/api", router);
 
-
-// MySQL Connection
-const db = mysql.createConnection({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '12345678',
-  database: process.env.DB_NAME || 'inventory_management',
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error('Error connecting to MySQL:', err);
-    process.exit(1); // ปิดโปรแกรมถ้าการเชื่อมต่อไม่สำเร็จ
-  }
-  console.log('Connected to MySQL database.');
-});
-
-// Nodemailer Transporter
+// ✅ Nodemailer Transporter (ส่งอีเมล)
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: process.env.SMTP_PORT || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: process.env.SMTP_PORT || 587,
+    secure: false,
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+    },
+    tls: {
+        rejectUnauthorized: false,
+    },
 });
 
-// ตรวจสอบการเชื่อมต่อ SMTP
+// ✅ ตรวจสอบการเชื่อมต่อ SMTP
 transporter.verify((error) => {
-  if (error) {
-    console.error('SMTP Connection Error:', error);
-  } else {
-    console.log('SMTP Server is ready to take messages');
-  }
+    if (error) {
+        console.error("❌ SMTP Connection Error:", error);
+    } else {
+        console.log("✅ SMTP Server is ready to send emails.");
+    }
 });
 
 // API: ส่ง OTP ไปยังอีเมล
@@ -94,51 +75,51 @@ app.post('/api/send-otp', (req, res) => {
   });
 });
 
-app.post("/api/login", async (req, res) => {
+router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
-  if (!username || !password) {
-    return res.status(400).json({ success: false, message: "กรุณากรอกชื่อผู้ใช้และรหัสผ่าน" });
-  }
+  console.log("📌 Received Login Request:", username); // Debug
 
-  const query = `SELECT id, username, password, fullName, role, status FROM users WHERE username = ?`;
-
+  const query = "SELECT id, username, password, role, status FROM users WHERE username = ?";
   db.query(query, [username], async (err, results) => {
-    if (err) {
-      console.error("❌ Database error:", err);
-      return res.status(500).json({ success: false, error: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์" });
-    }
+      if (err) {
+          console.error("❌ Database error:", err);
+          return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์" });
+      }
 
-    if (results.length === 0) {
-      return res.status(401).json({ success: false, message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
-    }
+      if (results.length === 0) {
+          console.log("❌ No user found with this username");
+          return res.status(401).json({ success: false, message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+      }
 
-    const user = results[0];
+      const user = results[0];
+      console.log("✅ User Found:", user); // Debug
 
-    // ✅ ตรวจสอบรหัสผ่าน (ใช้ bcrypt เปรียบเทียบ)
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
-    }
+      // เช็ครหัสผ่าน
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+          console.log("❌ Password mismatch");
+          return res.status(401).json({ success: false, message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+      }
 
-    // ✅ ตรวจสอบ status ต้องเป็น "approve" เท่านั้น
-    if (user.status.trim().toLowerCase() !== "approve") {
-      return res.status(403).json({ success: false, message: "บัญชีของคุณยังไม่ได้รับการอนุมัติจาก IT" });
-    }
+      // เช็คว่าได้รับการอนุมัติหรือยัง
+      if (user.status.trim().toLowerCase() !== "approve") {
+          console.log("❌ User not approved");
+          return res.status(403).json({ success: false, message: "บัญชีของคุณยังไม่ได้รับการอนุมัติจาก IT" });
+      }
 
-    return res.status(200).json({
-      success: true,
-      message: "เข้าสู่ระบบสำเร็จ",
-      user: {
-        id: user.id,
-        username: user.username,
-        fullName: user.fullName,
-        role: user.role,
-        status: user.status,
-      },
-    });
+      res.status(200).json({
+          success: true,
+          message: "เข้าสู่ระบบสำเร็จ",
+          user: {
+              id: user.id,
+              username: user.username,
+              role: user.role,
+          }
+      });
   });
 });
+
 
 // API: ดึงข้อมูลบุคลากร
 app.get("/api/staff-info", (req, res) => {
@@ -210,17 +191,18 @@ app.get('/api/tasks/:sectionId', (req, res) => {
 
 // API: เพิ่มผู้ใช้งานใหม่
 router.post("/signup", async (req, res) => {
+  console.log("📩 ข้อมูลที่ได้รับจาก Frontend:", req.body); // Debug
+
   const { username, password, fullName, email, phone, department_name, section_name, task_name } = req.body;
 
   if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
-      return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" });
+      console.error("❌ ข้อมูลขาด:", { username, password, fullName, email, phone, department_name, section_name, task_name });
+      return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบ: ตรวจสอบอีกครั้ง" });
   }
 
   try {
-      // เข้ารหัสรหัสผ่าน
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // เพิ่มข้อมูลเข้า Database
       const query = `
           INSERT INTO users (username, password, fullName, email, phone, department_name, section_name, task_name, role, status)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')
@@ -232,7 +214,7 @@ router.post("/signup", async (req, res) => {
               return res.status(500).json({ success: false, error: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์" });
           }
 
-          return res.status(201).json({ success: true, message: "สมัครสมาชิกสำเร็จ! กรุณารอ IT อนุมัติบัญชีของคุณ" });
+          return res.status(201).json({ success: true, message: "✅ สมัครสมาชิกสำเร็จ! กรุณารอ IT อนุมัติบัญชีของคุณ" });
       });
 
   } catch (error) {
@@ -240,7 +222,6 @@ router.post("/signup", async (req, res) => {
       return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการสมัครสมาชิก" });
   }
 });
-
 
 app.put('/api/approve-user/:id', (req, res) => {
   const userId = req.params.id;

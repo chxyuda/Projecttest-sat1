@@ -26,92 +26,109 @@ const SignUp = () => {
     // ✅ Fetch departments
     useEffect(() => {
         axios.get('http://localhost:5001/api/departments')
-            .then(response => setDepartments(response.data))
-            .catch(error => console.error('Error fetching departments:', error));
+            .then(response => {
+                setDepartments(response.data);
+                console.log("✅ Departments Loaded:", response.data);
+            })
+            .catch(error => console.error('❌ Error fetching departments:', error));
     }, []);
-
-    // ✅ Fetch sections when department changes
+    
     useEffect(() => {
         if (formData.department_id) {
             axios.get(`http://localhost:5001/api/sections/${formData.department_id}`)
-                .then(response => setSections(response.data))
-                .catch(error => console.error('Error loading sections:', error));
+                .then(response => {
+                    setSections(response.data);
+                    console.log("✅ Sections Loaded:", response.data);
+                })
+                .catch(error => console.error('❌ Error loading sections:', error));
         } else {
             setSections([]);
         }
     }, [formData.department_id]);
-
-    // ✅ Fetch tasks when section changes
+    
     useEffect(() => {
         if (formData.section_id) {
             axios.get(`http://localhost:5001/api/tasks/${formData.section_id}`)
-                .then(response => setTasks(response.data))
-                .catch(error => console.error('Error loading tasks:', error));
+                .then(response => {
+                    setTasks(response.data);
+                    console.log("✅ Tasks Loaded:", response.data);
+                })
+                .catch(error => console.error('❌ Error loading tasks:', error));
         } else {
             setTasks([]);
         }
     }, [formData.section_id]);
+    
 
     // ✅ Handle input change
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-
+        
         setFormData(prevState => ({
             ...prevState,
             [name]: value,
             ...(name === "department_id" && { section_id: "", task_id: "" }),
             ...(name === "section_id" && { task_id: "" })
         }));
-
-        if (name === 'password' || name === 'confirmPassword') {
-            setPasswordMatch(
-                name === 'password'
-                    ? value === formData.confirmPassword
-                    : value === formData.password
-            );
-        }
+    
+        console.log(`🔄 อัปเดตค่า ${name}:`, value); // Debug ทุกครั้งที่เปลี่ยนค่า
     };
+    
 
     // ✅ Handle form submit
     const handleSubmit = async (e) => {
         e.preventDefault();
-      
-        const { username, password, confirmPassword, fullName, email, phone, department_id, section_id, task_id } = formData;
-        if (!username || !password || !confirmPassword || !fullName || !email || !phone || !department_id || !section_id || !task_id) {
-          alert('กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง');
-          return;
+        console.log("📤 Form Data ก่อนส่งไป Backend:", formData); // Debug ดูค่าทั้งหมดที่ส่งไป
+        
+        const selectedDepartment = departments.find(d => d.id === formData.department_id);
+        const selectedSection = sections.find(s => s.id === formData.section_id);
+        const selectedTask = tasks.find(t => t.id === formData.task_id);
+    
+        const userData = {
+            username: formData.username,
+            password: formData.password,
+            fullName: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
+            department_name: selectedDepartment ? selectedDepartment.name : "", // เปลี่ยน ID เป็นชื่อ
+            section_name: selectedSection ? selectedSection.name : "",
+            task_name: selectedTask ? selectedTask.name : ""
+        };
+    
+        console.log("✅ ข้อมูลที่กำลังส่งไป Backend:", userData); // Debug
+    
+        // เช็คว่ามีข้อมูลที่เป็นค่าว่างไหม
+        for (const [key, value] of Object.entries(userData)) {
+            if (!value) {
+                console.error(`❌ ค่าที่ขาด: ${key}`);
+            }
         }
-      
-        if (password !== confirmPassword) {
-          alert('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน');
-          return;
+    
+        if (!userData.username || !userData.password || !userData.fullName || 
+            !userData.email || !userData.phone || !userData.department_name || 
+            !userData.section_name || !userData.task_name) {
+            alert('❌ ข้อมูลไม่ครบ: ตรวจสอบอีกครั้ง');
+            return;
         }
-      
+    
         try {
-          const response = await axios.post('http://localhost:5001/api/signup', {
-            username,
-            password,
-            fullName,
-            email,
-            phone,
-            department_id,  // ✅ ส่ง ID ไป Backend
-            section_id,
-            task_id
-          }, {
-            headers: { "Content-Type": "application/json" }
-          });
-      
-          if (response.data.success) {
-            alert('✅ สมัครสมาชิกสำเร็จ! กรุณารอ IT อนุมัติบัญชีของคุณ');
-            navigate('/');
-          } else {
-            alert(response.data.message);
-          }
+            const response = await axios.post('http://localhost:5001/api/signup', userData, {
+                headers: { "Content-Type": "application/json" }
+            });
+    
+            if (response.data.success) {
+                alert('✅ สมัครสมาชิกสำเร็จ! กรุณารอ IT อนุมัติบัญชีของคุณ');
+                navigate('/');
+            } else {
+                alert(response.data.message);
+            }
         } catch (error) {
-          alert(error.response?.data?.message || '❌ เกิดข้อผิดพลาดในการสมัครสมาชิก');
+            console.error("❌ Signup Error:", error.response?.data?.message);
+            alert(error.response?.data?.message || '❌ เกิดข้อผิดพลาดในการสมัครสมาชิก');
         }
-      };
-      
+    };
+    
+    
     return (
         <div className="signup-container">
             <div className="signup-box">
