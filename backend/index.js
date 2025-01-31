@@ -189,12 +189,20 @@ app.get('/api/tasks/:sectionId', (req, res) => {
   });
 });
 
+const checkUserExists = (username, email, callback) => {
+  const query = "SELECT COUNT(*) AS count FROM users WHERE username = ? OR email = ?";
+  db.query(query, [username, email], (err, results) => {
+      if (err) return callback(err);
+      callback(null, results[0].count > 0);
+  });
+};
 // API: เพิ่มผู้ใช้งานใหม่
 router.post("/signup", async (req, res) => {
   console.log("📩 ข้อมูลที่ได้รับจาก Frontend:", req.body); // Debug
 
   const { username, password, fullName, email, phone, department_name, section_name, task_name } = req.body;
 
+  // ตรวจสอบข้อมูลก่อนบันทึก
   if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
       console.error("❌ ข้อมูลขาด:", { username, password, fullName, email, phone, department_name, section_name, task_name });
       return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบ: ตรวจสอบอีกครั้ง" });
@@ -211,7 +219,7 @@ router.post("/signup", async (req, res) => {
       db.query(query, [username, hashedPassword, fullName, email, phone, department_name, section_name, task_name], (err, result) => {
           if (err) {
               console.error("❌ Database error:", err);
-              return res.status(500).json({ success: false, error: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์" });
+              return res.status(500).json({ success: false, error: err.message });
           }
 
           return res.status(201).json({ success: true, message: "✅ สมัครสมาชิกสำเร็จ! กรุณารอ IT อนุมัติบัญชีของคุณ" });
@@ -222,6 +230,7 @@ router.post("/signup", async (req, res) => {
       return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการสมัครสมาชิก" });
   }
 });
+
 
 app.put('/api/approve-user/:id', (req, res) => {
   const userId = req.params.id;
@@ -646,172 +655,197 @@ app.put('/api/brands/:id', (req, res) => {
 
 
 // ดึงข้อมูลบุคลากรทั้งหมด
+const crypto = require("crypto");
+// ✅ ทดสอบถอดรหัส
+const encryptedHex = "796F75727275706C6F6164"; // 🔥 ใส่ค่าจริงจากฐานข้อมูล
+console.log("🔓 Decrypted Password:", decryptPassword(encryptedHex));
+
+const AES_SECRET_KEY = Buffer.from("12345678901234567890123456789012", "utf-8"); // ✅ 32 bytes
+const IV_KEY = Buffer.from("1234567890123456", "utf-8"); // ✅ 16 bytes
+
+// ✅ ฟังก์ชันเข้ารหัสรหัสผ่าน
+function encryptPassword(password) {
+  const cipher = crypto.createCipheriv("aes-256-cbc", AES_SECRET_KEY, IV_KEY);
+  let encrypted = cipher.update(password, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  return encrypted;  // ✅ ส่งค่าเป็น HEX String
+}
+
+// ✅ ฟังก์ชันถอดรหัสรหัสผ่าน
+function decryptPassword(encryptedHex) {
+  if (!encryptedHex || encryptedHex === "NULL") return "🔒 ซ่อนเพื่อความปลอดภัย";
+  try {
+      const decipher = crypto.createDecipheriv("aes-256-cbc", AES_SECRET_KEY, IV_KEY);
+      let decrypted = decipher.update(Buffer.from(encryptedHex, "hex"), "utf8"); // ✅ แปลงจาก HEX เป็น UTF-8
+      decrypted += decipher.final("utf8");
+      return decrypted;
+  } catch (error) {
+      console.error("❌ Error decrypting password:", error);
+      return "🔒 ไม่สามารถถอดรหัส";
+  }
+}
+
+
+// ✅ ใช้ฟิลด์ `password_encrypted` แทน `original_password`
 app.get("/api/users", (req, res) => {
   const query = `
-    SELECT 
-      id, 
-      username, 
-      password, 
-      fullName, 
-      phone, 
-      email, 
-      department_name AS department, 
-      section_name, 
-      task_name, 
-      role, 
-      status, 
-      createdAt, 
-      updatedAt, 
-      image 
-    FROM users
+      SELECT 
+          id, username, fullName, phone, email, 
+          department_name, section_name, task_name, status, image, 
+          password_encrypted 
+      FROM users
   `;
 
   db.query(query, (err, results) => {
-    if (err) {
-      console.error("Error fetching users:", err.sqlMessage || err.message || err);
-      res.status(500).json({ error: "Failed to fetch users" });
-      return;
-    }
-    res.json(results);
+      if (err) {
+          console.error("❌ Error fetching users:", err.message);
+          return res.status(500).json({ error: "❌ Failed to fetch users" });
+      }
+
+      // ถอดรหัสรหัสผ่านเฉพาะที่ต้องการแสดง
+      const users = results.map(user => ({
+          ...user,
+          password: decryptPassword(user.password_encrypted),
+      }));
+
+      res.json(users);
   });
 });
 
-// ดึงข้อมูลบุคลากรตาม ID
 app.get("/api/users/:id", (req, res) => {
   const userId = req.params.id;
   const query = `
-    SELECT 
-      id, 
-      fullName, 
-      department, 
-      image 
-    FROM users
-    WHERE id = ?
+      SELECT id, username, fullName, phone, email, department_name, section_name, task_name, password_encrypted 
+      FROM users 
+      WHERE id = ?
   `;
+
   db.query(query, [userId], (err, results) => {
-    if (err) {
-      console.error("Error fetching user details:", err);
-      res.status(500).json({ error: "Failed to fetch user details" });
-      return;
-    }
-    if (results.length === 0) {
-      res.status(404).json({ error: "User not found" });
-    } else {
-      res.json(results[0]);
-    }
+      if (err) {
+          console.error("❌ Error fetching user details:", err);
+          return res.status(500).json({ error: "❌ Failed to fetch user details" });
+      }
+      if (results.length === 0) {
+          return res.status(404).json({ error: "❌ User not found" });
+      } else {
+          const user = results[0];
+          user.password = decryptPassword(user.password_encrypted);
+          delete user.password_encrypted; // ไม่แสดงค่าที่เข้ารหัส
+          res.json(user);
+      }
   });
 });
 
-// เพิ่มข้อมูลบุคลากร
-// เพิ่มข้อมูลบุคลากร
-app.post("/api/users", (req, res) => {
-  const {
-    fullName,
-    department_name, // ชื่อคอลัมน์ตรงกับฐานข้อมูล
-    section_name,
-    task_name,
-    phone,
-    email,
-    username,
-    password,
-  } = req.body;
 
-  const query = `
-    INSERT INTO users (fullName, department_name, section_name, task_name, phone, email, username, password)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+// ✅ API เพิ่มผู้ใช้ใหม่
+app.post("/api/users", async (req, res) => {
+  const { fullName, department_name, section_name, task_name, phone, email, username, password } = req.body;
 
-  db.query(
-    query,
-    [fullName, department_name, section_name, task_name, phone, email, username, password],
-    (err, results) => {
-      if (err) {
-        console.error("Error adding user:", err);
-        res.status(500).json({ error: "Failed to add user" });
-        return;
-      }
-      res.status(201).json({ message: "User added successfully", userId: results.insertId });
-    }
-  );
-});
-
-// อัปเดตข้อมูลบุคลากร
-app.put("/api/users/:id", (req, res) => {
-  const userId = req.params.id;
-  const {
-    fullName,
-    department, // ต้องแก้ชื่อ field นี้หากส่งมาจาก frontend
-    section_name,
-    task_name,
-    phone,
-    email,
-    username,
-    password,
-  } = req.body;
-
-  // ตรวจสอบว่ามีข้อมูลที่ต้องการหรือไม่
-  if (!fullName || !department || !email || !username || !password) {
-    return res.status(400).json({ error: "Missing required fields" });
+  if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
+      return res.status(400).json({ error: "❌ Missing required fields" });
   }
 
-  const query = `
-    UPDATE users 
-    SET 
-      fullName = ?, 
-      department_name = ?,  -- เปลี่ยนชื่อนี้
-      section_name = ?, 
-      task_name = ?, 
-      phone = ?, 
-      email = ?, 
-      username = ?, 
-      password = ?
-    WHERE id = ?
-  `;
+  try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const encryptedPassword = encryptPassword(password);
 
-  db.query(
-    query,
-    [fullName, department, section_name, task_name, phone, email, username, password, userId],
-    (err, results) => {
-      if (err) {
-        console.error("Error updating user:", err);
-        return res.status(500).json({ error: "Failed to update user" });
-      }
+      const query = `
+          INSERT INTO users (fullName, department_name, section_name, task_name, phone, email, username, password, password_encrypted)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
 
-      // ตรวจสอบว่ามีแถวที่ถูกอัปเดตหรือไม่
-      if (results.affectedRows === 0) {
-        return res.status(404).json({ error: "User not found" });
-      }
+      db.query(query, [fullName, department_name, section_name, task_name, phone, email, username, hashedPassword, encryptedPassword], (err, results) => {
+          if (err) {
+              console.error("❌ Error adding user:", err);
+              return res.status(500).json({ error: "❌ Failed to add user" });
+          }
+          res.status(201).json({ message: "✅ User added successfully", userId: results.insertId });
+      });
 
-      res.json({ message: "User updated successfully" });
-    }
-  );
+  } catch (error) {
+      console.error("❌ Error hashing password:", error);
+      res.status(500).json({ error: "❌ Failed to hash password" });
+  }
 });
+
+
+const updatePasswordEncrypted = async () => {
+  try {
+      db.query("SELECT id, password FROM users", (err, users) => {
+          if (err) throw err;
+
+          users.forEach(user => {
+              const encryptedPassword = encryptPassword(user.password); // ✅ ใช้ค่ารหัสผ่านจริงจากตาราง password
+              db.query(
+                  "UPDATE users SET password_encrypted = ? WHERE id = ?",
+                  [encryptedPassword, user.id],
+                  (err, result) => {
+                      if (err) console.error("❌ Error updating:", err);
+                      else console.log(`✅ Updated user ${user.id}`);
+                  }
+              );
+          });
+      });
+  } catch (error) {
+      console.error("❌ Error updating password_encrypted:", error);
+  }
+};
+
+// ✅ API อัปเดตข้อมูลบุคลากร (ให้แอดมินแก้ไขรหัสผ่านได้)
+// ✅ API อัปเดตข้อมูลบุคลากร
+app.put("/api/users/:id", async (req, res) => {
+  const userId = req.params.id;
+  const { fullName, department_name, section_name, task_name, phone, email, username, password } = req.body;
+
+  try {
+      let query = `UPDATE users SET fullName = ?, department_name = ?, section_name = ?, task_name = ?, phone = ?, email = ?, username = ?`;
+      const params = [fullName, department_name, section_name, task_name, phone, email, username];
+
+      if (password) {
+          const hashedPassword = await bcrypt.hash(password, 10);
+          const encryptedPassword = encryptPassword(password);
+          query += ", password = ?, password_encrypted = ?";
+          params.push(hashedPassword, encryptedPassword);
+      }
+
+      query += " WHERE id = ?";
+      params.push(userId);
+
+      db.query(query, params, (err, results) => {
+          if (err) {
+              console.error("❌ Error updating user:", err);
+              return res.status(500).json({ error: "❌ Failed to update user" });
+          }
+          res.json({ message: "✅ User updated successfully" });
+      });
+
+  } catch (error) {
+      console.error("❌ Error hashing password:", error);
+      res.status(500).json({ error: "❌ Failed to hash password" });
+  }
+});
+
 
 // ลบข้อมูลบุคลากร
-app.delete("/api/users", (req, res) => { 
-  const { ids } = req.body; // รับค่าเป็น array เช่น [1,2,3]
+app.delete("/api/users", (req, res) => {
+  const { ids } = req.body;
 
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ success: false, message: "กรุณาระบุผู้ใช้ที่ต้องการลบ" });
+      return res.status(400).json({ success: false, message: "❌ กรุณาระบุผู้ใช้ที่ต้องการลบ" });
   }
 
-  const placeholders = ids.map(() => "?").join(","); // สร้าง placeholder เช่น (?,?,?)
+  const placeholders = ids.map(() => "?").join(",");
   const query = `DELETE FROM users WHERE id IN (${placeholders})`;
 
   db.query(query, ids, (err, results) => {
-    if (err) {
-      console.error("❌ Error deleting users:", err);
-      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการลบข้อมูล" });
-    }
+      if (err) {
+          console.error("❌ Error deleting users:", err);
+          return res.status(500).json({ success: false, message: "❌ เกิดข้อผิดพลาดในการลบข้อมูล" });
+      }
 
-    if (results.affectedRows > 0) {
-      return res.status(200).json({ success: true, message: `ลบข้อมูลสำเร็จ ${results.affectedRows} รายการ` });
-    } else {
-      return res.status(404).json({ success: false, message: "ไม่พบผู้ใช้ที่ต้องการลบ" });
-    }
+      res.status(200).json({ success: true, message: `✅ ลบข้อมูลสำเร็จ ${results.affectedRows} รายการ` });
   });
 });
-
 
 app.get('/api/names', (req, res) => {
   const { type } = req.query;

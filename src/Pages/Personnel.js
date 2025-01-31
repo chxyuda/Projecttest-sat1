@@ -63,6 +63,15 @@ useEffect(() => {
       .catch(error => console.error("❌ Error fetching pending users:", error));
 }, []);
 
+useEffect(() => {
+  axios.get("http://localhost:5001/api/users")
+      .then(response => {
+          console.log("✅ Approved Users:", response.data);
+          setApprovedUsers(response.data.filter(user => user.status === "Approved"));
+      })
+      .catch(error => console.error("❌ Error fetching approved users:", error));
+}, []);
+
 // โหลด Sections เมื่อเลือก Department
 useEffect(() => {
   if (newUser.department_id) {
@@ -88,10 +97,14 @@ useEffect(() => {
 
 // ดึงข้อมูลบุคลากรที่ยังไม่อนุมัติ
 useEffect(() => {
-  axios.get("http://localhost:5001/api/users/pending")
-    .then(response => setUsers(response.data))
-    .catch(error => console.error("Error fetching pending users:", error));
+  axios.get('http://localhost:5001/api/pending-users')
+      .then(response => {
+          console.log("✅ ข้อมูลที่โหลดจาก API:", response.data.users);  // ✅ Debug ดูข้อมูล
+          setPendingUsers(response.data.users);
+      })
+      .catch(error => console.error("❌ Error loading pending users:", error));
 }, []);
+
 
   // โหลดข้อมูลกองตามฝ่าย
   const fetchSections = (departmentId) => {
@@ -165,10 +178,17 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
     setSelectedImage(null);
   };
 
-  const handleViewDetails = (user) => {
-    setSelectedUser(user);
-    setShowModal(true);
-  };
+  const handleViewDetails = async (user) => {
+    try {
+        const response = await axios.get(`http://localhost:5001/api/users/${user.id}`);
+        console.log("✅ User Details from API:", response.data);  // ✅ Debug เช็คค่าที่ Backend ส่งมา
+        setSelectedUser(response.data);
+        setShowModal(true);
+    } catch (error) {
+        console.error("❌ Error fetching user details:", error);
+        alert("❌ ไม่สามารถดึงข้อมูลผู้ใช้ได้");
+    }
+};
 
   const handleCloseModal = () => {
     setSelectedUser(null);
@@ -339,26 +359,49 @@ const handleDeleteSelected = async () => {
     alert(`❌ เกิดข้อผิดพลาดในการลบข้อมูล: ${error.response?.data?.message || error.message}`);
   }
 };
-
-// ✅ ฟังก์ชันโหลดข้อมูลใหม่
 const fetchPersonnelData = async () => {
   try {
     const response = await axios.get("http://localhost:5001/api/users");
+    console.log("✅ Personnel Data:", response.data);
     setPersonnelData(response.data);
   } catch (error) {
-    console.error("Error fetching personnel data:", error);
+    console.error("❌ Error fetching personnel data:", error);
   }
 };
+
+// ✅ ฟังก์ชันโหลดข้อมูลใหม่
+const fetchPendingUsers = async () => {
+  try {
+    const response = await axios.get("http://localhost:5001/api/pending-users"); // ✅ ใช้ API ที่ถูกต้อง
+    console.log("✅ Pending Users (Frontend):", response.data.users); // ✅ Debug ข้อมูล
+    setPendingUsers(response.data.users);  // ✅ อัปเดต State
+  } catch (error) {
+    console.error("❌ Error fetching pending users:", error);
+  }
+};
+
+// ✅ โหลด "รายการสมัครของบุคลากร" ตอนเปิดหน้าเว็บ
+useEffect(() => {
+  fetchPendingUsers();
+}, []);
 
 
 const fetchApprovedUsers = async () => {
   try {
     const response = await axios.get("http://localhost:5001/api/users");
-    setApprovedUsers(response.data);
+    const approvedUsers = response.data.filter(user => user.status === "Approved"); // ✅ กรองเฉพาะที่อนุมัติแล้ว
+    console.log("✅ Approved Users:", approvedUsers);
+    setApprovedUsers(approvedUsers);
   } catch (error) {
-    console.error("Error fetching approved users:", error);
+    console.error("❌ Error fetching approved users:", error);
   }
 };
+
+// ✅ โหลด "ผู้ใช้ที่อนุมัติแล้ว" ตอนเปิดหน้าเว็บ
+useEffect(() => {
+  fetchApprovedUsers();
+}, []);
+
 
 useEffect(() => {
   const fetchApprovedUsers = async () => {
@@ -376,27 +419,27 @@ useEffect(() => {
 
 const handleApprove = async (id) => {
   if (!window.confirm("คุณต้องการอนุมัติบุคลากรนี้ใช่หรือไม่?")) return;
-
   try {
-    const response = await axios.put(`http://localhost:5001/api/users/approve/${id}`);
-    alert(response.data.message);
-    fetchApprovedUsers(); // ✅ โหลดข้อมูลใหม่หลังอนุมัติ
+      await axios.put(`http://localhost:5001/api/users/approve/${id}`);
+      alert("✅ อนุมัติสำเร็จ");
+      setPendingUsers(prev => prev.filter(user => user.id !== id)); // ลบออกจาก Pending
+      setApprovedUsers(prev => [...prev, pendingUsers.find(user => user.id === id)]);
   } catch (error) {
-    console.error("❌ Error approving user:", error);
-    alert("เกิดข้อผิดพลาดในการอนุมัติ!");
+      console.error("❌ Error approving user:", error);
+      alert("เกิดข้อผิดพลาดในการอนุมัติ!");
   }
 };
 
+// ✅ ฟังก์ชันไม่อนุมัติผู้ใช้
 const handleReject = async (id) => {
   if (!window.confirm("คุณต้องการไม่อนุมัติบุคลากรนี้ใช่หรือไม่?")) return;
-
   try {
-    const response = await axios.put(`http://localhost:5001/api/users/reject/${id}`);
-    alert(response.data.message);
-    fetchApprovedUsers(); // ✅ โหลดข้อมูลใหม่หลังไม่อนุมัติ
+      await axios.put(`http://localhost:5001/api/users/reject/${id}`);
+      alert("❌ ไม่อนุมัติสำเร็จ");
+      setPendingUsers(prev => prev.filter(user => user.id !== id));
   } catch (error) {
-    console.error("❌ Error rejecting user:", error);
-    alert("เกิดข้อผิดพลาดในการไม่อนุมัติ!");
+      console.error("❌ Error rejecting user:", error);
+      alert("เกิดข้อผิดพลาดในการไม่อนุมัติ!");
   }
 };
 
@@ -433,9 +476,9 @@ return (
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <button className="btn btn-secondary" onClick={() => setShowPendingModal(true)}>
-    <FontAwesomeIcon icon={faList} style={{ marginRight: "5px" }} />
-    รายการสมัครของบุคลากร
-</button>
+        <FontAwesomeIcon icon={faList} style={{ marginRight: "5px" }} />
+        รายการสมัครของบุคลากร
+      </button>
               <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
         <FontAwesomeIcon icon={faPlus} style={{ marginRight: "5px" }} />
         เพิ่ม
@@ -480,7 +523,7 @@ return (
             onClick={() => handleImageClick(user.image || "https://via.placeholder.com/50")}
           />
         </td>
-        <td>{user.department || "ไม่ระบุ"}</td>
+        <td>{user.department_name || "ไม่ระบุ"}</td>
         <td>
           <div className="action-buttons">
             <button className="btn btn-view" onClick={() => handleViewDetails(user)}>
@@ -534,7 +577,7 @@ return (
               <strong>ชื่อ - นามสกุล:</strong> {selectedUser.fullName}
             </p>
             <p>
-              <strong>ชื่อฝ่าย/สำนัก:</strong> {selectedUser.department}
+              <strong>ชื่อฝ่าย/สำนัก:</strong> {selectedUser.department_name}
             </p>
             <p>
             <strong>กอง:</strong> {selectedUser.section_name}
@@ -554,7 +597,7 @@ return (
               <strong>Username:</strong> {selectedUser.username}
             </p>
             <p>
-              <strong>Password:</strong> {selectedUser.password}
+            <strong>Password:</strong> {selectedUser.password ? selectedUser.password : "password"}
             </p>
           </div>
         </div>
@@ -792,67 +835,62 @@ return (
   </div>
 )}
 {showPendingModal && (
-  <div className="modal-overlay1">
-    <div className="modal-content1">
-      <button className="close-btn" onClick={() => setShowPendingModal(false)}>
-        &times;
-      </button>
-      <h2 className="modal-title1">รายการสมัครของบุคลากร</h2>
-      <table className="personnel-table">
-        <thead>
-          <tr>
-            <th>ลำดับ</th>
-            <th>รูป</th>
-            <th>ชื่อฝ่าย/สำนัก</th>
-            <th>ดูข้อมูล</th>
-          </tr>
-        </thead>
-        <tbody>
-  {pendingUsers.map((user, index) => (
-    <tr key={user.id}>
-      <td>{index + 1}</td>
-      <td>
-        <FontAwesomeIcon icon={faUserCircle} className="icon-profile" />
-      </td>
-      <td>
-        {console.log("Department Name:", user.department_name)} {/* Debug */}
-        {user.department_name ? user.department_name : "ไม่ระบุ"}
-      </td>
-      <td>
-        <button className="btn btn-view" onClick={() => handleViewDetails(user)}>
-          <FontAwesomeIcon icon={faEye} /> ดู
-        </button>
-      </td>
-    </tr>
-  ))}
-</tbody>
-
-      </table>
-    </div>
-  </div>
-)}
+        <div className="modal-overlay1">
+          <div className="modal-content1">
+            <button className="close-btn" onClick={() => setShowPendingModal(false)}>&times;</button>
+            <h2 className="modal-title1">รายการสมัครของบุคลากร</h2>
+            <table className="personnel-table">
+              <thead>
+                <tr>
+                  <th>ลำดับ</th>
+                  <th>รูป</th>
+                  <th>ชื่อฝ่าย/สำนัก</th>
+                  <th>ดูข้อมูล</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingUsers.length > 0 ? (
+                  pendingUsers.map((user, index) => (
+                    <tr key={user.id}>
+                      <td>{index + 1}</td>
+                      <td><FontAwesomeIcon icon={faUserCircle} className="icon-profile" /></td>
+                      <td>{user.department_name || "ไม่ระบุ"}</td>
+                      <td>
+                        <button className="btn btn-view" onClick={() => handleViewDetails(user)}>
+                          <FontAwesomeIcon icon={faEye} /> ดู
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4">❌ ไม่มีรายการสมัคร</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 {showPendingModal && selectedUser && (
-  <div className="modal-overlay">
-    <div className="modal-content">
-      <button className="close-btn" onClick={handleCloseModal}>&times;</button>
-      <h2>ข้อมูลบุคลากร</h2>
-      <p><strong>ชื่อ:</strong> {selectedUser.fullName}</p>
-      <p><strong>Email:</strong> {selectedUser.email}</p>
-      <p><strong>เบอร์:</strong> {selectedUser.phone}</p>
-      <p><strong>ฝ่าย:</strong> {selectedUser.department_name}</p>
-      <p><strong>กอง:</strong> {selectedUser.section_name}</p>
-      <p><strong>งาน:</strong> {selectedUser.task_name}</p>
+   <div className="modal-overlay">
+   <div className="modal-content">
+     <button className="close-btn" onClick={handleCloseModal}>&times;</button>
+     <h2>ข้อมูลบุคลากร</h2>
+     <p><strong>ชื่อ:</strong> {selectedUser.fullName}</p>
+     <p><strong>Email:</strong> {selectedUser.email}</p>
+     <p><strong>เบอร์:</strong> {selectedUser.phone}</p>
+     <p><strong>ฝ่าย:</strong> {selectedUser.department_name ? selectedUser.department_name : "ไม่ระบุ"}</p>
+     <p><strong>กอง:</strong> {selectedUser.section_name ? selectedUser.section_name : "ไม่ระบุ"}</p>
+     <p><strong>งาน:</strong> {selectedUser.task_name ? selectedUser.task_name : "ไม่ระบุ"}</p>
 
-      <div className="action-buttons">
-        <button className="btn btn-success" onClick={() => handleApprove(selectedUser.id)}>
-          ✅ อนุมัติ
-        </button>
-        <button className="btn btn-danger" onClick={() => handleReject(selectedUser.id)}>
-          ❌ ไม่อนุมัติ
-        </button>
-      </div>
-    </div>
-  </div>
+
+     <div className="action-buttons">
+       <button className="btn btn-success" onClick={() => handleApprove(selectedUser.id)}>✅ อนุมัติ</button>
+       <button className="btn btn-danger" onClick={() => handleReject(selectedUser.id)}>❌ ไม่อนุมัติ</button>
+     </div>
+   </div>
+ </div>
 )}
 
       </div>

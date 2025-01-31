@@ -63,7 +63,7 @@ const SignUp = () => {
     // ✅ Handle input change
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        
+    
         setFormData(prevState => ({
             ...prevState,
             [name]: value,
@@ -71,42 +71,39 @@ const SignUp = () => {
             ...(name === "section_id" && { task_id: "" })
         }));
     
-        console.log(`🔄 อัปเดตค่า ${name}:`, value); // Debug ทุกครั้งที่เปลี่ยนค่า
+        console.log(`🔄 อัปเดตค่า ${name}:`, value); // Debug
     };
     
 
     // ✅ Handle form submit
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("📤 Form Data ก่อนส่งไป Backend:", formData); // Debug ดูค่าทั้งหมดที่ส่งไป
-        
-        const selectedDepartment = departments.find(d => d.id === formData.department_id);
-        const selectedSection = sections.find(s => s.id === formData.section_id);
-        const selectedTask = tasks.find(t => t.id === formData.task_id);
     
+        console.log("📤 Form Data ก่อนส่งไป Backend:", formData); // ตรวจสอบค่าก่อนส่ง
+    
+        const selectedDepartment = departments.find(d => d.id == formData.department_id);
+        const selectedSection = sections.find(s => s.id == formData.section_id);
+        const selectedTask = tasks.find(t => t.id == formData.task_id);
+
         const userData = {
             username: formData.username,
             password: formData.password,
             fullName: formData.fullName,
             email: formData.email,
             phone: formData.phone,
-            department_name: selectedDepartment ? selectedDepartment.name : "", // เปลี่ยน ID เป็นชื่อ
+            department_name: selectedDepartment ? selectedDepartment.name : "", 
             section_name: selectedSection ? selectedSection.name : "",
             task_name: selectedTask ? selectedTask.name : ""
         };
+
     
-        console.log("✅ ข้อมูลที่กำลังส่งไป Backend:", userData); // Debug
+        console.log("✅ ข้อมูลที่กำลังส่งไป Backend:", userData); // ตรวจสอบค่าที่จะถูกส่ง
     
-        // เช็คว่ามีข้อมูลที่เป็นค่าว่างไหม
-        for (const [key, value] of Object.entries(userData)) {
-            if (!value) {
-                console.error(`❌ ค่าที่ขาด: ${key}`);
-            }
-        }
-    
-        if (!userData.username || !userData.password || !userData.fullName || 
-            !userData.email || !userData.phone || !userData.department_name || 
+        // ตรวจสอบข้อมูลครบถ้วน
+        if (!userData.username || !userData.password || !userData.fullName ||
+            !userData.email || !userData.phone || !userData.department_name ||
             !userData.section_name || !userData.task_name) {
+            console.error("❌ ข้อมูลไม่ครบ:", userData);
             alert('❌ ข้อมูลไม่ครบ: ตรวจสอบอีกครั้ง');
             return;
         }
@@ -127,6 +124,7 @@ const SignUp = () => {
             alert(error.response?.data?.message || '❌ เกิดข้อผิดพลาดในการสมัครสมาชิก');
         }
     };
+    
     
     
     return (
