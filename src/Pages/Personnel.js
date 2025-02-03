@@ -72,6 +72,25 @@ useEffect(() => {
       .catch(error => console.error("❌ Error fetching approved users:", error));
 }, []);
 
+useEffect(() => {
+  axios.get("http://localhost:5001/api/users/approved")
+    .then(response => {
+      console.log("✅ Approved Users:", response.data); // ตรวจสอบ API Response
+      setApprovedUsers(response.data);
+    })
+    .catch(error => console.error("❌ Error fetching approved users:", error));
+}, []);
+
+useEffect(() => {
+  axios.get("http://localhost:5001/api/users/pending")
+    .then(response => {
+      console.log("✅ Pending Users:", response.data); // ตรวจสอบ API Response
+      setPendingUsers(response.data);
+    })
+    .catch(error => console.error("❌ Error fetching pending users:", error));
+}, []);
+
+
 // โหลด Sections เมื่อเลือก Department
 useEffect(() => {
   if (newUser.department_id) {
@@ -359,103 +378,78 @@ const handleDeleteSelected = async () => {
     alert(`❌ เกิดข้อผิดพลาดในการลบข้อมูล: ${error.response?.data?.message || error.message}`);
   }
 };
-const fetchPersonnelData = async () => {
-  try {
-    const response = await axios.get("http://localhost:5001/api/users");
-    console.log("✅ Personnel Data:", response.data);
-    setPersonnelData(response.data);
-  } catch (error) {
-    console.error("❌ Error fetching personnel data:", error);
-  }
-};
-
-// ✅ ฟังก์ชันโหลดข้อมูลใหม่
-const fetchPendingUsers = async () => {
-  try {
-    const response = await axios.get("http://localhost:5001/api/pending-users"); // ✅ ใช้ API ที่ถูกต้อง
-    console.log("✅ Pending Users (Frontend):", response.data.users); // ✅ Debug ข้อมูล
-    setPendingUsers(response.data.users);  // ✅ อัปเดต State
-  } catch (error) {
-    console.error("❌ Error fetching pending users:", error);
-  }
-};
-
-// ✅ โหลด "รายการสมัครของบุคลากร" ตอนเปิดหน้าเว็บ
-useEffect(() => {
-  fetchPendingUsers();
-}, []);
-
 
 const fetchApprovedUsers = async () => {
   try {
-    const response = await axios.get("http://localhost:5001/api/users");
-    const approvedUsers = response.data.filter(user => user.status === "Approved"); // ✅ กรองเฉพาะที่อนุมัติแล้ว
-    console.log("✅ Approved Users:", approvedUsers);
-    setApprovedUsers(approvedUsers);
+    const response = await axios.get("http://localhost:5001/api/users/approved");
+    console.log("✅ Approved Users:", response.data.users); // ✅ Debug
+    setApprovedUsers(response.data.users);
   } catch (error) {
     console.error("❌ Error fetching approved users:", error);
   }
 };
 
-// ✅ โหลด "ผู้ใช้ที่อนุมัติแล้ว" ตอนเปิดหน้าเว็บ
+// ✅ โหลดข้อมูลเมื่อหน้าเว็บโหลด
 useEffect(() => {
   fetchApprovedUsers();
 }, []);
 
 
-useEffect(() => {
-  const fetchApprovedUsers = async () => {
-     try {
-        const response = await axios.get("http://localhost:5001/api/users");
-        console.log("✅ Approved Users (Frontend):", response.data);
-        setUsers(Array.isArray(response.data) ? response.data : []); // ป้องกัน null
-     } catch (error) {
-        console.error("❌ Error fetching approved users:", error);
-     }
-  };
+const fetchPendingUsers = async () => {
+  try {
+    const response = await axios.get("http://localhost:5001/api/users/pending");
+    console.log("✅ Pending Users:", response.data);
+    setPendingUsers(response.data);
+  } catch (error) {
+    console.error("❌ Error fetching pending users:", error);
+  }
+};
 
+useEffect(() => {
   fetchApprovedUsers();
+  fetchPendingUsers();
 }, []);
+
+const fetchPersonnelData = async () => {
+  try {
+     const response = await axios.get("http://localhost:5001/api/users/approved"); // ✅ ใช้ API ที่ถูกต้อง
+     console.log("✅ Approved Users:", response.data); // ✅ Debug
+     setApprovedUsers(response.data); // ✅ ตั้งค่าผู้ใช้ที่ได้รับการอนุมัติ
+  } catch (error) {
+     console.error("❌ Error fetching personnel data:", error);
+  }
+};
+
+// ✅ โหลดข้อมูลเมื่อ Component เริ่มทำงาน
+useEffect(() => {
+  fetchPersonnelData();
+}, []);
+
 
 const handleApprove = async (id) => {
   if (!window.confirm("คุณต้องการอนุมัติบุคลากรนี้ใช่หรือไม่?")) return;
   try {
-      await axios.put(`http://localhost:5001/api/users/approve/${id}`);
-      alert("✅ อนุมัติสำเร็จ");
-      setPendingUsers(prev => prev.filter(user => user.id !== id)); // ลบออกจาก Pending
-      setApprovedUsers(prev => [...prev, pendingUsers.find(user => user.id === id)]);
+    await axios.put(`http://localhost:5001/api/users/approve/${id}`);
+    alert("✅ อนุมัติสำเร็จ");
+    setPendingUsers((prev) => prev.filter((user) => user.id !== id));
+    fetchApprovedUsers();
   } catch (error) {
-      console.error("❌ Error approving user:", error);
-      alert("เกิดข้อผิดพลาดในการอนุมัติ!");
+    console.error("❌ Error approving user:", error);
+    alert("เกิดข้อผิดพลาดในการอนุมัติ!");
   }
 };
 
-// ✅ ฟังก์ชันไม่อนุมัติผู้ใช้
 const handleReject = async (id) => {
   if (!window.confirm("คุณต้องการไม่อนุมัติบุคลากรนี้ใช่หรือไม่?")) return;
   try {
-      await axios.put(`http://localhost:5001/api/users/reject/${id}`);
-      alert("❌ ไม่อนุมัติสำเร็จ");
-      setPendingUsers(prev => prev.filter(user => user.id !== id));
+    await axios.put(`http://localhost:5001/api/users/reject/${id}`);
+    alert("❌ ไม่อนุมัติสำเร็จ");
+    setPendingUsers((prev) => prev.filter((user) => user.id !== id));
   } catch (error) {
-      console.error("❌ Error rejecting user:", error);
-      alert("เกิดข้อผิดพลาดในการไม่อนุมัติ!");
+    console.error("❌ Error rejecting user:", error);
+    alert("เกิดข้อผิดพลาดในการไม่อนุมัติ!");
   }
 };
-
-useEffect(() => {
-  const fetchApprovedUsers = async () => {
-    try {
-      const response = await axios.get("http://localhost:5001/api/users"); // ✅ ใช้ API ที่ถูกต้อง
-      console.log("✅ Approved Users (Frontend):", response.data); // ✅ Debug
-      setUsers(response.data); // ✅ ตั้งค่า users ใหม่
-    } catch (error) {
-      console.error("❌ Error fetching approved users:", error);
-    }
-  };
-
-  fetchApprovedUsers();
-}, []);
 
 
 return (
@@ -505,16 +499,9 @@ return (
                   </tr>
                 </thead>
                 <tbody>
-  {users.length > 0 ? (
-    users.map((user, index) => (
+  {approvedUsers.length > 0 ? (
+    approvedUsers.map((user, index) => (
       <tr key={user.id}>
-        <td>
-          <input
-            type="checkbox"
-            checked={selectedUsers.includes(user.id)}
-            onChange={() => toggleUserSelection(user.id)}
-          />
-        </td>
         <td>{index + 1}</td>
         <td>
           <FontAwesomeIcon
@@ -523,16 +510,12 @@ return (
             onClick={() => handleImageClick(user.image || "https://via.placeholder.com/50")}
           />
         </td>
+        <td>{user.fullName}</td>
         <td>{user.department_name || "ไม่ระบุ"}</td>
         <td>
-          <div className="action-buttons">
-            <button className="btn btn-view" onClick={() => handleViewDetails(user)}>
-              <FontAwesomeIcon icon={faEye} /> ดู
-            </button>
-            <button className="btn btn-edit" onClick={() => handleEditUser(user)}>
-              <FontAwesomeIcon icon={faEdit} /> แก้ไข
-            </button>
-          </div>
+          <button className="btn btn-view" onClick={() => handleViewDetails(user)}>
+            <FontAwesomeIcon icon={faEye} /> ดูข้อมูล
+          </button>
         </td>
       </tr>
     ))
