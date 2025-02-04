@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const db = require("./db"); // ✅ ใช้ `db.js` ที่เราแยกไว้
 require("dotenv").config();
+const multer = require("multer");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -75,7 +76,7 @@ app.post('/api/send-otp', (req, res) => {
   });
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", async (req, res) => { 
   const { username, password } = req.body;
 
   console.log("📌 Received Login Request:", username); // Debug
@@ -95,17 +96,22 @@ router.post("/login", async (req, res) => {
       const user = results[0];
       console.log("✅ User Found:", user); // Debug
 
-      // เช็ครหัสผ่าน
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
+      // ✅ เช็คว่ารหัสผ่านตรงกับฐานข้อมูลหรือไม่ (เปลี่ยนจาก bcrypt เป็นการเปรียบเทียบปกติ)
+      if (password !== user.password) {
           console.log("❌ Password mismatch");
           return res.status(401).json({ success: false, message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
       }
 
-      // เช็คว่าได้รับการอนุมัติหรือยัง
+      // ✅ เช็คว่าได้รับการอนุมัติหรือยัง
       if (user.status.trim().toLowerCase() !== "approve") {
           console.log("❌ User not approved");
           return res.status(403).json({ success: false, message: "บัญชีของคุณยังไม่ได้รับการอนุมัติจาก IT" });
+      }
+
+      // ✅ เช็คว่าเป็นเจ้าหน้าที่ IT หรือไม่
+      if (user.role.trim().toLowerCase() !== "it") {
+          console.log("❌ User is not IT Staff");
+          return res.status(403).json({ success: false, message: "คุณไม่มีสิทธิ์เข้าถึงระบบ IT" });
       }
 
       res.status(200).json({
@@ -197,39 +203,163 @@ const checkUserExists = (username, email, callback) => {
   });
 };
 // API: เพิ่มผู้ใช้งานใหม่
-router.post("/signup", async (req, res) => {
-  console.log("📩 ข้อมูลที่ได้รับจาก Frontend:", req.body); // Debug
+const upload = multer({ storage: multer.memoryStorage() });
 
-  const { username, password, fullName, email, phone, department_name, section_name, task_name } = req.body;
+router.post("/signup", upload.single("image"), async (req, res) => { 
+    console.log("📩 ข้อมูลที่ได้รับจาก Frontend:", req.body);
 
-  // ตรวจสอบข้อมูลก่อนบันทึก
-  if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
-      console.error("❌ ข้อมูลขาด:", { username, password, fullName, email, phone, department_name, section_name, task_name });
-      return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบ: ตรวจสอบอีกครั้ง" });
+    const { username, password, fullName, email, phone, department_name, section_name, task_name } = req.body;
+    const image = req.file ? req.file.buffer.toString("base64") : null; // ✅ ถ้าไม่มีรูปให้ส่ง `null`
+
+    if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
+        return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบ" });
+    }
+
+    try {
+        let query, values;
+
+        if (image) {
+            query = `
+                INSERT INTO users (username, password, fullName, email, phone, department_name, section_name, task_name, image, role, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')
+            `;
+            values = [username, password, fullName, email, phone, department_name, section_name, task_name, image];
+        } else {
+            query = `
+                INSERT INTO users (username, password, fullName, email, phone, department_name, section_name, task_name, role, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')
+            `;
+            values = [username, password, fullName, email, phone, department_name, section_name, task_name];
+        }
+
+        db.query(query, values, (err, result) => {
+            if (err) return res.status(500).json({ success: false, error: err.message });
+            return res.status(201).json({ success: true, message: "✅ สมัครสมาชิกสำเร็จ!" });
+        });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาด" });
+    }
+});
+
+
+app.put('/api/approve-user/:id', (req, res) => { 
+  const userId = req.params.id;
+
+  if (!userId) {
+      return res.status(400).json({ success: false, message: "❌ ไม่มี ID ผู้ใช้ที่ต้องการอนุมัติ" });
   }
 
-  try {
-      const hashedPassword = await bcrypt.hash(password, 10);
+  const query = `UPDATE users SET status = 'Approved' WHERE id = ?`;
+  db.query(query, [userId], (err, result) => {
+      if (err) {
+          console.error('❌ Database update error:', err);
+          return res.status(500).json({ success: false, message: '❌ เกิดข้อผิดพลาดในการอนุมัติผู้ใช้' });
+      }
 
-      const query = `
-          INSERT INTO users (username, password, fullName, email, phone, department_name, section_name, task_name, role, status)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')
-      `;
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ success: false, message: '❌ ไม่พบผู้ใช้ที่ต้องการอนุมัติ' });
+      }
 
-      db.query(query, [username, hashedPassword, fullName, email, phone, department_name, section_name, task_name], (err, result) => {
+      // ✅ ดึงข้อมูลอัปเดตกลับไปยัง Frontend
+      const getUserQuery = `SELECT id, username, fullName, email, phone, department_name, section_name, task_name, image FROM users WHERE id = ?`;
+      db.query(getUserQuery, [userId], (err, userResult) => {
           if (err) {
-              console.error("❌ Database error:", err);
-              return res.status(500).json({ success: false, error: err.message });
+              console.error("❌ Error fetching updated user:", err);
+              return res.status(500).json({ success: false, message: '❌ ไม่สามารถดึงข้อมูลผู้ใช้ที่อนุมัติแล้ว' });
           }
 
-          return res.status(201).json({ success: true, message: "✅ สมัครสมาชิกสำเร็จ! กรุณารอ IT อนุมัติบัญชีของคุณ" });
+          const user = userResult[0];
+          res.status(200).json({
+              success: true, 
+              message: '✅ อนุมัติผู้ใช้สำเร็จ',
+              user: {
+                  ...user,
+                  image: user.image || "/assets/no-image.png" // ✅ ตรวจสอบรูปภาพ
+              }
+          });
       });
-
-  } catch (error) {
-      console.error("❌ Error hashing password:", error);
-      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการสมัครสมาชิก" });
-  }
+  });
 });
+
+
+app.get('/api/pending-users', (req, res) => {
+  const query = `
+      SELECT id, username, fullName, email, phone, department_name, section_name, task_name, image 
+      FROM users 
+      WHERE status = 'Pending'`;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Database error:', err);
+      return res.status(500).json({ success: false, message: 'Server error' });
+    }
+    
+    // ✅ ตรวจสอบว่ามีรูปภาพหรือไม่ ถ้าไม่มีให้ใช้ค่า default
+    const users = results.map(user => ({
+      ...user,
+      image: user.image || "/assets/no-image.png" // ✅ รูปเริ่มต้นถ้าไม่มี
+    }));
+
+    console.log("📌 Pending Users Data:", users);
+    res.status(200).json({ success: true, users });
+  });
+});
+
+
+app.put('/api/reject-user/:id', (req, res) => {
+  const userId = req.params.id;
+
+  if (!userId) {
+    return res.status(400).json({ success: false, message: "❌ ไม่มี ID ผู้ใช้ที่ต้องการไม่อนุมัติ" });
+  }
+
+  const query = `UPDATE users SET status = 'Rejected' WHERE id = ?`;
+  db.query(query, [userId], (err, result) => {
+    if (err) {
+      console.error('❌ Database update error:', err);
+      return res.status(500).json({ success: false, message: '❌ เกิดข้อผิดพลาดในการไม่อนุมัติผู้ใช้' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: '❌ ไม่พบผู้ใช้ที่ต้องการไม่อนุมัติ' });
+    }
+
+    res.status(200).json({ success: true, message: '✅ ไม่อนุมัติผู้ใช้สำเร็จ' });
+  });
+});
+
+
+app.get("/api/users", (req, res) => {
+  const query = `
+      SELECT id, username, fullName, phone, email, department_name, section_name, task_name, status
+      FROM users
+      WHERE status = 'Approved'`;  // ✅ ดึงเฉพาะ Approved
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("❌ Error fetching approved users:", err.message);
+      return res.status(500).json({ error: "❌ Failed to fetch approved users" });
+    }
+
+    res.json(results);
+  });
+});
+
+
+app.get("/api/users/pending/count", (req, res) => {
+  const query = "SELECT COUNT(*) AS count FROM users WHERE status = 'Pending'";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("❌ Error fetching pending users count:", err.message);
+      return res.status(500).json({ error: "❌ Failed to fetch pending users count" });
+    }
+
+    res.json({ count: results[0].count });
+  });
+});
+
 
 // ดึงรายการ products
 // ดึงข้อมูลทั้งหมด
@@ -623,12 +753,17 @@ app.put('/api/brands/:id', (req, res) => {
 });
 
 
+// ดึงข้อมูลบุคลากรทั้งหมด
+const crypto = require("crypto");
+// ✅ ทดสอบถอดรหัส
 
+// ✅ ใช้ฟิลด์ `password_encrypted` แทน `original_password`
 app.get("/api/users", (req, res) => {
   const query = `
-      SELECT id, username, fullName, phone, email, department_name, section_name, task_name, status, image 
+      SELECT 
+          id, username, fullName, phone, email, 
+          department_name, section_name, task_name, status, image, password
       FROM users
-      WHERE role = 'User' AND status = 'approve'  -- 🔥 กรองเฉพาะที่อนุมัติแล้ว
   `;
 
   db.query(query, (err, results) => {
@@ -637,15 +772,15 @@ app.get("/api/users", (req, res) => {
           return res.status(500).json({ error: "❌ Failed to fetch users" });
       }
 
-      res.json(results);
+      res.json(results); // ✅ ส่งรหัสผ่านปกติไปที่ Frontend
   });
 });
 
-/* --------------------- ✅ ดึงข้อมูลบุคลากรตาม ID --------------------- */
+
 app.get("/api/users/:id", (req, res) => {
   const userId = req.params.id;
   const query = `
-      SELECT id, username, fullName, phone, email, department_name, section_name, task_name, password
+      SELECT id, username, fullName, phone, email, department_name, section_name, task_name, password 
       FROM users 
       WHERE id = ?
   `;
@@ -658,143 +793,96 @@ app.get("/api/users/:id", (req, res) => {
       if (results.length === 0) {
           return res.status(404).json({ error: "❌ User not found" });
       }
-      res.json(results[0]);
+      res.json(results[0]); // ✅ ส่งรหัสผ่านปกติไปที่ Frontend ได้เลย
   });
 });
 
-/* --------------------- ✅ เพิ่มผู้ใช้ใหม่ --------------------- */
+// ✅ API เพิ่มผู้ใช้ใหม่
 app.post("/api/users", async (req, res) => {
-    const { fullName, department_name, section_name, task_name, phone, email, username, password } = req.body;
-
-    if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
-        return res.status(400).json({ error: "❌ Missing required fields" });
-    }
-
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const query = `
-            INSERT INTO users (fullName, department_name, section_name, task_name, phone, email, username, password, status, role)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'User')
-        `;
-
-        db.query(query, [fullName, department_name, section_name, task_name, phone, email, username, hashedPassword], (err, results) => {
-            if (err) {
-                console.error("❌ Error adding user:", err);
-                return res.status(500).json({ error: "❌ Failed to add user" });
-            }
-            res.status(201).json({ message: "✅ User added successfully", userId: results.insertId });
-        });
-
-    } catch (error) {
-        console.error("❌ Error hashing password:", error);
-        res.status(500).json({ error: "❌ Failed to hash password" });
-    }
-});
-
-/* --------------------- ✅ อัปเดตข้อมูลผู้ใช้ --------------------- */
-app.put("/api/users/:id", async (req, res) => {
-  const userId = req.params.id;
   const { fullName, department_name, section_name, task_name, phone, email, username, password } = req.body;
 
+  if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
+      return res.status(400).json({ error: "❌ ข้อมูลไม่ครบ กรุณากรอกข้อมูลให้ครบถ้วน" });
+  }
+
   try {
-      let query = `UPDATE users SET fullName = ?, department_name = ?, section_name = ?, task_name = ?, phone = ?, email = ?, username = ?`;
-      const params = [fullName, department_name, section_name, task_name, phone, email, username];
+      // บันทึกรหัสผ่านจริงโดยไม่เข้ารหัส
+      const query = `
+          INSERT INTO users (fullName, department_name, section_name, task_name, phone, email, username, password, status, role)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'User')
+      `;
 
-      if (password) {
-          const hashedPassword = await bcrypt.hash(password, 10);
-          query += ", password = ?";
-          params.push(hashedPassword);
-      }
-
-      query += " WHERE id = ?";
-      params.push(userId);
-
-      db.query(query, params, (err, results) => {
+      db.query(query, [fullName, department_name, section_name, task_name, phone, email, username, password], (err, results) => {
           if (err) {
-              console.error("❌ Error updating user:", err);
-              return res.status(500).json({ error: "❌ Failed to update user" });
+              console.error("❌ Error adding user:", err);
+              return res.status(500).json({ error: "❌ Failed to add user" });
           }
-          res.json({ message: "✅ User updated successfully" });
+          res.status(201).json({ message: "✅ สมัครสมาชิกสำเร็จ! กรุณารอ IT อนุมัติบัญชีของคุณ", userId: results.insertId });
       });
 
   } catch (error) {
-      console.error("❌ Error hashing password:", error);
-      res.status(500).json({ error: "❌ Failed to hash password" });
+      console.error("❌ Error:", error);
+      res.status(500).json({ error: "❌ เกิดข้อผิดพลาดในการสมัครสมาชิก" });
   }
 });
 
+// ✅ API อัปเดตข้อมูลบุคลากร
+app.put('/api/users/:id', async (req, res) => {
+  try {
+      const { id } = req.params;
+      const { fullName, email, phone, department_name, section_name, task_name } = req.body;
 
-app.get("/api/users/approved", (req, res) => {
-  const query = `
-      SELECT id, username, fullName, phone, email, department_name, section_name, task_name, image 
-      FROM users 
-      WHERE role = 'User' AND LOWER(status) = 'approve'
-  `;
+      console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body);
 
-  db.query(query, (err, results) => {
-      if (err) {
-          console.error("❌ Error fetching approved users:", err.message);
-          return res.status(500).json({ error: "❌ Failed to fetch approved users" });
+      if (!id) {
+          return res.status(400).json({ success: false, message: "❌ ไม่มี ID ผู้ใช้ที่ต้องการอัปเดต" });
       }
 
-      // ถ้าไม่มีข้อมูล ให้คืนค่าเป็น empty array แทน 404
-      res.json({ success: true, data: results.length ? results : [] });
-  });
-});
-
-app.get("/api/users/pending", (req, res) => {
-  const query = `
-      SELECT id, username, fullName, phone, email, department_name, section_name, task_name, image 
-      FROM users 
-      WHERE LOWER(status) = 'pending'
-  `;
-
-  db.query(query, (err, results) => {
-      if (err) {
-          console.error("❌ Error fetching pending users:", err.message);
-          return res.status(500).json({ error: "❌ Failed to fetch pending users" });
+      if (!fullName || !email || !phone || !department_name || !section_name || !task_name) {
+          return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบถ้วน กรุณากรอกข้อมูลให้ครบ" });
       }
 
-      res.json({ success: true, data: results.length ? results : [] });
-  });
-});
+      // ✅ ค้นหา ID ของ department, section, task จากฐานข้อมูล
+      const [deptResult] = await db.promise().query(`SELECT id FROM departments WHERE name = ?`, [department_name]);
+      const [secResult] = await db.promise().query(`SELECT id FROM sections WHERE name = ?`, [section_name]);
+      const [taskResult] = await db.promise().query(`SELECT id FROM tasks WHERE name = ?`, [task_name]);
 
-
-app.put("/api/users/approve/:id", (req, res) => {
-  const userId = req.params.id;
-  const query = "UPDATE users SET status = 'approve' WHERE id = ?";
-
-  db.query(query, [userId], (err, result) => {
-      if (err) {
-          console.error("❌ Error approving user:", err);
-          return res.status(500).json({ error: "❌ Failed to approve user" });
+      if (!deptResult.length || !secResult.length || !taskResult.length) {
+          return res.status(400).json({ success: false, message: "❌ ไม่พบข้อมูลฝ่าย/กอง/งานในฐานข้อมูล" });
       }
+
+      const department_id = deptResult[0].id;
+      const section_id = secResult[0].id;
+      const task_id = taskResult[0].id;
+
+      console.log("📌 ค่าที่ถูกแปลงเป็น ID:", { department_id, section_id, task_id });
+
+      // ✅ อัปเดตข้อมูลโดยใช้ ID ที่ได้จากฐานข้อมูล
+      const sql = `
+          UPDATE users 
+          SET fullName = ?, email = ?, phone = ?, 
+              department_id = ?, section_id = ?, task_id = ?
+          WHERE id = ?
+      `;
+      const values = [fullName, email, phone, department_id, section_id, task_id, id];
+
+      console.log("📌 SQL Query ที่จะใช้:", sql);
+      console.log("📌 ค่า Parameters:", values);
+
+      const [result] = await db.promise().query(sql, values);
+
+      console.log("📌 ผลลัพธ์จาก SQL Query:", result);
 
       if (result.affectedRows === 0) {
-          return res.status(404).json({ error: "❌ User not found or already approved" });
+          return res.status(404).json({ success: false, message: "❌ ไม่พบผู้ใช้ที่ต้องการอัปเดต" });
       }
 
-      res.json({ success: true, message: "✅ User approved successfully" });
-  });
-});
+      res.json({ success: true, message: "✅ อัปเดตข้อมูลสำเร็จ!" });
 
-app.put("/api/users/reject/:id", (req, res) => {
-  const userId = req.params.id;
-  const query = "UPDATE users SET status = 'rejected' WHERE id = ?";
-
-  db.query(query, [userId], (err, result) => {
-      if (err) {
-          console.error("❌ Error rejecting user:", err);
-          return res.status(500).json({ error: "❌ Failed to reject user" });
-      }
-
-      if (result.affectedRows === 0) {
-          return res.status(404).json({ error: "❌ User not found or already rejected" });
-      }
-
-      res.json({ success: true, message: "✅ User rejected successfully" });
-  });
+  } catch (error) {
+      console.error("❌ Error updating user:", error);
+      res.status(500).json({ success: false, message: "❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล" });
+  }
 });
 
 

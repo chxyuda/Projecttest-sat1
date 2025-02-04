@@ -3,7 +3,7 @@ import axios from "axios";
 import ITDashboard from "./ITDashboard";
 import "./Personnel.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEdit, faList, faPlus, faUserCircle, faUsers, faTimes, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faEdit, faList, faPlus, faUserCircle, faUsers, faCamera, faCheck } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from 'react-router-dom';
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
@@ -20,9 +20,9 @@ const Personnel = () => {
   const [selectedSection, setSelectedSection] = useState('');
   const [selectedTask, setSelectedTask] = useState('');
   const [departments, setDepartments] = useState([]); // สำหรับเก็บข้อมูลฝ่าย
-const [sections, setSections] = useState([]); // สำหรับเก็บข้อมูลกอง
-const [tasks, setTasks] = useState([]); // สำหรับเก็บข้อมูลงาน
-const [selectedUsers, setSelectedUsers] = useState([]);  // ✅ เก็บ ID ที่เลือก
+  const [sections, setSections] = useState([]); // สำหรับเก็บข้อมูลกอง
+  const [tasks, setTasks] = useState([]); // สำหรับเก็บข้อมูลงาน
+  const [selectedUsers, setSelectedUsers] = useState([]);  // ✅ เก็บ ID ที่เลือก
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPending, setShowPending] = useState(false); //
   const [showPendingUsers, setShowPendingUsers] = useState(false);
@@ -30,6 +30,9 @@ const [selectedUsers, setSelectedUsers] = useState([]);  // ✅ เก็บ ID 
   const [showPendingModal, setShowPendingModal] = useState(false);
   const [approvedUsers, setApprovedUsers] = useState([]); // ✅ ประกาศ State
   const [users, setUsers] = useState([]);
+  const [rejectedUsers, setRejectedUsers] = useState([]);
+  const [showRejectedModal, setShowRejectedModal] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
   const [newUser, setNewUser] = useState({
     fullName: '',
     department_id: '',
@@ -40,7 +43,17 @@ const [selectedUsers, setSelectedUsers] = useState([]);  // ✅ เก็บ ID 
     username: '',
     password: '',
 });
-  
+
+const [formData, setFormData] = useState({
+  fullName: "",
+  department_id: "",
+  section_id: "",
+  task_id: "",
+  phone: "",
+  email: "",
+  username: "",
+  password: "",
+});
 
 useEffect(() => {
   axios.get('http://localhost:5001/api/users')
@@ -71,25 +84,6 @@ useEffect(() => {
       })
       .catch(error => console.error("❌ Error fetching approved users:", error));
 }, []);
-
-useEffect(() => {
-  axios.get("http://localhost:5001/api/users/approved")
-    .then(response => {
-      console.log("✅ Approved Users:", response.data); // ตรวจสอบ API Response
-      setApprovedUsers(response.data);
-    })
-    .catch(error => console.error("❌ Error fetching approved users:", error));
-}, []);
-
-useEffect(() => {
-  axios.get("http://localhost:5001/api/users/pending")
-    .then(response => {
-      console.log("✅ Pending Users:", response.data); // ตรวจสอบ API Response
-      setPendingUsers(response.data);
-    })
-    .catch(error => console.error("❌ Error fetching pending users:", error));
-}, []);
-
 
 // โหลด Sections เมื่อเลือก Department
 useEffect(() => {
@@ -123,6 +117,7 @@ useEffect(() => {
       })
       .catch(error => console.error("❌ Error loading pending users:", error));
 }, []);
+
 
 
   // โหลดข้อมูลกองตามฝ่าย
@@ -200,7 +195,7 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
   const handleViewDetails = async (user) => {
     try {
         const response = await axios.get(`http://localhost:5001/api/users/${user.id}`);
-        console.log("✅ User Details from API:", response.data);  // ✅ Debug เช็คค่าที่ Backend ส่งมา
+        console.log("✅ User Details from API:", response.data);  
         setSelectedUser(response.data);
         setShowModal(true);
     } catch (error) {
@@ -208,6 +203,7 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
         alert("❌ ไม่สามารถดึงข้อมูลผู้ใช้ได้");
     }
 };
+
 
   const handleCloseModal = () => {
     setSelectedUser(null);
@@ -222,13 +218,63 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
     );
 };
 
-  const handleEditUser = (user) => {
-    setSelectedUser(user);
-    if (user.department_id) fetchSections(user.department_id);
-    if (user.section_id) fetchTasks(user.section_id);
-    setShowEditModal(true);
-  };
+const handleEditUser = async (user) => {
+  try {
+      const response = await axios.get(`http://localhost:5001/api/users/${user.id}`);
+      const userData = response.data;
 
+      console.log("🔍 User Data (ก่อนเซ็ตค่าใน Modal):", userData);
+
+      setSelectedUser(userData);
+
+      // ✅ ใช้ formData แทน selectedUser
+      setFormData({
+          fullName: userData.fullName || "",
+          department_id: userData.department_name || "", 
+          section_id: userData.section_name || "",
+          task_id: userData.task_name || "",
+          phone: userData.phone || "",
+          email: userData.email || "",
+          username: userData.username || "",
+          password: userData.password || "",
+      });
+
+      setShowEditModal(true);
+  } catch (error) {
+      console.error("❌ Error fetching user details:", error);
+  }
+};
+
+
+const handleSaveEdit = async () => {
+  if (!selectedUser) return;
+
+  console.log("📌 ข้อมูลที่กำลังส่งไปอัปเดต:", formData);
+
+  try {
+      const response = await axios.put(`http://localhost:5001/api/users/${selectedUser.id}`, {
+          fullName: formData.fullName || "",
+          email: formData.email || "",
+          phone: formData.phone || "",
+          department_name: departments.find(d => d.id === formData.department_id)?.name || "", 
+          section_name: sections.find(s => s.id === formData.section_id)?.name || "",
+          task_name: tasks.find(t => t.id === formData.task_id)?.name || ""
+      });
+
+      console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data);
+
+      if (response.data.success) {
+          alert("✅ อัปเดตข้อมูลสำเร็จ!");
+          setShowEditModal(false);
+          fetchPersonnelData(); // โหลดข้อมูลใหม่หลังอัปเดต
+      } else {
+          alert(`❌ ${response.data.message}`);
+      }
+  } catch (error) {
+      console.error("❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล:", error.response?.data || error);
+      alert("❌ มีข้อผิดพลาดในการอัปเดตข้อมูล");
+  }
+};
 
   const handleCloseEditModal = () => {
     setShowEditModal(false);
@@ -249,16 +295,49 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
   };
   
 
-  const handleInputChange = (e) => {
+  const handleInputChange = async (e) => {
     const { name, value } = e.target;
-    setNewUser(prev => ({
+
+    setFormData(prev => ({
         ...prev,
         [name]: value,
-        ...(name === 'department_id' && { section_id: '', task_id: '' }),
-        ...(name === 'section_id' && { task_id: '' })
+        ...(name === "department_id" ? { section_id: "", task_id: "" } : {}),
+        ...(name === "section_id" ? { task_id: "" } : {})
     }));
+
+    // ✅ ป้องกันการโหลด API ถ้าไม่มีค่าเลือก
+    if (name === "department_id") {
+        if (value) {
+            setSections([]); // เคลียร์ sections ก่อนโหลดใหม่
+            setTasks([]); // รีเซ็ต tasks
+
+            try {
+                const response = await axios.get(`http://localhost:5001/api/sections/${value}`);
+                setSections(response.data);
+            } catch (error) {
+                console.error("❌ Error fetching sections:", error);
+            }
+        } else {
+            setSections([]);
+            setTasks([]);
+        }
+    }
+
+    if (name === "section_id") {
+        if (value) {
+            setTasks([]); // รีเซ็ต tasks
+
+            try {
+                const response = await axios.get(`http://localhost:5001/api/tasks/${value}`);
+                setTasks(response.data);
+            } catch (error) {
+                console.error("❌ Error fetching tasks:", error);
+            }
+        } else {
+            setTasks([]);
+        }
+    }
 };
-  
 
   useEffect(() => {
     if (selectedUser?.department) {
@@ -294,7 +373,13 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
     }
 };
 
-
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({
+    ...prev,
+    [name]: value,
+  }));
+};
   // จัดการการเพิ่มข้อมูลใหม่
   const handleAddUser = () => {
     if (!newUser.department_name || !newUser.section_id || !newUser.task_id) {
@@ -379,77 +464,206 @@ const handleDeleteSelected = async () => {
   }
 };
 
-const fetchApprovedUsers = async () => {
+const fetchPersonnelData = async () => {
   try {
-    const response = await axios.get("http://localhost:5001/api/users/approved");
-    console.log("✅ Approved Users:", response.data.users); // ✅ Debug
-    setApprovedUsers(response.data.users);
+    const response = await axios.get("http://localhost:5001/api/users");
+    console.log("✅ โหลดข้อมูลใหม่:", response.data);
+    setPersonnelData(response.data); // ✅ อัปเดต State
+    setUsers(response.data); // ✅ อัปเดต users ด้วย
   } catch (error) {
-    console.error("❌ Error fetching approved users:", error);
+    console.error("❌ Error fetching personnel data:", error);
   }
 };
 
-// ✅ โหลดข้อมูลเมื่อหน้าเว็บโหลด
+
 useEffect(() => {
-  fetchApprovedUsers();
-}, []);
+  if (!showEditModal) {
+    fetchPersonnelData(); // ✅ โหลดข้อมูลใหม่เมื่อ Modal ปิด
+  }
+}, [showEditModal]);
 
 
+// ✅ ฟังก์ชันโหลดข้อมูลใหม่
 const fetchPendingUsers = async () => {
   try {
-    const response = await axios.get("http://localhost:5001/api/users/pending");
-    console.log("✅ Pending Users:", response.data);
-    setPendingUsers(response.data);
+    const response = await axios.get("http://localhost:5001/api/pending-users"); // ✅ ใช้ API ที่ถูกต้อง
+    console.log("✅ Pending Users (Frontend):", response.data.users); // ✅ Debug ข้อมูล
+    setPendingUsers(response.data.users);  // ✅ อัปเดต State
   } catch (error) {
     console.error("❌ Error fetching pending users:", error);
   }
 };
 
+// ✅ โหลด "รายการสมัครของบุคลากร" ตอนเปิดหน้าเว็บ
 useEffect(() => {
-  fetchApprovedUsers();
   fetchPendingUsers();
 }, []);
 
-const fetchPersonnelData = async () => {
+
+const fetchApprovedUsers = async () => {
   try {
-     const response = await axios.get("http://localhost:5001/api/users/approved"); // ✅ ใช้ API ที่ถูกต้อง
-     console.log("✅ Approved Users:", response.data); // ✅ Debug
-     setApprovedUsers(response.data); // ✅ ตั้งค่าผู้ใช้ที่ได้รับการอนุมัติ
+    const response = await axios.get("http://localhost:5001/api/users");
+    const approvedUsers = response.data.filter(user => user.status === "Approved"); // ✅ กรองเฉพาะที่อนุมัติแล้ว
+    console.log("✅ Approved Users:", approvedUsers);
+    setApprovedUsers(approvedUsers);
   } catch (error) {
-     console.error("❌ Error fetching personnel data:", error);
+    console.error("❌ Error fetching approved users:", error);
   }
 };
 
-// ✅ โหลดข้อมูลเมื่อ Component เริ่มทำงาน
+// ✅ โหลด "ผู้ใช้ที่อนุมัติแล้ว" ตอนเปิดหน้าเว็บ
 useEffect(() => {
-  fetchPersonnelData();
+  fetchApprovedUsers();
 }, []);
 
 
-const handleApprove = async (id) => {
-  if (!window.confirm("คุณต้องการอนุมัติบุคลากรนี้ใช่หรือไม่?")) return;
+useEffect(() => {
+  const fetchApprovedUsers = async () => {
+     try {
+        const response = await axios.get("http://localhost:5001/api/users");
+        console.log("✅ Approved Users (Frontend):", response.data);
+        setUsers(Array.isArray(response.data) ? response.data : []); // ป้องกัน null
+     } catch (error) {
+        console.error("❌ Error fetching approved users:", error);
+     }
+  };
+
+  fetchApprovedUsers();
+}, []);
+
+
+const handleApprove = async (userId) => {
   try {
-    await axios.put(`http://localhost:5001/api/users/approve/${id}`);
-    alert("✅ อนุมัติสำเร็จ");
-    setPendingUsers((prev) => prev.filter((user) => user.id !== id));
-    fetchApprovedUsers();
+      console.log("📌 Sending Approve Request for User ID:", userId);
+
+      const response = await fetch(`http://localhost:5001/api/approve-user/${userId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+      });
+
+      console.log("📌 Approve API Response:", response);
+      const textResponse = await response.text();
+      console.log("📌 Raw Response:", textResponse);
+
+      let data;
+      try {
+          data = JSON.parse(textResponse);
+      } catch (jsonError) {
+          console.error("❌ JSON Parse Error:", jsonError);
+          alert("❌ เซิร์ฟเวอร์ส่งข้อมูลผิดรูปแบบ");
+          return;
+      }
+
+      console.log("✅ Approve Response JSON:", data);
+
+      if (data.success) {
+          alert("✅ อนุมัติผู้ใช้สำเร็จ!");
+          setShowModal(false);  // ปิด Modal ปัจจุบัน
+          
+          setTimeout(() => {
+              setShowPendingModal(true); // เปิด Modal รายการสมัครหลังจากอนุมัติ
+              fetchPendingUsers(); // โหลดข้อมูลใหม่
+          }, 500);
+      } else {
+          alert(`❌ ${data.message}`);
+      }
   } catch (error) {
-    console.error("❌ Error approving user:", error);
-    alert("เกิดข้อผิดพลาดในการอนุมัติ!");
+      console.error("❌ Error approving user:", error);
+      alert("❌ เกิดข้อผิดพลาดในการอนุมัติ");
   }
 };
 
-const handleReject = async (id) => {
-  if (!window.confirm("คุณต้องการไม่อนุมัติบุคลากรนี้ใช่หรือไม่?")) return;
+const handleReject = async (userId) => {
+  console.log("📌 Rejecting User ID:", userId);
+
+  if (!userId) {
+    alert("❌ ไม่พบ ID ของผู้ใช้ที่ต้องการไม่อนุมัติ");
+    return;
+  }
+
   try {
-    await axios.put(`http://localhost:5001/api/users/reject/${id}`);
-    alert("❌ ไม่อนุมัติสำเร็จ");
-    setPendingUsers((prev) => prev.filter((user) => user.id !== id));
+    const response = await fetch(`http://localhost:5001/api/reject-user/${userId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const textResponse = await response.text();
+    console.log("📌 Raw Reject Response:", textResponse);
+
+    let data;
+    try {
+      data = JSON.parse(textResponse);
+    } catch (jsonError) {
+      console.error("❌ JSON Parse Error:", jsonError);
+      alert("❌ เซิร์ฟเวอร์ส่งข้อมูลผิดรูปแบบ");
+      return;
+    }
+
+    console.log("✅ Reject Response JSON:", data);
+
+    if (data.success) {
+      alert("✅ ไม่อนุมัติผู้ใช้สำเร็จ!");
+      setShowModal(false); // ปิด Modal ปัจจุบัน
+
+      setTimeout(() => {
+          setShowPendingModal(true); // เปิด Modal รายการสมัครหลังจากไม่อนุมัติ
+          fetchPendingUsers(); // โหลดข้อมูลใหม่
+      }, 500);
+      
+    } else {
+      alert(`❌ ${data.message}`);
+    }
   } catch (error) {
     console.error("❌ Error rejecting user:", error);
-    alert("เกิดข้อผิดพลาดในการไม่อนุมัติ!");
+    alert("❌ เกิดข้อผิดพลาดในการไม่อนุมัติผู้ใช้");
   }
 };
+
+useEffect(() => {
+  axios.get("http://localhost:5001/api/users")
+    .then(response => {
+      console.log("✅ Users Data (Before Filter):", response.data);
+      const approvedUsers = response.data.filter(user => user.status.toLowerCase() === "approved"); // ✅ กรองเฉพาะ Approved
+      console.log("✅ Approved Users:", approvedUsers);
+      setPersonnelData(approvedUsers); // ✅ อัปเดตเฉพาะที่อนุมัติแล้ว
+    })
+    .catch(error => console.error("❌ Error fetching approved users:", error));
+}, []);
+
+
+useEffect(() => {
+  const fetchApprovedUsers = async () => {
+    try {
+      const response = await axios.get("http://localhost:5001/api/users"); // ✅ ใช้ API ที่ถูกต้อง
+      console.log("✅ Approved Users (Frontend):", response.data); // ✅ Debug
+      setUsers(response.data); // ✅ ตั้งค่า users ใหม่
+    } catch (error) {
+      console.error("❌ Error fetching approved users:", error);
+    }
+  };
+
+  fetchApprovedUsers();
+}, []);
+
+useEffect(() => {
+  const fetchPendingCount = async () => {
+    try {
+      const response = await fetch("http://localhost:5001/api/users/pending/count");
+      const data = await response.json();
+      setPendingCount(data.count);
+    } catch (error) {
+      console.error("❌ Error fetching pending count:", error);
+    }
+  };
+
+  fetchPendingCount();
+
+  // ตั้งค่าให้ดึงข้อมูลใหม่ทุก 10 วินาที (อัปเดตแบบเรียลไทม์)
+  const interval = setInterval(fetchPendingCount, 10000);
+  
+  return () => clearInterval(interval); // ล้าง interval เมื่อ Component ถูก unmount
+}, []);
+
 
 
 return (
@@ -469,10 +683,11 @@ return (
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <button className="btn btn-secondary" onClick={() => setShowPendingModal(true)}>
-        <FontAwesomeIcon icon={faList} style={{ marginRight: "5px" }} />
-        รายการสมัครของบุคลากร
-      </button>
+              <button className="btn btn-secondary relative px-4 py-2" 
+                onClick={() => setShowPendingModal(true)}>
+                <FontAwesomeIcon icon={faList} style={{ marginRight: "5px" }} />
+                รายการสมัครของบุคลากร ({pendingCount})
+              </button>
               <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
         <FontAwesomeIcon icon={faPlus} style={{ marginRight: "5px" }} />
         เพิ่ม
@@ -499,9 +714,16 @@ return (
                   </tr>
                 </thead>
                 <tbody>
-  {approvedUsers.length > 0 ? (
-    approvedUsers.map((user, index) => (
+  {users.length > 0 ? (
+    users.map((user, index) => (
       <tr key={user.id}>
+        <td>
+          <input
+            type="checkbox"
+            checked={selectedUsers.includes(user.id)}
+            onChange={() => toggleUserSelection(user.id)}
+          />
+        </td>
         <td>{index + 1}</td>
         <td>
           <FontAwesomeIcon
@@ -510,12 +732,16 @@ return (
             onClick={() => handleImageClick(user.image || "https://via.placeholder.com/50")}
           />
         </td>
-        <td>{user.fullName}</td>
         <td>{user.department_name || "ไม่ระบุ"}</td>
         <td>
-          <button className="btn btn-view" onClick={() => handleViewDetails(user)}>
-            <FontAwesomeIcon icon={faEye} /> ดูข้อมูล
-          </button>
+          <div className="action-buttons">
+            <button className="btn btn-view" onClick={() => handleViewDetails(user)}>
+              <FontAwesomeIcon icon={faEye} /> ดู
+            </button>
+            <button className="btn btn-edit" onClick={() => handleEditUser(user)}>
+              <FontAwesomeIcon icon={faEdit} /> แก้ไข
+            </button>
+          </div>
         </td>
       </tr>
     ))
@@ -543,16 +769,18 @@ return (
       alt="Profile"
       className="profile-image"
       onError={(e) => {
-        e.target.onerror = null; // ป้องกันการวนลูป error
+        e.target.onerror = null; // ป้องกัน error วนลูป
         e.target.src = "https://via.placeholder.com/120";
       }}
     />
   ) : (
     <div className="icon-placeholder">
-      <FontAwesomeIcon icon={faUserCircle} className="profile-icon" />
+      <FontAwesomeIcon icon={faCamera} className="profile-icon" />
+      <p>ไม่มีรูปภาพ</p>
     </div>
   )}
 </div>
+
 
         <div className="details-container">
           <div className="details-column">
@@ -580,7 +808,7 @@ return (
               <strong>Username:</strong> {selectedUser.username}
             </p>
             <p>
-            <strong>Password:</strong> {selectedUser.password ? selectedUser.password : "password"}
+            <p>Password: {selectedUser.password}</p>
             </p>
           </div>
         </div>
@@ -589,122 +817,59 @@ return (
   </div>
 )}
 
-{showEditModal && selectedUser && (
-          <div className="modal-overlay1">
-            <div className="modal-content1">
-              <button className="close-btn" onClick={handleCloseEditModal}>
-                &times;
-              </button>
-              <h2>แก้ไขข้อมูลบุคลากร</h2>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleUpdateUser(selectedUser);
-                }}
-              >
-                <div className="form-group">
-                  <label>ชื่อ - นามสกุล</label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={selectedUser.fullName || ""}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="form-group">
-  <label>ฝ่าย/สำนัก</label>
-  <select
-  name="department"
-  value={selectedUser?.department || ""}
-  onChange={handleInputChange}
->
-  <option value="">เลือก</option>
-  {departments.map((dept) => (
-    <option key={dept.name} value={dept.name}>
-      {dept.name}
-    </option>
-  ))}
-</select>
-</div>
-<div className="form-group">
-  <label>กอง</label>
-  <select
-    name="section_name"
-    value={selectedUser?.section_name || ""}
-    onChange={handleInputChange}
-  >
-    <option value="">เลือก</option>
-    {sections.map((section) => (
-      <option key={section.name} value={section.name}>
-        {section.name}
-      </option>
-    ))}
-  </select>
-</div>
+{showEditModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button className="close-btn" onClick={() => setShowEditModal(false)}>&times;</button>
+            <h2>แก้ไขข้อมูลบุคลากร</h2>
+            <label>ชื่อ - นามสกุล</label>
+            <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} />
+            <label>ฝ่าย/สำนัก</label>
+              <select name="department_id" value={formData.department_id} onChange={handleInputChange}>
+                <option value="">เลือก</option>
+                {departments.map(dept => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+              <label>กอง</label>
+              <select name="section_id" value={formData.section_id} onChange={handleInputChange} disabled={!formData.department_id}>
+                <option value="">เลือก</option>
+                {sections.map(section => (
+                  <option key={section.id} value={section.id}>
+                    {section.name}
+                  </option>
+                ))}
+              </select>
+              <label>งาน</label>
+              <select name="task_id" value={formData.task_id} onChange={handleInputChange} disabled={!formData.section_id}>
+                <option value="">เลือก</option>
+                {tasks.map(task => (
+                  <option key={task.id} value={task.id}>
+                    {task.name}
+                  </option>
+                ))}
+              </select>
+            <label>เบอร์ภายใน</label>
+            <input type="text" name="phone" value={formData.phone} onChange={handleChange} />
 
-<div className="form-group">
-  <label>งาน</label>
-  <select
-    name="task_name"
-    value={selectedUser?.task_name || ""}
-    onChange={handleInputChange}
-  >
-    <option value="">เลือก</option>
-    {tasks.map((task) => (
-      <option key={task.name} value={task.name}>
-        {task.name}
-      </option>
-    ))}
-  </select>
-</div>
-                <div className="form-group">
-                  <label>เบอร์ภายใน</label>
-                  <input
-                    type="text"
-                    name="phone"
-                    value={selectedUser.phone || ""}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={selectedUser.email || ""}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Username</label>
-                  <input
-                    type="text"
-                    name="username"
-                    value={selectedUser.username || ""}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={selectedUser.password || ""}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="form-actions">
-                  <button type="submit" className="btn-save">
-                    บันทึก
-                  </button>
-                  <button type="button" className="btn-cancel" onClick={handleCloseEditModal}>
-                    ยกเลิก
-                  </button>
-                </div>
-              </form>
+            <label>Email</label>
+            <input type="email" name="email" value={formData.email} onChange={handleChange} />
+
+            <label>Username</label>
+            <input type="text" name="username" value={formData.username} onChange={handleChange} />
+
+            <label>Password</label>
+            <input type="password" name="password" value={formData.password} onChange={handleChange} />
+
+            <div className="button-container">
+              <button className="save-button" onClick={handleSaveEdit}>บันทึก</button>
+              <button className="cancel-button" onClick={() => setShowEditModal(false)}>ยกเลิก</button>
             </div>
           </div>
-        )}
+        </div>
+      )}
         {showAddModal && (
   <div className="modal-overlay1">
     <div className="modal-content1">
@@ -837,7 +1002,7 @@ return (
                     <tr key={user.id}>
                       <td>{index + 1}</td>
                       <td><FontAwesomeIcon icon={faUserCircle} className="icon-profile" /></td>
-                      <td>{user.department_name || "ไม่ระบุ"}</td>
+                      <td>{user.department_name ? user.department_name : "ไม่ระบุ"}</td>
                       <td>
                         <button className="btn btn-view" onClick={() => handleViewDetails(user)}>
                           <FontAwesomeIcon icon={faEye} /> ดู
@@ -860,13 +1025,33 @@ return (
    <div className="modal-content">
      <button className="close-btn" onClick={handleCloseModal}>&times;</button>
      <h2>ข้อมูลบุคลากร</h2>
+
+     {/* ✅ เช็คว่ามีรูปหรือไม่ */}
+     <div className="profile-container">
+       {selectedUser.image ? (
+         <img
+           src={selectedUser.image}
+           alt="Profile"
+           className="profile-image"
+           onError={(e) => {
+             e.target.onerror = null;
+             e.target.src = "/assets/no-image.png"; // ✅ ใช้รูป default ถ้ารูปมีปัญหา
+           }}
+         />
+       ) : (
+         <div className="icon-placeholder">
+           <FontAwesomeIcon icon={faUserCircle} className="profile-icon" />
+           <p>ไม่มีรูปภาพ</p>
+         </div>
+       )}
+     </div>
+
      <p><strong>ชื่อ:</strong> {selectedUser.fullName}</p>
      <p><strong>Email:</strong> {selectedUser.email}</p>
      <p><strong>เบอร์:</strong> {selectedUser.phone}</p>
      <p><strong>ฝ่าย:</strong> {selectedUser.department_name ? selectedUser.department_name : "ไม่ระบุ"}</p>
      <p><strong>กอง:</strong> {selectedUser.section_name ? selectedUser.section_name : "ไม่ระบุ"}</p>
      <p><strong>งาน:</strong> {selectedUser.task_name ? selectedUser.task_name : "ไม่ระบุ"}</p>
-
 
      <div className="action-buttons">
        <button className="btn btn-success" onClick={() => handleApprove(selectedUser.id)}>✅ อนุมัติ</button>
@@ -875,6 +1060,7 @@ return (
    </div>
  </div>
 )}
+
 
       </div>
       );
