@@ -710,35 +710,30 @@ const handleCloseBrandModal = () => {
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
+
+    console.log("📌 formData ที่ส่งไป API:", formData); // ✅ Debugging ที่ Frontend
+
     if (!formData.name || !formData.category || !formData.equipment || !formData.brand || !formData.inventory_number) {
-      alert("กรุณากรอกข้อมูลให้ครบถ้วน");
-      return;
+        alert("❌ กรุณากรอกข้อมูลให้ครบถ้วน");
+        return;
     }
 
     try {
-      const response = await axios.post("http://localhost:5001/api/products", formData);
-      if (response.data.success) {
-        alert("เพิ่มข้อมูลสำเร็จ");
-        setFormData({
-          name: "",
-          category: "",
-          equipment: "",
-          brand: "",
-          equipment_number: "",
-          serial_number: "",
-          inventory_number: 1,
-          details: "",
-        });
-        fetchProducts(); // อัปเดตข้อมูลสินค้าใหม่
-      } else {
-        alert(response.data.message);
-      }
+        const response = await axios.post("http://localhost:5001/api/products", formData);
+        console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data); // ✅ Debugging คำตอบจาก API
+
+        if (response.data.success) {
+            alert("✅ เพิ่มข้อมูลสำเร็จ!");
+            setShowAddProductModal(false);
+            fetchProducts(); // โหลดข้อมูลใหม่
+        } else {
+            alert(`❌ ${response.data.message}`);
+        }
     } catch (error) {
-      console.error("Error adding product:", error);
-      alert("เกิดข้อผิดพลาด");
+        console.error("❌ Error adding product:", error.response?.data || error);
+        alert("❌ เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
     }
-  };
-  
+};
 
 
   const fetchProducts = async () => {
@@ -756,40 +751,51 @@ const handleCloseBrandModal = () => {
 
   const fetchDropdownData = async () => {
     try {
-      const equipmentResponse = await axios.get("http://localhost:5001/api/products");
-      const categoryResponse = await axios.get("http://localhost:5001/api/categories");
-      const brandResponse = await axios.get("http://localhost:5001/api/brands");
-  
-      if (equipmentResponse.data.success) {
-        const uniqueEquipments = equipmentResponse.data.data.map((item) => ({
-          id: item.id,
-          name: item.name || item.material || "N/A",
-        }));
-        setEquipments(uniqueEquipments);
-      }
-  
-      if (categoryResponse.data.success) {
-        setCategories(categoryResponse.data.data.map((item) => ({
-          id: item.id,
-          name: item.category_name,
-        })));
-      }
-  
-      if (brandResponse.data.success) {
-        setBrands(brandResponse.data.data.map((item) => ({
-          id: item.id,
-          name: item.name,
-        })));
-      }
-    } catch (error) {
-      console.error("Error fetching dropdown data:", error);
-    }
-  };
-  
+        const equipmentResponse = await axios.get("http://localhost:5001/api/products");
+        const categoryResponse = await axios.get("http://localhost:5001/api/categories");
+        const brandResponse = await axios.get("http://localhost:5001/api/brands");
 
-  useEffect(() => {
+        console.log("📌 Equipment API Response:", equipmentResponse.data); // ✅ Debug Response
+        console.log("📌 Category API Response:", categoryResponse.data);
+        console.log("📌 Brand API Response:", brandResponse.data);
+
+        if (equipmentResponse.data.success) {
+            const uniqueEquipments = equipmentResponse.data.data
+                .filter((item) => item.name) // ✅ กรองข้อมูลที่ไม่มีชื่อออก
+                .map((item) => ({
+                    id: item.id,
+                    name: item.name || item.material || "N/A",
+                }))
+                .filter((item, index, self) =>
+                    index === self.findIndex((t) => t.name === item.name)
+                ); // ✅ กรองค่าซ้ำออก
+
+            console.log("📌 อุปกรณ์ที่ถูกโหลด:", uniqueEquipments);
+            setEquipments(uniqueEquipments);
+        }
+
+        if (categoryResponse.data.success) {
+            setCategories(categoryResponse.data.data.map((item) => ({
+                id: item.id,
+                name: item.category_name,
+            })));
+        }
+
+        if (brandResponse.data.success) {
+            setBrands(brandResponse.data.data.map((item) => ({
+                id: item.id,
+                name: item.name,
+            })));
+        }
+    } catch (error) {
+        console.error("❌ Error fetching dropdown data:", error);
+    }
+};
+
+useEffect(() => {
     fetchDropdownData();
-  }, []);
+}, []);
+
   
   
   useEffect(() => {
@@ -837,7 +843,32 @@ const handleChange = (e) => {
   }
 };
 
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
+  console.log("📌 formData ที่ส่งไป API:", formData); // ✅ Debug ค่า formData
+
+  if (!formData.equipment || !formData.category || !formData.brand || !formData.inventory_number) {
+      alert("❌ กรุณากรอกข้อมูลให้ครบถ้วน");
+      return;
+  }
+
+  try {
+      const response = await axios.post("http://localhost:5001/api/products", formData);
+      console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data); // ✅ Debug คำตอบจาก API
+
+      if (response.data.success) {
+          alert("✅ เพิ่มข้อมูลสำเร็จ!");
+          setShowAddProductModal(false);
+          fetchProducts(); // โหลดข้อมูลใหม่
+      } else {
+          alert(`❌ ${response.data.message}`);
+      }
+  } catch (error) {
+      console.error("❌ Error adding product:", error.response?.data || error);
+      alert("❌ เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
+  }
+};
 
 
 useEffect(() => {
@@ -1328,38 +1359,49 @@ useEffect(() => {
           {/* ประเภท */}
           <div className="form-row">
             <label>ประเภท:</label>
-            <select
-              name="category"
-              value={formData.category || ""}
-              onChange={handleChange}
-              required
-            >
-              <option value="">เลือกประเภท</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.name}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <select name="category" value={formData.category || ""} onChange={handleChange} required>
+  <option value="">เลือกประเภท</option>
+  {categories.length > 0 ? (
+    categories.map((category) => (
+      <option key={category.id} value={category.name}>
+        {category.name}
+      </option>
+    ))
+  ) : (
+    <option value="">ไม่มีข้อมูล</option>
+  )}
+</select>
+
           </div>
 
           {/* อุปกรณ์ */}
           
           <div className="form-row">
   <label>อุปกรณ์:</label>
-  <select name="equipment" value={formData.equipment} onChange={handleChange}>
+  <select 
+    name="equipment" 
+    value={formData.equipment || ""} 
+    onChange={(e) => {
+        console.log("📌 เลือกอุปกรณ์:", e.target.value); // ✅ Debug ค่าที่เลือก
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            equipment: e.target.value
+        }));
+    }}
+  >
     <option value="">เลือกอุปกรณ์</option>
     {equipments.length > 0 ? (
-      equipments.map((equipment) => (
-        <option key={equipment.id} value={equipment.name}>
-          {equipment.name}
-        </option>
-      ))
+        equipments.map((equipment, index) => (
+            <option key={index} value={equipment.equipment || ""}>
+                {equipment.equipment || "ไม่มีข้อมูล"}
+            </option>
+        ))
     ) : (
-      <option value="">ไม่มีข้อมูล</option>
+        <option value="">ไม่มีข้อมูล</option>
     )}
   </select>
 </div>
+
 
           {/* ยี่ห้อ */}
           <div className="form-row">

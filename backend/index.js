@@ -396,9 +396,10 @@ app.get('/api/products', (req, res) => {
   });  
 });
 
-
-// เพิ่มข้อมูลใหม่
+//เพิ่มข้อมูลใหม่
 app.post("/api/products", (req, res) => {
+  console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body); // ✅ Debugging
+
   const {
     material, // ชื่อสินค้า
     serial_number = "-", // ค่าเริ่มต้นหากไม่ได้ส่งมา
@@ -412,11 +413,13 @@ app.post("/api/products", (req, res) => {
 
   // ตรวจสอบว่าข้อมูลสำคัญครบถ้วนหรือไม่
   if (!material || !category || !equipment || !brand || !inventory_number) {
+    console.error("❌ ข้อมูลไม่ครบ:", { material, category, equipment, brand, inventory_number });
     return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" });
   }
 
   // ตรวจสอบว่า inventory_number เป็นตัวเลขที่มากกว่า 0
   if (isNaN(inventory_number) || inventory_number <= 0) {
+    console.error("❌ จำนวนสินค้าผิดพลาด:", inventory_number);
     return res.status(400).json({ success: false, message: "จำนวนสินค้าต้องเป็นตัวเลขที่มากกว่า 0" });
   }
 
@@ -430,9 +433,10 @@ app.post("/api/products", (req, res) => {
     [material, serial_number, category, equipment, brand, inventory_number, details, equipment_number],
     (err) => {
       if (err) {
-        console.error("Database error:", err);
+        console.error("❌ Database error:", err);
         return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
       }
+      console.log("✅ เพิ่มข้อมูลสำเร็จ:", { material, category, equipment, brand, inventory_number });
       res.status(201).json({ success: true, message: "เพิ่มข้อมูลสำเร็จ" });
     }
   );
@@ -832,7 +836,7 @@ app.put('/api/users/:id', async (req, res) => {
       const { id } = req.params;
       const { fullName, email, phone, department_name, section_name, task_name } = req.body;
 
-      console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body);
+      console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body); // ✅ Debug
 
       if (!id) {
           return res.status(400).json({ success: false, message: "❌ ไม่มี ID ผู้ใช้ที่ต้องการอัปเดต" });
@@ -842,29 +846,14 @@ app.put('/api/users/:id', async (req, res) => {
           return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบถ้วน กรุณากรอกข้อมูลให้ครบ" });
       }
 
-      // ✅ ค้นหา ID ของ department, section, task จากฐานข้อมูล
-      const [deptResult] = await db.promise().query(`SELECT id FROM departments WHERE name = ?`, [department_name]);
-      const [secResult] = await db.promise().query(`SELECT id FROM sections WHERE name = ?`, [section_name]);
-      const [taskResult] = await db.promise().query(`SELECT id FROM tasks WHERE name = ?`, [task_name]);
-
-      if (!deptResult.length || !secResult.length || !taskResult.length) {
-          return res.status(400).json({ success: false, message: "❌ ไม่พบข้อมูลฝ่าย/กอง/งานในฐานข้อมูล" });
-      }
-
-      const department_id = deptResult[0].id;
-      const section_id = secResult[0].id;
-      const task_id = taskResult[0].id;
-
-      console.log("📌 ค่าที่ถูกแปลงเป็น ID:", { department_id, section_id, task_id });
-
-      // ✅ อัปเดตข้อมูลโดยใช้ ID ที่ได้จากฐานข้อมูล
+      // ✅ อัปเดต `name` ในตาราง `users`
       const sql = `
           UPDATE users 
           SET fullName = ?, email = ?, phone = ?, 
-              department_id = ?, section_id = ?, task_id = ?
+              department_name = ?, section_name = ?, task_name = ?
           WHERE id = ?
       `;
-      const values = [fullName, email, phone, department_id, section_id, task_id, id];
+      const values = [fullName, email, phone, department_name, section_name, task_name, id];
 
       console.log("📌 SQL Query ที่จะใช้:", sql);
       console.log("📌 ค่า Parameters:", values);
@@ -877,14 +866,17 @@ app.put('/api/users/:id', async (req, res) => {
           return res.status(404).json({ success: false, message: "❌ ไม่พบผู้ใช้ที่ต้องการอัปเดต" });
       }
 
-      res.json({ success: true, message: "✅ อัปเดตข้อมูลสำเร็จ!" });
+      res.json({ 
+        success: true, 
+        message: "✅ อัปเดตข้อมูลสำเร็จ!", 
+        updatedUser: { fullName, email, phone, department_name, section_name, task_name } 
+      });
 
   } catch (error) {
       console.error("❌ Error updating user:", error);
       res.status(500).json({ success: false, message: "❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล" });
   }
 });
-
 
 // ลบข้อมูลบุคลากร
 app.delete("/api/users", (req, res) => {

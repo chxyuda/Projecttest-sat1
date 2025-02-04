@@ -249,17 +249,24 @@ const handleEditUser = async (user) => {
 const handleSaveEdit = async () => {
   if (!selectedUser) return;
 
-  console.log("📌 ข้อมูลที่กำลังส่งไปอัปเดต:", formData);
+  // ✅ หาค่า department_name, section_name, task_name จาก State ก่อนส่งไป Backend
+  const selectedDepartment = departments.find(d => d.id == formData.department_id);
+  const selectedSection = sections.find(s => s.id == formData.section_id);
+  const selectedTask = tasks.find(t => t.id == formData.task_id);
+
+  const updatedUserData = {
+      fullName: formData.fullName || "",
+      email: formData.email || "",
+      phone: formData.phone || "",
+      department_name: selectedDepartment ? selectedDepartment.name : "", 
+      section_name: selectedSection ? selectedSection.name : "",
+      task_name: selectedTask ? selectedTask.name : ""
+  };
+
+  console.log("📌 ข้อมูลที่ส่งไป Backend:", updatedUserData);
 
   try {
-      const response = await axios.put(`http://localhost:5001/api/users/${selectedUser.id}`, {
-          fullName: formData.fullName || "",
-          email: formData.email || "",
-          phone: formData.phone || "",
-          department_name: departments.find(d => d.id === formData.department_id)?.name || "", 
-          section_name: sections.find(s => s.id === formData.section_id)?.name || "",
-          task_name: tasks.find(t => t.id === formData.task_id)?.name || ""
-      });
+      const response = await axios.put(`http://localhost:5001/api/users/${selectedUser.id}`, updatedUserData);
 
       console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data);
 
@@ -276,24 +283,6 @@ const handleSaveEdit = async () => {
   }
 };
 
-  const handleCloseEditModal = () => {
-    setShowEditModal(false);
-    setSelectedUser(null);
-  };
-
-  const handleUpdateUser = () => {
-    axios.put(`http://localhost:5001/api/users/${selectedUser.id}`, selectedUser)
-      .then(() => {
-        alert("อัปเดตข้อมูลสำเร็จ!");
-        setShowEditModal(false);
-        window.location.reload();
-      })
-      .catch((error) => {
-        console.error("Error updating user:", error);
-        alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูล!");
-      });
-  };
-  
 
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
