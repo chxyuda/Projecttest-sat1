@@ -15,6 +15,7 @@ import BorrowReturn from "./Pages/BorrowReturn";
 import Request from "./Pages/Request";
 import Dashboard from "./Pages/Dashboard";
 import StaffProfile from "./Pages/StaffProfile";
+import ProfileModal from "./Pages/ProfileModal";
 
 function App() {
   const [currentTime, setCurrentTime] = useState("");
@@ -83,6 +84,7 @@ function App() {
           <Route path="/request" element={<Request />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/staff-profile" element={<StaffProfile />} />
+          <Route path="/profileModal/:id" element={<ProfileModal />} />
         </Routes>
       </div>
     </Router>

@@ -64,6 +64,7 @@ const Settings = () => {
     fetchAllData();
   }, []);
   
+  
   const fetchData = async () => {
     try {
       const response = await axios.get('http://localhost:5001/api/products');
@@ -101,16 +102,14 @@ const Settings = () => {
     fetchData();
   }, []);
   
-  
-
   const handleCheckboxChange = (itemId) => {
-    setSelectedItems((prevSelected) =>
-      prevSelected.includes(itemId)
-        ? prevSelected.filter((id) => id !== itemId) // ลบออกถ้าเลือกอยู่แล้ว
-        : [...prevSelected, itemId] // เพิ่ม id เข้าไป
+    setSelectedItems(prevSelected =>
+        prevSelected.includes(itemId)
+            ? prevSelected.filter(id => id !== itemId) // เอาออกถ้าถูกเลือกแล้ว
+            : [...prevSelected, itemId] // เพิ่มเข้าไปถ้ายังไม่ถูกเลือก
     );
-  };
-  
+};
+
   useEffect(() => { 
     if (currentEditItem) {
       setCurrentEditItem((prev) => ({
@@ -167,19 +166,19 @@ const Settings = () => {
   const handleEditClick = (item) => {
     setCurrentEditItem({
       id: item.id || "", 
-      name: item.material || "", // ตั้งชื่อจาก material
+      name: item.material || "",
       category: item.category || "",
       equipment: item.equipment || "",
       brand: item.brand || "",
       equipment_number: item.equipment_number || "-",
       serial_number: item.serial_number || "-",
       inventory_number: item.inventory_number || 0,
-      details: item.details || "-",
+      details: item.details !== "-" ? item.details || "" : "",  // ✅ อนุญาตให้เป็นค่าว่าง
     });
     setShowEditModal(true);
-  };
-  
-  
+};
+
+
   useEffect(() => {
     console.log("Current Edit Item:", currentEditItem);
   }, [currentEditItem]);
@@ -192,24 +191,38 @@ const Settings = () => {
   
   const handleSave = async () => {
     try {
-      console.log("Saving data:", currentEditItem);
+      const payload = {
+        name: currentEditItem.name || "-",
+        category_name: currentEditItem.category || "-",
+        equipment: currentEditItem.equipment || "-",
+        brand_name: currentEditItem.brand || "-",
+        equipment_number: currentEditItem.equipment_number || "-",
+        serial_number: currentEditItem.serial_number || "-",
+        inventory_number: currentEditItem.inventory_number || 1,
+        details: currentEditItem.details.trim() === "-" ? "" : currentEditItem.details.trim(), // ✅ ลบ "-" ออก
+      };
+
+      console.log("📌 กำลังส่งข้อมูล:", payload);
+
       const response = await axios.put(
         `http://localhost:5001/api/products/${currentEditItem.id}`,
-        currentEditItem
+        payload
       );
+
       if (response.data.success) {
-        alert("บันทึกข้อมูลสำเร็จ");
-        fetchData(); // โหลดข้อมูลใหม่
+        alert("✅ บันทึกข้อมูลสำเร็จ");
         setShowEditModal(false);
+        fetchData();
       } else {
-        alert("เกิดข้อผิดพลาดในการบันทึก");
+        alert("❌ ไม่สามารถบันทึกข้อมูลได้");
       }
     } catch (error) {
-      console.error("Error while saving:", error);
-      alert("เกิดข้อผิดพลาด");
+      console.error("❌ Error updating data:", error);
+      alert("❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล");
     }
-  };
-  
+};
+
+
   const openEditModal = (item) => {
     console.log("Item received:", item);
     setCurrentEditItem({
@@ -233,34 +246,39 @@ const Settings = () => {
   
   const handleDeleteSelected = async () => {
     if (selectedItems.length === 0) {
-      alert("กรุณาเลือกอย่างน้อยหนึ่งรายการเพื่อลบ");
-      return;
+        alert("❌ กรุณาเลือกอย่างน้อยหนึ่งรายการเพื่อลบ");
+        return;
     }
-  
-    if (window.confirm("คุณต้องการลบรายการที่เลือกหรือไม่?")) {
-      try {
-        console.log("Selected IDs:", selectedItems); // Debugging
-        const response = await axios.post("http://localhost:5001/api/products/delete", {
-          ids: selectedItems,
-        });
-  
-        if (response.data.success) {
-          setData((prevData) =>
-            prevData.filter((item) => !selectedItems.includes(item.id))
-          );
-          setSelectedItems([]);
-          alert("ลบข้อมูลสำเร็จ");
-        } else {
-          alert(response.data.message || "เกิดข้อผิดพลาดในการลบข้อมูล");
-        }
-      } catch (error) {
-        console.error("Error deleting selected items:", error.response?.data || error.message);
-        alert("เกิดข้อผิดพลาดในการลบข้อมูล");
-      }
-    }
-  };
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+    if (!window.confirm("⚠️ คุณต้องการลบรายการที่เลือกหรือไม่?")) return;
+
+    console.log("📌 รายการที่ถูกเลือก:", selectedItems); // ✅ Debug
+
+    try {
+        const response = await axios.delete("http://localhost:5001/api/products", {
+            data: { ids: selectedItems } // ✅ ตรวจสอบว่ากำลังส่ง ID อะไรไป
+        });
+
+        console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data); // ✅ Debug
+
+        if (response.data.success) {
+            alert(`✅ ลบข้อมูลสำเร็จ! (${response.data.message})`);
+
+            // ✅ แก้ไขโค้ดนี้เพื่อลบเฉพาะรายการที่ถูกเลือก
+            setData(prevData => prevData.filter(item => !selectedItems.includes(item.id)));
+
+            setSelectedItems([]); // เคลียร์การเลือก
+        } else {
+            alert("❌ ไม่สามารถลบข้อมูลได้: " + response.data.message);
+        }
+    } catch (error) {
+        console.error("❌ Error deleting items:", error.response?.data || error.message);
+        alert("❌ เกิดข้อผิดพลาดในการลบข้อมูล");
+    }
+};
+
+  
+const [showDeleteModal, setShowDeleteModal] = useState(false);
 
 const handleDeleteConfirm = async () => {
   setShowDeleteModal(false); // ปิด Modal
@@ -281,8 +299,6 @@ const handleDeleteConfirm = async () => {
     alert("เกิดข้อผิดพลาดในการลบข้อมูล");
   }
 };
-
-  
 
   const handleShowModal = async () => {
   try {
@@ -401,7 +417,6 @@ const handleDeleteConfirm = async () => {
 }, []);
 
 
-  
   const fetchEquipments = async () => {
     try {
         const response = await axios.get("http://localhost:5001/api/products");
@@ -634,44 +649,61 @@ const handleDeleteConfirm = async () => {
   
    
   const handleEditBrand = (index) => {
-    console.log("Editing ID:", editingBrandIndex);
-    console.log("Deleting ID:", index);
-    console.log(brands[index]?.id); // ตรวจสอบค่า id
-    setEditingBrand(brands[index]?.name || "");
-    setEditingBrandIndex(index);
-};
-
-
-const handleSaveBrand = async (id) => {
-  if (!id) {
-    alert("ID ไม่สามารถเว้นว่างได้");
-    console.error("ID ที่ส่งไป:", id); // Debug ID
-    return;
-  }
-
-  if (!editingBrand || !editingBrand.trim()) {
-    alert("ชื่อยี่ห้อไม่สามารถเว้นว่างได้");
-    return;
-  }
-
-  try {
-    const response = await axios.put(`http://localhost:5001/api/brands/${id}`, {
-      name: editingBrand.trim(),
-    });
-    if (response.data.success) {
-      alert("แก้ไขยี่ห้อสำเร็จ");
-      fetchBrands(); // โหลดข้อมูลใหม่หลังจากแก้ไขสำเร็จ
-      setEditingBrand(""); // ล้างค่าหลังการบันทึก
-      setEditingBrandId(null); // ออกจากโหมดแก้ไข
-    } else {
-      alert(response.data.message || "เกิดข้อผิดพลาดในการแก้ไข");
+    console.log("🔹 Editing ID:", brands[index]?.id); // ✅ Debug ค่า ID
+  
+    if (!brands[index]?.id) {
+      alert("❌ ID ของยี่ห้อไม่ถูกต้อง");
+      return;
     }
-  } catch (error) {
-    console.error("Error editing brand:", error);
-    alert("เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ");
-  }
+  
+    setEditingBrandId(brands[index].id); // ✅ เก็บค่า ID สำหรับการอัปเดต
+    setEditingBrand(brands[index].name || "");
+    setEditingBrandIndex(index);
+  };
+  
+  const handleSaveBrand = async (id) => {
+    if (!id) {
+        alert("❌ ID ไม่สามารถเว้นว่างได้");
+        console.error("❌ ID ที่ส่งไป:", id); // Debug ID
+        return;
+    }
+
+    if (!editingBrandName || !editingBrandName.trim()) {
+        alert("❌ ชื่อยี่ห้อไม่สามารถเว้นว่างได้");
+        return;
+    }
+
+    try {
+        console.log("📌 Sending update request:", { id, name: editingBrandName });
+
+        const response = await axios.put(`http://localhost:5001/api/brands/${id}`, {
+            name: editingBrandName.trim(),
+        });
+
+        if (response.data.success) {
+            alert("✅ แก้ไขยี่ห้อสำเร็จ");
+
+            // ✅ โหลดข้อมูลใหม่จากฐานข้อมูล
+            await fetchBrands(); 
+
+            // ✅ รีเซ็ตค่า state หลังจากแก้ไขสำเร็จ
+            setEditingBrandName(""); 
+            setEditingBrandId(null); 
+            setEditingBrandIndex(null); 
+        } else {
+            alert("❌ " + response.data.message);
+        }
+    } catch (error) {
+        console.error("❌ Error editing brand:", error);
+        alert("❌ เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ");
+    }
 };
 
+useEffect(() => {
+  if (showBrandModal) {
+      fetchBrands(); // โหลดข้อมูลใหม่ทุกครั้งที่เปิด Modal
+  }
+}, [showBrandModal]);
 
   const handleShowBrandModal = (index) => {
     setShowBrandModal(true); // เปิด Modal
@@ -710,17 +742,17 @@ const handleCloseBrandModal = () => {
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
-
-    console.log("📌 formData ที่ส่งไป API:", formData); // ✅ Debugging ที่ Frontend
-
-    if (!formData.name || !formData.category || !formData.equipment || !formData.brand || !formData.inventory_number) {
-        alert("❌ กรุณากรอกข้อมูลให้ครบถ้วน");
-        return;
+    
+    console.log("📌 formData ที่ส่งไป API:", formData); // ตรวจสอบข้อมูลที่ส่งไป API
+    
+    if (!formData.equipment || !formData.category || !formData.brand || !formData.inventory_number) {
+      alert("❌ กรุณากรอกข้อมูลให้ครบถ้วน");
+      return;
     }
 
     try {
         const response = await axios.post("http://localhost:5001/api/products", formData);
-        console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data); // ✅ Debugging คำตอบจาก API
+        console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data); // ตรวจสอบว่ามีการตอบกลับอะไรจาก API
 
         if (response.data.success) {
             alert("✅ เพิ่มข้อมูลสำเร็จ!");
@@ -734,6 +766,7 @@ const handleCloseBrandModal = () => {
         alert("❌ เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
     }
 };
+
 
 
   const fetchProducts = async () => {
@@ -814,47 +847,62 @@ const handleCloseAddProductModal = () => {
 };
 
 const [formData, setFormData] = useState({
-  name: "", // ชื่อสินค้า
-  category: "", // ประเภทสินค้า
-  equipment: "", // อุปกรณ์
-  brand: "", // ยี่ห้อ
-  equipment_number: "", // หมายเลขครุภัณฑ์
-  serial_number: "", // Serial Number
-  inventory_number: 1, // จำนวนสินค้า (ค่าเริ่มต้น 1)
-  details: "", // รายละเอียดสินค้า
+  model: "",
+  name: "",
+  category: "",
+  brand: "",
+  serial_number: "-",
+  inventory_number: 1,
+  details: "-",
+  equipment_number: "-"
 });
 
 
 const handleChange = (e) => {
   const { name, value } = e.target;
 
-  // ค้นหาอุปกรณ์ตาม id
-  if (name === "equipment") {
-    const selectedEquipment = equipments.find((item) => item.id === parseInt(value, 10));
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: selectedEquipment ? selectedEquipment.name : "",
-    }));
-  } else {
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  }
+  setFormData((prevState) => ({
+    ...prevState,
+    [name]: value.trim() === "_" ? "" : value, // ✅ ป้องกัน `_` กลายเป็นค่าภายใน input
+  }));
 };
+
+
 
 const handleSubmit = async (e) => {
   e.preventDefault();
 
-  console.log("📌 formData ที่ส่งไป API:", formData); // ✅ Debug ค่า formData
+  // ✅ กำหนดค่าตามที่คุณต้องการ
+  const updatedFormData = {
+    model: formData.model || formData.name || "-",  // ชื่อสินค้า = model
+    category_name: formData.category || "-", // ประเภท
+    name: formData.equipment || "-",  // อุปกรณ์
+    brand_name: formData.brand || "-",  // ยี่ห้อ
+    serial_number: formData.serial_number || "-",  // Serial
+    equipment_number: formData.equipment_number || "-",  // หมายเลขครุภัณฑ์
+    inventory_number: formData.inventory_number || 1, // จำนวนสินค้า (ค่าเริ่มต้น = 1)
+    details: formData.details || "-", // รายละเอียด
+  };
 
-  if (!formData.equipment || !formData.category || !formData.brand || !formData.inventory_number) {
+  console.log("📌 formData ที่จะส่งไป API:", updatedFormData); // ✅ Debug ค่า formData
+  
+  // ✅ ตรวจสอบว่ามีค่าทุกช่องที่จำเป็น
+  if (!updatedFormData.name || !updatedFormData.category_name || !updatedFormData.brand_name || !updatedFormData.inventory_number) {
+      console.error("❌ ข้อมูลที่ขาด:", {
+          model: updatedFormData.model,
+          category_name: updatedFormData.category_name,
+          name: updatedFormData.name,
+          brand_name: updatedFormData.brand_name,
+          serial_number: updatedFormData.serial_number,
+          equipment_number: updatedFormData.equipment_number,
+          inventory_number: updatedFormData.inventory_number
+      });
       alert("❌ กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
   }
 
   try {
-      const response = await axios.post("http://localhost:5001/api/products", formData);
+      const response = await axios.post("http://localhost:5001/api/products", updatedFormData);
       console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data); // ✅ Debug คำตอบจาก API
 
       if (response.data.success) {
@@ -886,9 +934,14 @@ useEffect(() => {
       <div className="settings-container">
           <h1><FontAwesomeIcon icon={faCog} style={{ marginRight: "10px" }} /> การตั้งค่า</h1>
           <div className="actions-container">
-            <button className="delete-selected-btn" onClick={handleDeleteSelected}>
-              ลบรายการที่เลือก
-            </button>
+          <button
+  className="delete-selected-btn"
+  onClick={handleDeleteSelected}
+  disabled={selectedItems.length === 0} // ปิดปุ่มถ้าไม่มีการเลือก
+>
+  🗑️ ลบที่เลือก ({selectedItems.length})
+</button>
+
             <button className="custom-btn" onClick={handleShowModal}>
               <span className="custom-btn-icon">🖉</span> ประเภท
             </button>
@@ -923,11 +976,11 @@ useEffect(() => {
               {data.map((item, index) => ( // เพิ่ม index ใน map
                 <tr key={item.id}>
                   <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.includes(index)} // ใช้ index ในการเช็ค
-                      onChange={() => handleCheckboxChange(index)} // ใช้ index สำหรับการเปลี่ยนสถานะ
-                    />
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(item.id)}
+                    onChange={() => handleCheckboxChange(item.id)}
+                  />
                   </td>
                   <td>{item.material}</td>
                   <td>{item.category || "-"}</td>
@@ -1137,48 +1190,36 @@ useEffect(() => {
                   </tr>
                 </thead>
                 <tbody>
-                  {brands.map((brand, index) => (
-                    <tr key={brand.id}>
-                      <td>{index + 1}</td>
-                      <td>
-                        {editingBrandIndex === index ? (
-                          <input
-                            type="text"
-                            value={editingBrandName}
-                            onChange={(e) => setEditingBrandName(e.target.value)}
-                          />
-                          ) : (
-                          brand.name
-                        )}
-                      </td>
-                      <td>
-                        {editingBrandIndex === index ? (
-                            <>
-                            
-                            <button
-  className="save-btn"
-  onClick={() => handleSaveBrand(brand.id)} // ต้องส่ง id ของ brand
->
-  บันทึก
-</button>
-                              <button onClick={() => setEditingBrandIndex(null)}>ยกเลิก</button>
-                            </>
-                          ) : (
-                          <>
-                            <button onClick={() => handleEditBrand(index)}>แก้ไข</button>
-                            <button
-  className="delete-btn"
-  onClick={() => handleDeleteBrand(brand.id)} // brand.id ต้องมีค่า
->
-  ลบ
-</button>
-
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                 ))}
-                </tbody>
+    {brands.map((brand, index) => (
+        <tr key={brand.id}>
+            <td>{index + 1}</td>
+            <td>
+                {editingBrandIndex === index ? (
+                    <input
+                        type="text"
+                        value={editingBrandName}
+                        onChange={(e) => setEditingBrandName(e.target.value)}
+                    />
+                ) : (
+                    brand.name
+                )}
+            </td>
+            <td>
+                {editingBrandIndex === index ? (
+                    <>
+                        <button className="save-btn" onClick={() => handleSaveBrand(brand.id)}>บันทึก</button>
+                        <button className="cancel-btn" onClick={() => setEditingBrandIndex(null)}>ยกเลิก</button>
+                    </>
+                ) : (
+                    <>
+                        <button className="edit-btn" onClick={() => handleEditBrand(index)}>แก้ไข</button>
+                        <button className="delete-btn" onClick={() => handleDeleteBrand(brand.id)}>ลบ</button>
+                    </>
+                )}
+            </td>
+        </tr>
+    ))}
+</tbody>
               </table>
             </div>
           </div>
@@ -1312,7 +1353,7 @@ useEffect(() => {
         <div className="form-row">
           <label>รายละเอียด:</label>
           <textarea
-            value={currentEditItem.details}
+            value={currentEditItem.details || ""}
             onChange={(e) =>
               setCurrentEditItem({ ...currentEditItem, details: e.target.value })
             }

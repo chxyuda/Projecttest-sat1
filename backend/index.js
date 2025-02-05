@@ -398,49 +398,52 @@ app.get('/api/products', (req, res) => {
 
 //เพิ่มข้อมูลใหม่
 app.post("/api/products", (req, res) => {
-  console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body); // ✅ Debugging
+  console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body);
 
   const {
-    material, // ชื่อสินค้า
-    serial_number = "-", // ค่าเริ่มต้นหากไม่ได้ส่งมา
-    category, // ประเภท
-    equipment, // อุปกรณ์
-    brand, // ยี่ห้อ
-    inventory_number, // จำนวน
-    details = "-", // รายละเอียด
-    equipment_number = "-" // หมายเลขครุภัณฑ์
-  } = req.body;
+    name,  // ❌ name นี้ใช้ผิด ควรใช้ equipment
+    category,  
+    brand,  
+    inventory_number,
+    serial_number = "-",
+    details = "-",
+    equipment_number = "-",
+    equipment // ✅ ต้องใช้ค่าจาก req.body.equipment
+} = req.body;
 
-  // ตรวจสอบว่าข้อมูลสำคัญครบถ้วนหรือไม่
-  if (!material || !category || !equipment || !brand || !inventory_number) {
-    console.error("❌ ข้อมูลไม่ครบ:", { material, category, equipment, brand, inventory_number });
-    return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" });
-  }
+const model = name; // ✅ model ใช้ค่าจาก name ถูกต้อง (CC11111)
+const category_name = category;
+const brand_name = brand;
+const product_name = equipment; // ✅ name ควรเป็นค่า equipment (หมึกพิมพ์)
 
-  // ตรวจสอบว่า inventory_number เป็นตัวเลขที่มากกว่า 0
-  if (isNaN(inventory_number) || inventory_number <= 0) {
-    console.error("❌ จำนวนสินค้าผิดพลาด:", inventory_number);
-    return res.status(400).json({ success: false, message: "จำนวนสินค้าต้องเป็นตัวเลขที่มากกว่า 0" });
+
+
+
+  // ตรวจสอบว่าข้อมูลครบถ้วน
+  if (!model || !category_name || !name || !brand_name || !inventory_number) {
+      console.error("❌ ข้อมูลไม่ครบ:", { model, category_name, name, brand_name, inventory_number });
+      return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" });
   }
 
   const query = `
-    INSERT INTO products (material, serial_number, category, equipment, brand, inventory_number, details, equipment_number)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+    INSERT INTO products (category_name, name, brand_name, model, serial_number, inventory_number, status, details, borrowed_number, equipment_number)
+    VALUES (?, ?, ?, ?, ?, ?, "In Stock", ?, 0, ?)
+`;
 
-  db.query(
+db.query(
     query,
-    [material, serial_number, category, equipment, brand, inventory_number, details, equipment_number],
-    (err) => {
-      if (err) {
-        console.error("❌ Database error:", err);
-        return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
-      }
-      console.log("✅ เพิ่มข้อมูลสำเร็จ:", { material, category, equipment, brand, inventory_number });
-      res.status(201).json({ success: true, message: "เพิ่มข้อมูลสำเร็จ" });
+    [category_name, product_name, brand_name, model, serial_number, inventory_number, details, equipment_number],  // ✅ ใช้ product_name แทน name
+    (err, result) => {
+        if (err) {
+            console.error("❌ Database error:", err);
+            return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+        }
+        console.log("✅ เพิ่มข้อมูลสำเร็จ:", { model, category_name, product_name, brand_name, inventory_number });
+        res.status(201).json({ success: true, id: result.insertId });
     }
-  );
+);
 });
+
 
 // อัปเดตข้อมูล
 app.put('/api/products/:id', (req, res) => {
@@ -457,7 +460,7 @@ app.put('/api/products/:id', (req, res) => {
       equipment_number = COALESCE(?, equipment_number),
       serial_number = COALESCE(?, serial_number),
       inventory_number = COALESCE(?, inventory_number),
-      details = COALESCE(?, details)
+      details = ?  -- ✅ อัปเดตตรงๆ โดยไม่ใช้ COALESCE
     WHERE id = ?
   `;
 
@@ -465,13 +468,13 @@ app.put('/api/products/:id', (req, res) => {
     query,
     [
       data.name,
-      data.category,
+      data.category_name,
       data.equipment,
-      data.brand,
+      data.brand_name,
       data.equipment_number,
       data.serial_number,
       data.inventory_number,
-      data.details,
+      data.details,  // ✅ อนุญาตให้บันทึกค่าว่าง
       id,
     ],
     (err, results) => {
@@ -485,6 +488,7 @@ app.put('/api/products/:id', (req, res) => {
     }
   );
 });
+
 
 app.get('/api/options', (req, res) => {
   const query = `
@@ -537,28 +541,31 @@ app.get('/api/filters', (req, res) => {
 });
 
 
-// ลบข้อมูล
-app.post('/api/products/delete', (req, res) => {
-  const { ids } = req.body;
+// ลบข้อมูลสินค้า (Products)
+app.delete("/api/products", (req, res) => {
+  const { ids } = req.body; // รับค่า ids เป็น Array
 
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ success: false, message: "Invalid IDs" });
+      return res.status(400).json({ success: false, message: "❌ กรุณาระบุสินค้าที่ต้องการลบ" });
   }
 
-  const query = `DELETE FROM products WHERE id IN (?)`;
-  db.query(query, [ids], (err, result) => {
-    if (err) {
-      console.error("Error deleting products:", err);
-      res.status(500).json({ success: false, message: "Database error" });
-    } else {
-      res.status(200).json({
-        success: true,
-        message: "ลบข้อมูลสำเร็จ",
-        affectedRows: result.affectedRows,
-      });
-    }
+  console.log("📌 IDs ที่ต้องการลบ:", ids); // ✅ Debug IDs
+
+  const placeholders = ids.map(() => "?").join(","); // ✅ ป้องกัน SQL Injection
+  const query = `DELETE FROM products WHERE id IN (${placeholders})`;
+
+  db.query(query, ids, (err, results) => {
+      if (err) {
+          console.error("❌ Error deleting products:", err);
+          return res.status(500).json({ success: false, message: "❌ เกิดข้อผิดพลาดในการลบข้อมูล" });
+      }
+
+      console.log("✅ ลบข้อมูลสำเร็จ:", results.affectedRows, "รายการ"); // ✅ Debug จำนวนที่ถูกลบ
+      res.status(200).json({ success: true, message: `✅ ลบข้อมูลสำเร็จ ${results.affectedRows} รายการ` });
   });
 });
+
+
 
 // ดึงรายการ categories
 app.get('/api/categories', (req, res) => {
@@ -636,7 +643,7 @@ app.delete('/api/categories/:id', (req, res) => {
 
 // ดึงข้อมูลยี่ห้อทั้งหมด
 app.get('/api/brands', (req, res) => { 
-  const query = 'SELECT DISTINCT name FROM brands';
+  const query = 'SELECT id, name FROM brands'; // ✅ เพิ่ม id
   db.query(query, (err, results) => {
     if (err) {
       console.error('Database error:', err);
@@ -646,7 +653,8 @@ app.get('/api/brands', (req, res) => {
   });
 });
 
-// เพิ่มยี่ห้อใหม่
+
+// เพิ่มยี่ห้อใหม่ 
 app.post('/api/brands', (req, res) => {
   const { name, category = "ทั่วไป" } = req.body; // กำหนดค่า default เป็น "ทั่วไป"
   console.log("Data received from client:", { name, category });
@@ -683,8 +691,8 @@ app.put('/api/brands/:id', (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
 
-  console.log("Received ID:", id); // Log ID
-  console.log("Received Name:", name); // Log Name
+  console.log("📌 Received ID:", id); // ✅ ตรวจสอบค่า ID
+  console.log("📌 Received Name:", name); // ✅ ตรวจสอบชื่อใหม่ที่ได้รับ
 
   if (!id || !name) {
     return res.status(400).json({ success: false, message: "กรุณาระบุ ID และชื่อยี่ห้อ" });
@@ -693,9 +701,11 @@ app.put('/api/brands/:id', (req, res) => {
   const updateQuery = "UPDATE brands SET name = ? WHERE id = ?";
   db.query(updateQuery, [name, id], (err, result) => {
     if (err) {
-      console.error("Error updating brand:", err);
+      console.error("❌ Error updating brand:", err);
       return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการแก้ไขยี่ห้อ" });
     }
+
+    console.log("✅ Rows Affected:", result.affectedRows); // ✅ ตรวจสอบว่ามีการอัปเดตข้อมูลจริงหรือไม่
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "ไม่พบยี่ห้อที่ต้องการแก้ไข" });
@@ -897,6 +907,32 @@ app.delete("/api/users", (req, res) => {
 
       res.status(200).json({ success: true, message: `✅ ลบข้อมูลสำเร็จ ${results.affectedRows} รายการ` });
   });
+});
+
+app.get("/api/profile", async (req, res) => {
+  try {
+      const { username } = req.query; // รับ username ที่ส่งมาจาก React
+
+      if (!username) {
+          return res.status(400).json({ message: "กรุณาระบุ username" });
+      }
+
+      const query = "SELECT id, username, fullName, email, role FROM users WHERE username = ?";
+      db.query(query, [username], (err, results) => {
+          if (err) {
+              console.error("❌ Database error:", err);
+              return res.status(500).json({ message: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์" });
+          }
+
+          if (results.length === 0) {
+              return res.status(404).json({ message: "ไม่พบข้อมูลผู้ใช้" });
+          }
+
+          res.json(results[0]); // ส่งข้อมูลผู้ใช้กลับไปที่ React
+      });
+  } catch (error) {
+      res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์" });
+  }
 });
 
 
