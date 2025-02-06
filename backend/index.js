@@ -909,15 +909,31 @@ app.delete("/api/users", (req, res) => {
   });
 });
 
+//ดึงข้อมูล
 app.get("/api/profile", async (req, res) => {
   try {
-      const { username } = req.query; // รับ username ที่ส่งมาจาก React
+      const { username } = req.query; // รับ username จาก React
 
       if (!username) {
           return res.status(400).json({ message: "กรุณาระบุ username" });
       }
 
-      const query = "SELECT id, username, fullName, email, role FROM users WHERE username = ?";
+      // ✅ เพิ่มฟิลด์ให้ครบทุกข้อมูลที่ต้องการ
+      const query = `
+        SELECT 
+          u.id, 
+          u.fullName,
+          u.username, 
+          u.password, 
+          u.phone, 
+          u.email, 
+          u.department_name, 
+          u.section_name, 
+          u.task_name, 
+          u.image 
+        FROM users u
+        WHERE u.username = ?`;
+
       db.query(query, [username], (err, results) => {
           if (err) {
               console.error("❌ Database error:", err);
@@ -928,10 +944,48 @@ app.get("/api/profile", async (req, res) => {
               return res.status(404).json({ message: "ไม่พบข้อมูลผู้ใช้" });
           }
 
-          res.json(results[0]); // ส่งข้อมูลผู้ใช้กลับไปที่ React
+          res.json(results[0]); // ✅ ส่งข้อมูลกลับไปที่ React
       });
   } catch (error) {
+      console.error("❌ Server error:", error);
       res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์" });
+  }
+});
+
+//อัพเดต
+app.post("/api/update-profile", upload.single("image"), (req, res) => {
+  const { username, fullName, phone, email, department_name, section_name, task_name } = req.body;
+  let imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+  const query = `
+    UPDATE users 
+    SET fullName=?, phone=?, email=?, department_name=?, section_name=?, task_name=?, image=IFNULL(?, image) 
+    WHERE username=?`;
+
+  db.query(query, [fullName, phone, email, department_name, section_name, task_name, imagePath, username], (err) => {
+    if (err) return res.status(500).json({ message: "เกิดข้อผิดพลาดในการอัปเดต" });
+    res.json({ message: "อัปเดตสำเร็จ!" });
+  });
+});
+
+app.post("/api/upload-profile", upload.single("image"), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: "ไม่พบไฟล์ที่อัปโหลด" });
+
+  const imageUrl = `http://localhost:5001/uploads/${req.file.filename}`;
+  res.json({ success: true, imageUrl });
+});
+
+app.put("/api/update-profile", async (req, res) => {
+  try {
+    const { id, fullName, phone, email, image } = req.body;
+
+    const query = `UPDATE users SET fullName = ?, phone = ?, email = ?, image = ? WHERE id = ?`;
+    db.query(query, [fullName, phone, email, image, id], (err, results) => {
+      if (err) return res.status(500).json({ message: "เกิดข้อผิดพลาด" });
+      res.json({ success: true, message: "อัปเดตสำเร็จ!" });
+    });
+  } catch (error) {
+    res.status(500).json({ message: "เกิดข้อผิดพลาด" });
   }
 });
 

@@ -20,28 +20,32 @@ const ITDashboard = () => {
   const [currentDate, setCurrentDate] = useState("");
   const [showProfile, setShowProfile] = useState(false);
   const [profileData, setProfileData] = useState(null);
+  const [userData, setUserData] = useState(null); // ✅ เพิ่ม useState
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   // ✅ ดึง username จาก LocalStorage
   useEffect(() => {
-    const username = localStorage.getItem("username");
-    if (!username) {
-      alert("❌ ไม่พบ username กรุณาเข้าสู่ระบบใหม่");
-      navigate("/login");
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    console.log("🛠 ค่าที่โหลดจาก LocalStorage:", storedUser);
+  
+    if (!storedUser || !storedUser.username) {
+      alert("⚠️ ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่");
+      window.location.href = "/login"; // รีไดเรคไป login ถ้าไม่มี user
       return;
     }
-
-    // ✅ โหลดข้อมูลผู้ใช้
+  
     axios
-      .get(`http://localhost:5001/api/profile?username=${username}`)
+      .get(`http://localhost:5001/api/profile?username=${storedUser.username}`)
       .then((response) => {
-        setProfileData(response.data);
+        console.log("✅ ข้อมูลจาก API:", response.data);
+        setUserData(response.data);
+        setProfileData(response.data); // ✅ เพิ่มให้ profileData ได้รับค่าจาก API
         setLoading(false);
       })
       .catch((error) => {
-        console.error("❌ Error fetching profile:", error);
-        alert("❌ ไม่สามารถโหลดข้อมูลโปรไฟล์");
+        console.error("❌ ดึงข้อมูลผู้ใช้ล้มเหลว:", error);
+        alert("❌ ไม่สามารถโหลดข้อมูลได้");
         setLoading(false);
       });
   }, []);
@@ -69,10 +73,26 @@ const ITDashboard = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("username");
-    navigate("/login");
+    const confirmLogout = window.confirm("คุณต้องการออกจากระบบจริงหรือไม่?");
+    if (confirmLogout) {
+      console.log("🔴 ออกจากระบบ...");
+  
+      // ✅ เคลียร์ข้อมูล LocalStorage
+      localStorage.removeItem("user"); 
+  
+      // ✅ แสดงข้อความก่อนเปลี่ยนหน้า
+      alert("คุณได้ออกจากระบบแล้ว!");
+  
+      // ✅ ใช้ setTimeout เพื่อให้ LocalStorage เคลียร์ก่อน แล้วค่อย navigate
+      setTimeout(() => {
+        window.location.href = "/"; // ✅ กลับไปที่หน้า Login (ซึ่งกำหนดอยู่ที่ `/`)
+      }, 500);
+    } else {
+      console.log("✅ ยกเลิกการออกจากระบบ");
+    }
   };
-
+  
+  
   return (
     <div className="it-dashboard">
       <Header currentTime={currentTime} currentDate={currentDate} />
@@ -90,18 +110,24 @@ const ITDashboard = () => {
           <span onClick={() => navigate("/borrow-return")}>
             <FontAwesomeIcon icon={faFileAlt} /> ยืม & คืน
           </span>
+           <span onClick={() => navigate("/Request")}>
+            <FontAwesomeIcon icon={faFileAlt} /> คำขอเบิก
+          </span>
           <span onClick={() => navigate("/dashboard")}>
             <FontAwesomeIcon icon={faTachometerAlt} /> Dashboard
           </span>
           <span onClick={handleLogout} className="logout">
-            ออกจากระบบ
-          </span>
+  <FontAwesomeIcon icon={faSignOutAlt} /> ออกจากระบบ
+</span>
+
+
 
           {/* ✅ คลิกที่โปรไฟล์แล้วเปิด Modal */}
           <div className="it-info" onClick={() => setShowProfile(true)}>
-            <img src={profileData?.profileImage || userIcon} alt="User Icon" className="user-icon" />
-            <span>{profileData?.agency || "ไม่ระบุฝ่าย/สำนัก"}</span> {/* ✅ ใช้ agency */}
-          </div>
+  <img src={userData?.image || userIcon} alt="User Icon" className="user-icon" />
+  <span>{userData?.department_name || "ไม่ระบุฝ่าย/สำนัก"}</span>
+</div>                            
+
         </div>
       </div>
 

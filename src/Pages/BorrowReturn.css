@@ -1,0 +1,147 @@
+/* ✅ กรอบขาวรอบปุ่มทั้งหมด */
+.borrow-return-container {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 100%;
+  margin: 20px auto;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ✅ ปรับหัวข้อให้มีไอคอน */
+.borrow-return-title {
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+
+/* ✅ ปรับปุ่ม */
+.borrow-return-buttons-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.borrow-return-buttons-container button {
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    padding: 10px 15px;  /* ปรับขนาด padding */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    min-width: 150px; /* กำหนดขนาดขั้นต่ำให้ปุ่ม */
+    text-align: center;
+    white-space: nowrap; /* ป้องกันการขึ้นบรรทัดใหม่ */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* เพิ่มระยะห่างระหว่างไอคอนกับตัวหนังสือ */
+  }
+  
+
+.borrow-return-buttons-container button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* ✅ ปรับขนาดของปุ่มเพิ่มให้เท่ากัน */
+  .add-btn {
+    background-color: #28a745;
+    color: white;
+    font-size: 16px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    min-width: 150px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  
+  .add-btn:hover {
+    background-color: #218838;
+  }
+
+/* ✅ Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ✅ Modal Content */
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 400px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h2 {
+  text-align: center;
+}
+
+.modal-content label {
+  font-weight: bold;
+  display: block;
+  margin-top: 10px;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+/* ✅ ปุ่มใน Modal */
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.save-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.save-btn:hover {
+  background-color: #0056b3;
+}
+
+.cancel-btn {
+  background-color: #dc3545;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.cancel-btn:hover {
+  background-color: #c82333;
+}

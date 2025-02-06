@@ -740,7 +740,6 @@ return (
     </tr>
   )}
 </tbody>
-
               </table>
           </div>
         {showModal && selectedUser && (
