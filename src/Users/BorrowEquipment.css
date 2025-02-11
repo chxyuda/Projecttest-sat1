@@ -1,0 +1,83 @@
+.content {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* ✅ จัดให้อยู่บน */
+    min-height: calc(100vh - 150px); /* ✅ ป้องกัน Scroll ไม่จำเป็น */
+    padding-top: 100px; /* ✅ ขยับลงเพื่อไม่ให้ Navbar ทับ */
+}
+
+/* ✅ ปรับขนาดฟอร์มให้ใหญ่ขึ้น */
+.form-container {
+    margin: 20px auto; /* ระยะห่างจากด้านบน */
+    padding: 40px; /* ✅ เพิ่ม Padding เพื่อให้ดูดีขึ้น */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 70%; /* ✅ ใช้เปอร์เซ็นต์แทนค่า fixed */
+    width: 70%;
+    display: flex;
+    flex-wrap: wrap; /* ✅ ให้คอลัมน์ห่อขึ้นบรรทัดใหม่ */
+    gap: 10px; /* ✅ เพิ่มช่องว่างระหว่างคอลัมน์ */
+    justify-content: space-between;
+}
+
+/* ✅ ปรับช่องให้แสดงเป็น 2 คอลัมน์ */
+.form-group {
+    flex: 1 1 calc(50% - 15px); /* ✅ ทำให้แต่ละช่องมีขนาด 50% */
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+/* ✅ ปรับระยะห่างของหัวข้อ */
+/* ✅ หัวข้อให้อยู่ตรงกลาง */
+h2 {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* ✅ ช่อง "ชื่อผู้ยืม" ให้เต็มความกว้าง */
+.full-width {
+    width: 100%;
+}
+
+/* ✅ ป้องกันปัญหาขนาดเล็กไป */
+@media (max-width: 768px) {
+    .form-group {
+        flex: 1 1 100%; /* ✅ เมื่อจอเล็กลง จะให้ฟอร์มเป็นคอลัมน์เดียว */
+    }
+}
+
+/* ✅ ปรับช่องกรอกข้อมูล */
+input,
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* ✅ ปรับปุ่มให้ดูดีขึ้น */
+.buttons {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+button.submit-button {
+    width: 220px;
+    background-color: #007bff;
+    color: white;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button.submit-button:hover {
+    background-color: #0056b3;
+}

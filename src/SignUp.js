@@ -90,48 +90,62 @@ const SignUp = () => {
     // ✅ อัปโหลดไฟล์รูปภาพ
     const handleImageChange = (e) => {
         const file = e.target.files[0];
-        setFormData(prev => ({ ...prev, image: file })); // ✅ อัปเดตรูป
-
         if (file) {
+            setImage(file); // ✅ บันทึกไฟล์ใน state
+            setFormData(prev => ({ ...prev, image: file })); // ✅ อัปเดต `formData`
+            
             const reader = new FileReader();
             reader.onloadend = () => {
-                setPreviewImage(reader.result);
+                setPreviewImage(reader.result); // ✅ แสดง preview แต่ไม่ส่งไป backend
             };
             reader.readAsDataURL(file);
         }
     };
-
+    const validateForm = () => {
+        if (!formData.username || !formData.password || !formData.confirmPassword || !formData.fullName || !formData.email || !formData.phone || !formData.department_id || !formData.section_id || !formData.task_id) {
+            alert("❌ กรุณากรอกข้อมูลให้ครบทุกช่อง!");
+            return false;
+        }
+        if (!passwordMatch) {
+            alert("❌ รหัสผ่านไม่ตรงกัน!");
+            return false;
+        }
+        return true;
+    };
+        
+    
     // ✅ Handle form submit
      // ✅ ส่งข้อมูลไป Backend
      const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!passwordMatch) {
-            alert("❌ รหัสผ่านไม่ตรงกัน!");
+    
+        if (!validateForm()) {
             return;
         }
-
+    
         const selectedDepartment = departments.find(d => d.id == formData.department_id);
         const selectedSection = sections.find(s => s.id == formData.section_id);
         const selectedTask = tasks.find(t => t.id == formData.task_id);
-
-        const userData = {
-            username: formData.username,
-            password: formData.password,
-            fullName: formData.fullName,
-            email: formData.email,
-            phone: formData.phone,
-            department_name: selectedDepartment ? selectedDepartment.name : "", 
-            section_name: selectedSection ? selectedSection.name : "",
-            task_name: selectedTask ? selectedTask.name : "",
-            image: formData.image || null // ✅ ถ้าไม่มีรูป ให้ส่งเป็น `null`
-        };
-
+    
+        const data = new FormData();
+        data.append("username", formData.username);
+        data.append("password", formData.password);
+        data.append("fullName", formData.fullName);
+        data.append("email", formData.email);
+        data.append("phone", formData.phone);
+        data.append("department_name", selectedDepartment ? selectedDepartment.name : "");
+        data.append("section_name", selectedSection ? selectedSection.name : "");
+        data.append("task_name", selectedTask ? selectedTask.name : "");
+    
+        if (image) { // ✅ ใช้ state `image` เพื่อป้องกันปัญหา
+            data.append("image", image);
+        }
+    
         try {
-            const response = await axios.post('http://localhost:5001/api/signup', userData, {
+            const response = await axios.post('http://localhost:5001/api/signup', data, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
-
+    
             if (response.data.success) {
                 alert('✅ สมัครสมาชิกสำเร็จ!');
                 navigate('/');
@@ -142,7 +156,7 @@ const SignUp = () => {
             console.error("❌ Signup Error:", error.response?.data?.message);
             alert(error.response?.data?.message || '❌ เกิดข้อผิดพลาด');
         }
-    };
+    };    
     
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -157,7 +171,11 @@ const SignUp = () => {
         e.preventDefault();
         setDragging(false);
         const file = e.dataTransfer.files[0];
+    
         if (file) {
+            setImage(file); // ✅ บันทึกไฟล์
+            setFormData(prev => ({ ...prev, image: file })); // ✅ อัปเดต `formData`
+    
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviewImage(reader.result);
@@ -165,6 +183,7 @@ const SignUp = () => {
             reader.readAsDataURL(file);
         }
     };
+    
 
     return (
         <div className="signup-container">

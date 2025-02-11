@@ -1,0 +1,93 @@
+/* ✅ ปรับแต่ง Navbar */
+.navbar-approver {
+    position: fixed;
+    top: 110px; /* ระยะจากด้านบน */
+    left: 0;
+    width: 100%;
+    background-color: #eef0f7; /* สีพื้นหลัง */
+    display: flex;
+    justify-content: space-between; /* กระจายพื้นที่ซ้าย-ขวา */
+    align-items: center;
+    padding: 10px 20px; /* ระยะห่างด้านใน */
+    height: 50px; /* ความสูงของ Navbar */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+    z-index: 1000;
+  }
+  
+  .navbar {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .navbar span {
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    transition: background 0.3s;
+  }
+  
+  .navbar span:hover {
+    background: #f0f0f0;
+  }
+  
+  .logout {
+    color: red;
+    font-weight: bold;
+  }
+  
+  /* ✅ ปรับแต่งโปรไฟล์ Approver */
+  .profile-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  
+  .profile-card {
+    background: white;
+    top: 110px;
+    padding: 70px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  .dashboard-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  .user-profile-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+  
+  .user-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #0056b3;
+  }
+  
+  .user-email, .user-department {
+    font-size: 16px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+  }
+  
+  /* ✅ ปรับแต่งแสดงผลไอคอน */
+  .user-email svg, .user-department svg {
+    color: #666;
+  }
+  

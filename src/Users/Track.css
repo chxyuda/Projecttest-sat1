@@ -1,0 +1,58 @@
+.content-track {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 150px);
+    padding-top: 100px;
+}
+
+.box-container-track {
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 100%;
+}
+
+.date-time {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.card-container-track {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.card-track {
+    display: block;
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+.card-issue-track {
+    background: #ff9800;
+}
+
+.card-issue-track:hover {
+    background: #e68900;
+}
+
+.card-borrow-track {
+    background: #4caf50;
+}
+
+.card-borrow-track:hover {
+    background: #3c8f40;
+}

@@ -96,36 +96,36 @@ router.post("/login", async (req, res) => {
       const user = results[0];
       console.log("✅ User Found:", user); // Debug
 
-      // ✅ เช็คว่ารหัสผ่านตรงกับฐานข้อมูลหรือไม่ (เปลี่ยนจาก bcrypt เป็นการเปรียบเทียบปกติ)
+      // ✅ ตรวจสอบรหัสผ่าน (ต้องตรงกับฐานข้อมูล)
       if (password !== user.password) {
           console.log("❌ Password mismatch");
           return res.status(401).json({ success: false, message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
       }
 
-      // ✅ เช็คว่าได้รับการอนุมัติหรือยัง
-      if (user.status.trim().toLowerCase() !== "approve") {
+      // ✅ ตรวจสอบสถานะของบัญชี
+      if (user.status.trim().toLowerCase() !== "approved") {
           console.log("❌ User not approved");
           return res.status(403).json({ success: false, message: "บัญชีของคุณยังไม่ได้รับการอนุมัติจาก IT" });
       }
 
-      // ✅ เช็คว่าเป็นเจ้าหน้าที่ IT หรือไม่
-      if (user.role.trim().toLowerCase() !== "it") {
-          console.log("❌ User is not IT Staff");
-          return res.status(403).json({ success: false, message: "คุณไม่มีสิทธิ์เข้าถึงระบบ IT" });
+     // ✅ อนุญาตให้ **IT, User และ Approver** เข้าสู่ระบบได้
+if (user.role.trim().toLowerCase() === "it" || user.role.trim().toLowerCase() === "user" || user.role.trim().toLowerCase() === "approver") {
+  console.log("✅ User Login Successful:", user.role);
+  return res.status(200).json({
+      success: true,
+      message: "เข้าสู่ระบบสำเร็จ",
+      user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
       }
-
-      res.status(200).json({
-          success: true,
-          message: "เข้าสู่ระบบสำเร็จ",
-          user: {
-              id: user.id,
-              username: user.username,
-              role: user.role,
-          }
-      });
+  });
+}else {
+          console.log("❌ Unauthorized Role:", user.role);
+          return res.status(403).json({ success: false, message: "คุณไม่มีสิทธิ์เข้าถึงระบบ" });
+      }
   });
 });
-
 
 // API: ดึงข้อมูลบุคลากร
 app.get("/api/staff-info", (req, res) => {

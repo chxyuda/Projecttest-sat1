@@ -1,0 +1,90 @@
+/* ✅ ปรับตำแหน่งตาราง */
+.table-container-srq {
+    margin: 20px auto;
+    max-width: 90%;
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ✅ ปรับปรุงตาราง */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background: #007bff;
+    color: white;
+}
+
+/* ✅ ปรับสีสถานะ */
+.status-pending {
+    color: orange;
+    font-weight: bold;
+}
+
+.status-approved {
+    color: green;
+    font-weight: bold;
+}
+
+.status-returned {
+    color: red;
+    font-weight: bold;
+}
+
+/* ✅ เพิ่มไอคอนให้ใหญ่ขึ้น */
+.status-icon {
+    margin-right: 5px;
+    font-size: 16px;
+}
+
+/* ✅ ปุ่มย้อนกลับ */
+.back-button-srq a {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.back-button-srq a:hover {
+    background: #0056b3;
+}
+
+/* ✅ ปรับ Pagination */
+.pagination-srq {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.pagination-srq button {
+    background: #ddd;
+    border: none;
+    padding: 8px 12px;
+    margin: 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.pagination-srq button.active {
+    background: #007bff;
+    color: white;
+}
+
+.pagination-srq button:hover {
+    background: #0056b3;
+    color: white;
+}

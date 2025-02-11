@@ -32,7 +32,7 @@ const Login = () => {
             // ✅ เช็ค role แล้ว navigate ไปหน้าเหมาะสม
             if (user.role === "IT") navigate("/it-dashboard");
             else if (user.role === "Approver") navigate("/approver-dashboard");
-            else if (user.role === "User") navigate("/user-dashboard");
+            else if (user.role === "User") navigate("/dashboardApprover");
             else alert("⚠️ บทบาทของคุณไม่ถูกต้อง");
         } else {
             alert("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");

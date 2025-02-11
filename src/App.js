@@ -5,7 +5,7 @@ import SignUp from "./SignUp";
 import Header from "./Header";
 import SuccessModal from "./SuccessModal";
 import ForgotPassword from "./Pages/ForgotPassword";
-import VerifyCode from "./Pages/VerifyCode"; // สร้างไฟล์นี้ใหม่
+import VerifyCode from "./Pages/VerifyCode";
 import SetNewPassword from "./Pages/SetNewPassword";
 import ITDashboard from "./Pages/ITDashboard";
 import Inventory from "./Pages/Inventory";
@@ -14,8 +14,19 @@ import Personnel from "./Pages/Personnel";
 import BorrowReturn from "./Pages/BorrowReturn";
 import Request from "./Pages/Request";
 import Dashboard from "./Pages/Dashboard";
+import UserDashboard from "./Users/UserDashboard.js";
 import StaffProfile from "./Pages/StaffProfile";
 import ProfileModal from "./Pages/ProfileModal";
+import Navbar from "./Users/Navbar.js";
+import Borrow from "./Users/BorrowEquipment.js";
+import RequestForm from "./Users/RequestForm.js";
+import RequestStatus from "./Users/RequestStatus.js";
+import Track from "./Users/Track.js";
+import BorrowStatus from "./Users/BorrowStatus.js";
+import RequestHistory from "./Users/RequestHistory.js";
+import WithdrawalHistory from "./Users/WithdrawalHistory.js";
+import DashboardApprover from "./Approver/DashboardApprover.js";
+
 
 function App() {
   const [currentTime, setCurrentTime] = useState("");
@@ -24,11 +35,8 @@ function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
-
-      // อัปเดตเวลา
       setCurrentTime(now.toLocaleTimeString("th-TH", { hour12: false }));
 
-      // แปลงวันที่
       const dayNames = [
         "วันอาทิตย์",
         "วันจันทร์",
@@ -56,7 +64,7 @@ function App() {
       const dayName = dayNames[now.getDay()];
       const day = now.getDate();
       const month = monthNames[now.getMonth()];
-      const year = now.getFullYear() + 543; // แปลงเป็น พ.ศ.
+      const year = now.getFullYear() + 543;
 
       setCurrentDate(`${dayName}ที่ ${day} ${month} ${year}`);
     }, 1000);
@@ -83,8 +91,19 @@ function App() {
           <Route path="/borrow-return" element={<BorrowReturn />} />
           <Route path="/request" element={<Request />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/staff-profile" element={<StaffProfile />} />
           <Route path="/profileModal/:id" element={<ProfileModal />} />
+          <Route path="/navbar" element={<Navbar />} />
+          <Route path="/borrow" element={<Borrow />} />
+          <Route path="/requestForm" element={<RequestForm />} />
+          <Route path="/requestStatus" element={<RequestStatus />} /> {/* ✅ เปลี่ยน path ไม่ให้ชนกัน */}
+          <Route path="/track" element={<Track />} />
+          <Route path="/borrowStatus" element={<BorrowStatus />} /> {/* ✅ ใช้ตัวอักษรใหญ่เหมือน component */}
+          <Route path="/requesthistory" element={<RequestHistory /> } />
+          <Route path="/withdrawalHistory" element={<WithdrawalHistory />} />
+          <Route path="/approver-dashboard" element={<DashboardApprover />} />
+          
         </Routes>
       </div>
     </Router>

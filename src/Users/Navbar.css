@@ -1,0 +1,70 @@
+/* ✅ ปรับ Navbar ให้อยู่เต็มความกว้าง */
+.navbar-container {
+  position: fixed;
+  top: 100px; /* ระยะจากด้านบน */
+  left: 0;
+  width: 100%;
+  background-color: #eef0f7; /* สีพื้นหลัง */
+  display: flex;
+  justify-content: space-between; /* กระจายพื้นที่ซ้าย-ขวา */
+  align-items: center;
+  padding: 10px 20px; /* ระยะห่างด้านใน */
+  height: 50px; /* ความสูงของ Navbar */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+  z-index: 1000;
+}
+
+/* ✅ Navbar อยู่ตรงกลาง */
+.nav {
+    display: flex;
+    justify-content: center; /* ✅ ปรับให้ปุ่มสมดุล */
+    align-items: center;
+    flex-grow: 1;
+    gap: 20px; /* ✅ ปรับระยะห่าง */
+}
+
+/* ✅ ปรับ Link ใน Navbar */
+.nav a {
+    text-decoration: none;
+    color: #333;
+    padding: 10px 18px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: color 0.3s ease-in-out;
+}
+
+.nav a:hover {
+    color: #007bff;
+}
+
+/* ✅ ปรับ Logout ให้สมดุล */
+.logout {
+    color: red;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 16px;
+    padding: 10px 18px;
+}
+
+.logout:hover {
+    text-decoration: underline;
+}
+
+/* ✅ ปรับตำแหน่งผู้ใช้ */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.user-icon {
+    font-size: 1.3rem;
+    color: #333;
+}
+
+.user-info:hover {
+    text-decoration: underline;
+}

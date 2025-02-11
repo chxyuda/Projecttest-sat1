@@ -1,0 +1,82 @@
+.content-brs {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: calc(100vh - 150px);
+    padding-top: 100px;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.date-time {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.table-container-brs {
+    width: 80%;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.status-pending-brs {
+    background: #ffcc00;
+    color: #333;
+}
+
+.status-approved-brs {
+    background: #4caf50;
+    color: white;
+}
+
+.status-returned-brs {
+    background: #2196f3;
+    color: white;
+}
+
+.pagination-brs {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.back-button-brs {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.back-button-brs a {
+    color: white;
+    background: #007bff;
+    padding: 10px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.back-button-brs a:hover {
+    background: #0056b3;
+}
