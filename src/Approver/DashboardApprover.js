@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import Header from "../Header";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
-import userIcon from '../assets/icon1.png';
+import axios from "axios";
+import userIcon from "../assets/icon1.png";
+import ProfileModal from "../Pages/ProfileModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faWarehouse,
@@ -10,15 +11,16 @@ import {
   faUsers,
   faFileAlt,
   faTachometerAlt,
-  faSignOutAlt
+  faSignOutAlt,
 } from "@fortawesome/free-solid-svg-icons";
-import './DashboardApprover.css';
+import "./DashboardApprover.css";
 
 const DashboardApprover = () => {
-  const [currentTime, setCurrentTime] = useState('');
-  const [currentDate, setCurrentDate] = useState('');
+  const [currentTime, setCurrentTime] = useState("");
+  const [currentDate, setCurrentDate] = useState("");
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,8 +31,9 @@ const DashboardApprover = () => {
       return;
     }
 
-    axios.get(`http://localhost:5001/api/profile?username=${storedUser.username}`)
-      .then(response => {
+    axios
+      .get(`http://localhost:5001/api/profile?username=${storedUser.username}`)
+      .then((response) => {
         setUserData(response.data);
         setLoading(false);
       })
@@ -44,7 +47,11 @@ const DashboardApprover = () => {
     const interval = setInterval(() => {
       const now = new Date();
       const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
-      const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+      const monthNames = [
+        "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม",
+        "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม",
+        "พฤศจิกายน", "ธันวาคม"
+      ];
       const dayName = dayNames[now.getDay()];
       const day = now.getDate();
       const month = monthNames[now.getMonth()];
@@ -68,29 +75,45 @@ const DashboardApprover = () => {
   return (
     <div className="approver-dashboard">
       <Header currentTime={currentTime} currentDate={currentDate} />
-      <div className="navbar-approver">
+
+      <div className="navbar-approver" style={{ zIndex: 1050 }}>
         <div className="navbar">
-          <span onClick={() => navigate("/")}> <FontAwesomeIcon icon={faWarehouse} /> คลังวัสดุ</span>
-          <span onClick={() => navigate("/")}> <FontAwesomeIcon icon={faCogs} />สถานะการขอเบิก</span>
-          <span onClick={() => navigate("/")}> <FontAwesomeIcon icon={faUsers} /> สถานะการยืม-คืน</span>
-          <span onClick={() => navigate("/")}> <FontAwesomeIcon icon={faFileAlt} /> ประวัติการเบิก-การยืม-คืน</span>
-          <span onClick={() => navigate("/")}> <FontAwesomeIcon icon={faTachometerAlt} /> Dashboard</span>
-          <span onClick={handleLogout} className="logout"> <FontAwesomeIcon icon={faSignOutAlt} /> ออกจากระบบ</span>
-          <div className="approver-info">
-            <img src={userData?.image || userIcon} alt="User Icon" className="user-icon" />
-            <span>{userData?.department_name || "ไม่ระบุฝ่าย/สำนัก"}</span>
+          <span onClick={() => navigate("/inventory-approver")}>
+            <FontAwesomeIcon icon={faWarehouse} /> คลังวัสดุ
+          </span>
+          <span onClick={() => navigate("/received")}>
+            <FontAwesomeIcon icon={faCogs} /> สถานะการขอเบิก
+          </span>
+          <span onClick={() => navigate("/")}>
+            <FontAwesomeIcon icon={faUsers} /> สถานะการยืม-คืน
+          </span>
+          <span onClick={() => navigate("/")}>
+            <FontAwesomeIcon icon={faFileAlt} /> ประวัติการเบิก-การยืม-คืน
+          </span>
+          <span onClick={() => navigate("/")}>
+            <FontAwesomeIcon icon={faTachometerAlt} /> Dashboard
+          </span>
+          <span onClick={handleLogout} className="logout">
+            <FontAwesomeIcon icon={faSignOutAlt} /> ออกจากระบบ
+          </span>
+
+          <div className="approver-info" onClick={() => setShowProfile(true)}>
+            <img src={userData?.image || userIcon} alt="User Icon" />
+            <span>{userData?.department_name || "ไม่ระบุฝ่าย"}</span>
           </div>
         </div>
       </div>
 
-      {/* ✅ เพิ่มข้อมูลผู้ใช้ให้ครบถ้วน */}
-      <div className="profile-card">
-        <h2 className="dashboard-title"> <FontAwesomeIcon icon={faUsers} color="red" /> ผู้อนุมัติ</h2>
-        <img src={userData?.image || userIcon} alt="User Icon" className="user-icon" />
-        <h3 className="user-name">{userData?.fullName || "ไม่ระบุชื่อ"}</h3>
-        <p className="user-email">📧 {userData?.email}</p>
-        <p className="user-department">🏢 ฝ่าย: {userData?.department_name || "ไม่ระบุฝ่าย"}</p>
-      </div>
+
+      {showProfile && (
+        <div className="profile-modal">
+          <ProfileModal
+            onClose={() => setShowProfile(false)}
+            userData={userData}
+            loading={loading}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -954,39 +954,85 @@ app.get("/api/profile", async (req, res) => {
 
 //อัพเดต
 app.post("/api/update-profile", upload.single("image"), (req, res) => {
+  console.log("📌 ข้อมูลที่ได้รับจาก React:", req.body);
+
   const { username, fullName, phone, email, department_name, section_name, task_name } = req.body;
   let imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+  // ✅ ตรวจสอบว่าค่าที่ได้รับไม่เป็น undefined
+  if (!username || !fullName || !phone || !email || !department_name || !section_name || !task_name) {
+    console.error("❌ ข้อมูลไม่ครบ:", req.body);
+    return res.status(400).json({ message: "❌ ข้อมูลไม่ครบ กรุณากรอกให้ครบทุกช่อง" });
+  }
 
   const query = `
     UPDATE users 
     SET fullName=?, phone=?, email=?, department_name=?, section_name=?, task_name=?, image=IFNULL(?, image) 
     WHERE username=?`;
 
-  db.query(query, [fullName, phone, email, department_name, section_name, task_name, imagePath, username], (err) => {
-    if (err) return res.status(500).json({ message: "เกิดข้อผิดพลาดในการอัปเดต" });
-    res.json({ message: "อัปเดตสำเร็จ!" });
+  db.query(query, [fullName, phone, email, department_name, section_name, task_name, imagePath, username], (err, results) => {
+    if (err) {
+      console.error("❌ Error updating profile:", err);
+      return res.status(500).json({ message: "เกิดข้อผิดพลาดในการอัปเดต" });
+    }
+
+    console.log("✅ อัปเดตสำเร็จ! Rows affected:", results.affectedRows);
+
+    if (results.affectedRows > 0) {
+      db.query("SELECT * FROM users WHERE username = ?", [username], (err, updatedResults) => {
+        if (err) {
+          return res.status(500).json({ message: "❌ ไม่สามารถดึงข้อมูลที่อัปเดตได้" });
+        }
+        res.json({ success: true, message: "อัปเดตสำเร็จ!", userData: updatedResults[0] });
+      });
+    } else {
+      res.json({ success: false, message: "❌ ไม่มีการเปลี่ยนแปลงข้อมูล หรือ username ไม่ถูกต้อง" });
+    }
   });
 });
+
+
 
 app.post("/api/upload-profile", upload.single("image"), (req, res) => {
   if (!req.file) return res.status(400).json({ message: "ไม่พบไฟล์ที่อัปโหลด" });
 
   const imageUrl = `http://localhost:5001/uploads/${req.file.filename}`;
+  console.log("📌 รูปอัปโหลดแล้ว:", imageUrl);
   res.json({ success: true, imageUrl });
 });
 
-app.put("/api/update-profile", async (req, res) => {
-  try {
-    const { id, fullName, phone, email, image } = req.body;
 
-    const query = `UPDATE users SET fullName = ?, phone = ?, email = ?, image = ? WHERE id = ?`;
-    db.query(query, [fullName, phone, email, image, id], (err, results) => {
-      if (err) return res.status(500).json({ message: "เกิดข้อผิดพลาด" });
-      res.json({ success: true, message: "อัปเดตสำเร็จ!" });
-    });
-  } catch (error) {
-    res.status(500).json({ message: "เกิดข้อผิดพลาด" });
+app.put("/api/update-profile", (req, res) => {
+  const { id, fullName, phone, email, department_name, section_name, task_name, image } = req.body;
+
+  if (!id) {
+      return res.status(400).json({ success: false, message: "❌ ไม่มี ID ของผู้ใช้" });
   }
+
+  const query = `
+      UPDATE users 
+      SET fullName = ?, phone = ?, email = ?, department_name = ?, section_name = ?, task_name = ?, image = ?
+      WHERE id = ?
+  `;
+
+  db.query(query, [fullName, phone, email, department_name, section_name, task_name, image, id], (err, results) => {
+      if (err) {
+          console.error("❌ Database Update Error:", err);
+          return res.status(500).json({ success: false, message: "❌ เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล" });
+      }
+      
+      if (results.affectedRows === 0) {
+          return res.status(404).json({ success: false, message: "❌ ไม่พบผู้ใช้ที่ต้องการอัปเดต" });
+      }
+
+      // ✅ ส่งข้อมูลที่อัปเดตกลับไปยัง React
+      db.query("SELECT * FROM users WHERE id = ?", [id], (err, updatedResults) => {
+        if (err) {
+          return res.status(500).json({ message: "❌ ไม่สามารถดึงข้อมูลที่อัปเดตได้" });
+        }
+        res.json({ success: true, message: "✅ อัปเดตสำเร็จ!", userData: updatedResults[0] });
+      });
+  });
 });
 
 

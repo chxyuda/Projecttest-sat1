@@ -1,93 +1,140 @@
 /* ✅ ปรับแต่ง Navbar */
 .navbar-approver {
-    position: fixed;
-    top: 110px; /* ระยะจากด้านบน */
-    left: 0;
-    width: 100%;
-    background-color: #eef0f7; /* สีพื้นหลัง */
-    display: flex;
-    justify-content: space-between; /* กระจายพื้นที่ซ้าย-ขวา */
-    align-items: center;
-    padding: 10px 20px; /* ระยะห่างด้านใน */
-    height: 50px; /* ความสูงของ Navbar */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
-    z-index: 1000;
-  }
-  
-  .navbar {
-    display: flex;
-    gap: 20px;
-  }
-  
-  .navbar span {
-    font-size: 16px;
-    color: #333;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px;
-    border-radius: 8px;
-    transition: background 0.3s;
-  }
-  
-  .navbar span:hover {
-    background: #f0f0f0;
-  }
-  
-  .logout {
-    color: red;
-    font-weight: bold;
-  }
-  
-  /* ✅ ปรับแต่งโปรไฟล์ Approver */
-  .profile-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 30px;
-  }
-  
-  .profile-card {
-    background: white;
-    top: 110px;
-    padding: 70px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    max-width: 400px;
-    width: 100%;
-  }
-  
-  .dashboard-title {
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 15px;
-  }
-  
-  .user-profile-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    margin-bottom: 10px;
-  }
-  
-  .user-name {
-    font-size: 20px;
-    font-weight: bold;
-    color: #0056b3;
-  }
-  
-  .user-email, .user-department {
-    font-size: 16px;
-    color: #555;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    justify-content: center;
-  }
-  
-  /* ✅ ปรับแต่งแสดงผลไอคอน */
-  .user-email svg, .user-department svg {
-    color: #666;
-  }
-  
+  position: fixed;
+  top: 110px;
+  left: 0;
+  width: 100%;
+  background-color: #ccdff7;
+  display: flex;
+  justify-content: space-between; /* ✅ จัดให้แต่ละฟังก์ชันกระจายตัว */
+  align-items: center;
+  padding: 12px 25px;
+  height: 55px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1050;
+  border-radius: 8px;
+}
+
+/* ✅ ปรับให้ Navbar เว้นระยะห่างด้านขวา */
+.navbar {
+  display: flex;
+  flex-grow: 1;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* ✅ ปรับไอคอนเมนูให้อยู่ในแนวเดียวกัน */
+.navbar span {
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.navbar span:hover {
+  background: #e3f2fd;
+  transform: scale(1.05);
+}
+
+/* ✅ ปรับแต่งไอคอนให้มีขนาดเท่ากัน */
+.navbar span svg {
+  font-size: 14px; /* ✅ ทำให้ไอคอนมีขนาดเดียวกัน */
+  color: #444;
+}
+
+/* ✅ ปรับตำแหน่งโปรไฟล์และฝ่ายให้มีพื้นที่ */
+.approver-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  max-width: 250px; /* ✅ ป้องกันการล้นขอบ */
+  white-space: nowrap; /* ✅ ป้องกันข้อความขึ้นบรรทัดใหม่ */
+}
+
+/* ✅ ปรับขนาดไอคอนและเว้นระยะ */
+.approver-info img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.approver-info span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* ✅ ให้ข้อความที่ยาวเกินไปตัดออก */
+  max-width: 150px; /* ✅ ป้องกันชื่อฝ่ายยาวเกินขอบ */
+}
+
+/* ✅ ปรับตำแหน่ง Profile Container */
+.profile-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 90px;
+}
+
+/* ✅ ปรับแต่งโปรไฟล์ Approver */
+.profile-card {
+  background: white;
+  padding: 50px;
+  border-radius: 12px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  max-width: 450px;
+  width: 100%;
+}
+
+.dashboard-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #1a237e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ✅ ปรับแต่งให้ชื่อและไอคอนโปรไฟล์ดูดีขึ้น */
+.user-profile-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin-bottom: 15px;
+  border: 3px solid #1a237e;
+}
+
+.user-name {
+  font-size: 22px;
+  font-weight: bold;
+  color: #0056b3;
+  margin-bottom: 5px;
+}
+
+.user-email, .user-department {
+  font-size: 18px;
+  color: #444;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+/* ✅ ปรับแต่งไอคอนให้สมดุลกับข้อความ */
+.user-email svg, .user-department svg {
+  color: #555;
+  font-size: 20px;
+}

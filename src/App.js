@@ -26,7 +26,8 @@ import BorrowStatus from "./Users/BorrowStatus.js";
 import RequestHistory from "./Users/RequestHistory.js";
 import WithdrawalHistory from "./Users/WithdrawalHistory.js";
 import DashboardApprover from "./Approver/DashboardApprover.js";
-
+import InventoryApprover from "./Approver/InventoryApprover.js"
+import Received from "./Approver/Received.js";
 
 function App() {
   const [currentTime, setCurrentTime] = useState("");
@@ -103,7 +104,8 @@ function App() {
           <Route path="/requesthistory" element={<RequestHistory /> } />
           <Route path="/withdrawalHistory" element={<WithdrawalHistory />} />
           <Route path="/approver-dashboard" element={<DashboardApprover />} />
-          
+          <Route path="/inventory-approver" element={<InventoryApprover />} />
+          <Route path="/received" element={<Received />} />
         </Routes>
       </div>
     </Router>
