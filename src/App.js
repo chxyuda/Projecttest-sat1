@@ -17,7 +17,6 @@ import Dashboard from "./Pages/Dashboard";
 import UserDashboard from "./Users/UserDashboard.js";
 import StaffProfile from "./Pages/StaffProfile";
 import ProfileModal from "./Pages/ProfileModal";
-import Navbar from "./Users/Navbar.js";
 import Borrow from "./Users/BorrowEquipment.js";
 import RequestForm from "./Users/RequestForm.js";
 import RequestStatus from "./Users/RequestStatus.js";
@@ -95,7 +94,6 @@ function App() {
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/staff-profile" element={<StaffProfile />} />
           <Route path="/profileModal/:id" element={<ProfileModal />} />
-          <Route path="/navbar" element={<Navbar />} />
           <Route path="/borrow" element={<Borrow />} />
           <Route path="/requestForm" element={<RequestForm />} />
           <Route path="/requestStatus" element={<RequestStatus />} /> {/* ✅ เปลี่ยน path ไม่ให้ชนกัน */}

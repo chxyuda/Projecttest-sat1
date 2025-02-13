@@ -1,83 +1,518 @@
-.content {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start; /* ✅ จัดให้อยู่บน */
-    min-height: calc(100vh - 150px); /* ✅ ป้องกัน Scroll ไม่จำเป็น */
-    padding-top: 100px; /* ✅ ขยับลงเพื่อไม่ให้ Navbar ทับ */
-}
-
-/* ✅ ปรับขนาดฟอร์มให้ใหญ่ขึ้น */
-.form-container {
-    margin: 20px auto; /* ระยะห่างจากด้านบน */
-    padding: 40px; /* ✅ เพิ่ม Padding เพื่อให้ดูดีขึ้น */
+body {
+    font-family: 'Mitr', sans-serif;
+  }
+  
+  .BorrowEqui-container {
+    margin: 15px auto;
+    padding: 20px;
     background-color: #ffffff;
-    border-radius: 12px;
+    border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    max-width: 70%; /* ✅ ใช้เปอร์เซ็นต์แทนค่า fixed */
-    width: 70%;
-    display: flex;
-    flex-wrap: wrap; /* ✅ ให้คอลัมน์ห่อขึ้นบรรทัดใหม่ */
-    gap: 10px; /* ✅ เพิ่มช่องว่างระหว่างคอลัมน์ */
-    justify-content: space-between;
-}
-
-/* ✅ ปรับช่องให้แสดงเป็น 2 คอลัมน์ */
-.form-group {
-    flex: 1 1 calc(50% - 15px); /* ✅ ทำให้แต่ละช่องมีขนาด 50% */
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 15px;
-}
-/* ✅ ปรับระยะห่างของหัวข้อ */
-/* ✅ หัวข้อให้อยู่ตรงกลาง */
-h2 {
+    max-width: 1800px;
     width: 100%;
-    text-align: center;
+    margin-top: 190px;
+  }
+  
+  .BorrowEqui-title {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    gap: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
     margin-bottom: 20px;
-}
-
-/* ✅ ช่อง "ชื่อผู้ยืม" ให้เต็มความกว้าง */
-.full-width {
-    width: 100%;
-}
-
-/* ✅ ป้องกันปัญหาขนาดเล็กไป */
-@media (max-width: 768px) {
-    .form-group {
-        flex: 1 1 100%; /* ✅ เมื่อจอเล็กลง จะให้ฟอร์มเป็นคอลัมน์เดียว */
-    }
-}
-
-/* ✅ ปรับช่องกรอกข้อมูล */
-input,
-select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+  }
+  
+  .BorrowEqui-icon {
+    font-size: 26px;
+    color: #444242;
+  }
+  
+  .BorrowEqui-filter-section {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .BorrowEqui-filter-controls {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .BorrowEqui-filter-controls select,
+  .BorrowEqui-filter-controls button {
+    width: 190px;
+    padding: 10px;
     font-size: 14px;
-}
-
-/* ✅ ปรับปุ่มให้ดูดีขึ้น */
-.buttons {
+    text-align: center;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+  
+  .BorrowEqui-filter-controls button {
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .BorrowEqui-filter-controls button:hover {
+    background-color: #005a9e;
+  }
+  
+  .BorrowEqui-filter-buttons {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .BorrowEqui-table {
     width: 100%;
+    font-family: 'Sriracha', sans-serif;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 16px;
+    text-align: left;
+  }
+  
+  .BorrowEqui-table th,
+  .BorrowEqui-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+  }
+  
+  .BorrowEqui-table th {
+    background-color: #0078d7;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .BorrowEqui-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .BorrowEqui-table tr:hover {
+    background-color: #eaf6ff;
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+  }
+  
+  .BorrowEqui-details-btn {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .BorrowEqui-details-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .BorrowEqui-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
-}
-
-button.submit-button {
-    width: 220px;
-    background-color: #007bff;
-    color: white;
-    padding: 12px;
-    font-size: 16px;
-    border: none;
-    border-radius: 8px;
+    align-items: center;
+    z-index: 9999;
+  }
+  
+  .BorrowEqui-modal-content {
+    background: #ffffff;
+    padding: 20px 30px;
+    border-radius: 10px;
+    max-width: 650px;
+    width: 90%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    animation: slideIn 0.3s ease-in-out;
+    z-index: 10000;
+  }
+  
+  .BorrowEqui-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .BorrowEqui-modal-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .BorrowEqui-close-btn {
+    font-size: 24px;
+    color: #555;
     cursor: pointer;
-    transition: background 0.3s;
-}
+    border: none;
+    background: none;
+  }
+  
+  .BorrowEqui-close-btn:hover {
+    color: red;
+  }
+  
+  .BorrowEqui-modal-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 15px 0;
+    font-size: 14px;
+  }
+  
+  .BorrowEqui-details-section {
+    flex: 1 1 45%;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .BorrowEqui-details-full {
+    flex: 1 1 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background: #e4e7eb;
+    border-radius: 8px;
+  }
+  
+  .BorrowEqui-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .BorrowEqui-pagination button {
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .BorrowEqui-pagination button:hover {
+    background-color: #005a9e;
+  }
+  
+  .BorrowEqui-pagination button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .BorrowEqui-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  
+  .BorrowEqui-history-table th,
+  .BorrowEqui-history-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .BorrowEqui-history-table th {
+    background-color: #0078d7;
+    color: white;
+  }
+  
+  .BorrowEqui-history-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .BorrowEqui-history-table tr:hover {
+    background-color: #eaf6ff;
+  }
 
-button.submit-button:hover {
-    background-color: #0056b3;
-}
+  .BorrowEqui-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 50%; /* ทำให้เป็นวงกลม */
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+  }
+  
+  .BorrowEqui-close-btn:hover {
+    transform: scale(1.2);
+    background-color: darkred;
+  }
+  
+  .BorrowEqui-borrow-btn,
+  .BorrowEqui-loan-btn {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 6px 10px; /* ลด padding ให้ปุ่มเล็กลง */
+    min-width: 30px; /* กำหนดความกว้างขั้นต่ำให้สั้นลง */
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px; /* ลดขนาดตัวอักษร */
+    transition: background-color 0.3s ease;
+  }
+  
+  .BorrowEqui-loan-btn {
+    background-color: #2196f3;
+  }
+  
+  .BorrowEqui-borrow-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .BorrowEqui-loan-btn:hover {
+    background-color: #1976d2;
+  }
+  
+  /* ปรับระยะห่างระหว่างปุ่มให้อยู่ใกล้กันมากขึ้น */
+  .BorrowEqui-action-buttons {
+    display: flex;
+    gap: 4px; /* ลดระยะห่างระหว่างปุ่ม */
+    justify-content: center;
+    align-items: center;
+  }
+  
+  
+  .BorrowEqui-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+    gap: 5px;
+  }
+  
+  .BorrowEqui-pagination button {
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+  }
+  
+  .BorrowEqui-pagination button:hover {
+    background-color: #005a9e;
+  }
+  
+  .BorrowEqui-pagination button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .BorrowEqui-pagination button.active {
+    background-color: #004494;
+    font-weight: bold;
+  }
+
+  /* Borrow Request Form Styles */
+.content-rqf {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .form-container-rqf {
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 100%;
+    font-family: 'Mitr', sans-serif;
+  }
+  
+  .form-container-rqf h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+  }
+  
+  .form-group-rqf {
+    margin-bottom: 15px;
+  }
+  
+  .form-group-rqf label {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #555;
+  }
+  
+  .form-group-rqf input,
+  .form-group-rqf select {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+  
+  .readonly-input {
+    background-color: #f3f3f3;
+    cursor: not-allowed;
+  }
+  
+  .buttons-rqf {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .back-button-rqf,
+  .submit-button-rqf {
+    padding: 10px 20px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+    transition: background-color 0.3s ease;
+  }
+  
+  .back-button-rqf {
+    background-color: #999;
+  }
+  
+  .back-button-rqf:hover {
+    background-color: #777;
+  }
+  
+  .submit-button-rqf {
+    background-color: #4caf50;
+  }
+  
+  .submit-button-rqf:hover {
+    background-color: #45a049;
+  }
+  
+  .submit-button-rqf:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .message {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 14px;
+  }
+  
+  .message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  
+  .message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  
+  .borrow-request-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .borrow-request-modal {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%; /* กำหนดให้กว้าง 90% ของหน้าจอ */
+    max-width: 600px; /* แต่ไม่เกิน 600px */
+    max-height: 90vh; /* สูงไม่เกิน 90% ของความสูงหน้าจอ */
+    overflow-y: auto; /* หากเนื้อหาเยอะ ให้เลื่อนดูได้ */
+    position: relative;
+  }
+  
+  
+  .close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .close-button:hover {
+    background-color: darkred;
+  }
+
+  .BorrowEqui-modal-content {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 600px; /* กำหนดขนาดกว้างสุด */
+    width: 90%; /* ปรับขนาดตามหน้าจอ */
+    max-height: 90vh; /* ไม่ให้สูงเกินจอ */
+    overflow-y: auto; /* เลื่อนดูได้ */
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  
+  @keyframes slideIn {
+    from {
+      transform: translateY(-30px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  

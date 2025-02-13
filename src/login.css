@@ -39,10 +39,11 @@
   text-align: center;
   width: 100%;
   max-width: 400px;
-  margin-top: -100px;
+  margin-top: 50px; /* ปรับตรงนี้ให้ลงมาตามต้องการ */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative; /* เพื่อจัดไอคอนให้อยู่ด้านบน */
 }
+
 
 .login-box:hover {
   transform: translateY(-5px);

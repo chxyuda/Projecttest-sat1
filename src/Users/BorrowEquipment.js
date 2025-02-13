@@ -1,138 +1,520 @@
-import React, { useState } from 'react';
-import Navbar from "./Navbar.js";
-import Header from "../Header.js"; // ✅ เพิ่ม Header
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faWarehouse } from '@fortawesome/free-solid-svg-icons';
+import UserDashboard from "./UserDashboard.js";
 import "./BorrowEquipment.css";
 
+
 const BorrowEquipment = () => {
-    const [formData, setFormData] = useState({
-        borrowerName: '',
-        department: '',
-        phoneExt: '',
-        email: '',
-        typeId: '',
-        equipmentId: '',
-        quantity: '1',
-        note: '',
-        borrowDate: new Date().toISOString().split('T')[0],
-        returnDate: ''
-    });
+    const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [category, setCategory] = useState("all");
+  const [device, setDevice] = useState("all");
+  const [brand, setBrand] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showDetails, setShowDetails] = useState(false); // สำหรับควบคุมการแสดง Modal
+  const [selectedItem, setSelectedItem] = useState(null); // สำหรับเก็บข้อมูลอุปกรณ์ที่เลือก
+  const [showBorrowForm, setShowBorrowForm] = useState(false);
+  const storedUser = JSON.parse(localStorage.getItem('user'));
+  const [requests, setRequests] = useState([]);
+  const [borrowFormData, setBorrowFormData] = useState({
+    borrowerName: '',
+    department: '',
+    phone: '',
+    email: '',
+    material: '',
+    category: '',
+    equipment: '',
+    brand: '',
+    equipmentNumber: '',
+    inventoryNumber: '',
+    remaining: '',
+    quantity: '',
+    note: '',
+    requestDate: new Date().toISOString().split('T')[0],
+  });
+  const [userData, setUserData] = useState({
+    borrowerName: '',
+    department: '',
+    phone: '',
+    email: ''
+  });
+  
+  
 
-    const [selectedEquipment, setSelectedEquipment] = useState({
-        brand: '',
-        availableQuantity: 0
-    });
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+// คำนวณ index สำหรับแบ่งหน้า
+const indexOfLastItem = currentPage * itemsPerPage;
+const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
-        // Simulate equipment selection (replace with actual data later)
-        if (name === 'equipmentId' && value) {
-            setSelectedEquipment({
-                brand: 'Sample Brand',
-                availableQuantity: 10
-            });
-        }
+// เปลี่ยนหน้า
+const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+// ไปหน้าก่อนหน้า
+const goBack = () => {
+  if (currentPage > 1) setCurrentPage(currentPage - 1);
+};
+
+// ไปหน้าถัดไป
+const goNext = () => {
+  if (currentPage < Math.ceil(filteredData.length / itemsPerPage)) {
+    setCurrentPage(currentPage + 1);
+  }
+};
+
+// จำนวนหน้าทั้งหมด
+const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  // Fetch data from the backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const productsResponse = await axios.get("http://localhost:5001/api/products");
+        const categoriesResponse = await axios.get("http://localhost:5001/api/categories");
+        const brandsResponse = await axios.get("http://localhost:5001/api/brands");
+  
+        console.log("Products Response:", productsResponse.data.data);
+        console.log("Categories Response:", categoriesResponse.data.data);
+        console.log("Brands Response:", brandsResponse.data.data);
+  
+        setData(productsResponse.data.data || []);
+        setFilteredData(productsResponse.data.data || []);
+        setCategories(categoriesResponse.data.data || []);
+        setBrands(brandsResponse.data.data || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setData([]);
+        setFilteredData([]);
+        setCategories([]);
+        setBrands([]);
+      }
     };
+    fetchData();
+  }, []);
+  
+  const handleFilter = () => {
+  console.log("Original Data:", data);
+  console.log("Filters:", { category, device, brand });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Form submission logic will be added later
-        console.log('Form submitted:', formData);
+  // ตรวจสอบว่า data มีข้อมูลหรือไม่
+  if (data.length === 0) {
+    console.warn("No data available.");
+    return;
+  }
+
+  const filters = [
+    { key: "category", value: category },
+    { key: "equipment", value: device },
+    { key: "brand", value: brand },
+  ];
+
+  // กรองข้อมูล
+  const filtered = filters.reduce((acc, filter) => {
+    if (filter.value !== "all") {
+      const temp = acc.filter((item) => item[filter.key] && item[filter.key] === filter.value);
+      console.log(`Filtering by ${filter.key} (${filter.value}):`, temp);
+      return temp;
+    }
+    return acc;
+  }, data);
+
+  console.log("Filtered Data:", filtered);
+
+  // แสดงข้อความเมื่อไม่มีข้อมูลที่ตรงกับการกรอง
+  if (filtered.length === 0) {
+    console.warn("No data matched the filters.");
+  }
+
+  setFilteredData(filtered);
+  setCurrentPage(1);
+
+  // เพิ่มประวัติการค้นหา
+  const newSearch = {
+    category: category !== "all" ? category : "ประเภททั้งหมด",
+    device: device !== "all" ? device : "อุปกรณ์ทั้งหมด",
+    brand: brand !== "all" ? brand : "ยี่ห้อทั้งหมด",
+    timestamp: new Date().toLocaleString("th-TH"),
+  };
+  setSearchHistory((prevHistory) => [newSearch, ...prevHistory]);
+};
+
+
+  const handleShowHistory = () => {
+    setShowHistory(true);
+  };
+  
+  const handleCloseHistory = () => {
+    setShowHistory(false);
+  };
+
+  useEffect(() => {
+    console.log("Show History State:", showHistory);
+    console.log("Show Details State:", showDetails);
+  }, [showHistory, showDetails]);
+  
+
+
+  const handleShowDetails = (item) => {
+    setSelectedItem(item);
+    setShowDetails(true);
+  };
+
+  const handleCloseDetails = () => {
+    setShowDetails(false);
+    setSelectedItem(null);
+  };
+  
+  const handleBorrow = (item) => {
+    console.log("ทำรายการเบิก: ", item);
+  };
+  
+  const handleLoan = (item) => {
+    console.log("ทำรายการยืม: ", item);
+  };
+
+  useEffect(() => {
+  const fetchUserProfile = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/profile?username=${storedUser.username}`);
+      setUserData(response.data);
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+    }
+  };
+
+  fetchUserProfile();
+}, []);
+
+  
+const handleShowBorrowForm = (row) => {
+    setBorrowFormData({
+      borrowerName: userData.fullName,
+      department: userData.department_name,
+      phoneExt: userData.phone, // เปลี่ยนจาก phone เป็น phoneExt
+      email: userData.email,
+      material: row.material,
+      category: row.category,
+      equipment: row.equipment,
+      brand: row.brand,
+      remaining: row.remaining,
+      quantity: '',
+      note: '',
+      requestDate: new Date().toISOString().split('T')[0], // แสดงวันที่ปัจจุบัน
+    });
+    setShowBorrowForm(true);
+  };
+  
+  const handleSubmitBorrow = async (e) => {
+    e.preventDefault();
+  
+    const dataToSend = {
+      borrowerName: borrowFormData.borrowerName,
+      department: borrowFormData.department,
+      phone: borrowFormData.phoneExt, // ต้องให้ตรงกับ API
+      email: borrowFormData.email,
+      material: borrowFormData.material,
+      category: borrowFormData.category,
+      equipment: borrowFormData.equipment,
+      brand: borrowFormData.brand,
+      quantity_requested: borrowFormData.quantity, // ให้ตรงกับ column ในฐานข้อมูล
+      note: borrowFormData.note,
+      date_requested: borrowFormData.requestDate, // ให้ตรงกับ column ในฐานข้อมูล
     };
-    
-    return (
-        <div className="borrow-container">
-            <Header />
-            <Navbar />
-            
-            <main className="content">
-    <form className="form-container" onSubmit={handleSubmit}>
-        <h2>รายละเอียดการยืม-คืน วัสดุ</h2>
+  
+    try {
+      const response = await axios.post('http://localhost:5001/api/requests', dataToSend);
+      alert('บันทึกคำขอสำเร็จ');
+      setShowBorrowForm(false);
+    } catch (error) {
+      console.error('เกิดข้อผิดพลาด:', error);
+      alert('เกิดข้อผิดพลาด');
+    }
+  };
+  
+  
+  
+  const handleCloseBorrowForm = () => {
+    setShowBorrowForm(false); // หรือฟังก์ชันที่คุณใช้ซ่อนฟอร์ม
+  };
 
-        {/* ✅ แยก "ชื่อผู้ยืม" ให้อยู่คนเดียวด้านบน */}
-        <div className="form-group">
-            <label htmlFor="borrowerName">ชื่อผู้ยืม:</label>
-            <input type="text" id="borrowerName" name="borrowerName" value={formData.borrowerName} onChange={handleInputChange} required />
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const response = await axios.get('http://localhost:5001/api/requests');
+        setRequests(response.data);
+      } catch (error) {
+        console.error('Error fetching requests:', error);
+      }
+    };
+  
+    fetchRequests();
+  }, []);
+  
+  
+  return (
+    <>
+      <UserDashboard />
+        <div className="BorrowEqui-container">
+          <h1 className="BorrowEqui-title">
+            <FontAwesomeIcon icon={faWarehouse} className="BorrowEqui-icon" />
+            ทำรายการเบิก / ยืม-คืน
+          </h1>
+          <div className="filter-section">
+            <div className="filter-controls">
+              <select onChange={(e) => setCategory(e.target.value)}>
+                  <option value="all">ประเภททั้งหมด</option>
+                  {categories.map((cat, index) => (
+                    <option key={index} value={cat.category_name}>
+                      {cat.category_name}
+                    </option>
+                  ))}
+                </select>
+                <select onChange={(e) => setDevice(e.target.value)}>
+                  <option value="all">อุปกรณ์ทั้งหมด</option>
+                    {[...new Set(data.map((item) => item.equipment))].map((uniqueDevice, index) => (
+                      <option key={index} value={uniqueDevice}>
+                        {uniqueDevice}
+                      </option>
+                    ))}
+                </select>
+                <select onChange={(e) => setBrand(e.target.value)}>
+                 <option value="all">ยี่ห้อทั้งหมด</option>
+                   {brands.map((brand, index) => (
+                     <option key={index} value={brand.name}>
+                       {brand.name}
+                     </option>
+                   ))}
+                </select>
+                <div className="filter-buttons">
+                  <button onClick={handleFilter} className="search-btn">
+                    <span className="material-icons">search</span> ค้นหา
+                  </button>
+                  <button onClick={handleShowHistory} className="history-btn">
+                    <span className="material-icons">history</span> ประวัติการค้นหา
+                  </button>
+                </div>
+            </div>
+         </div>
+         <table className="BorrowEqui-table">
+  <thead>
+    <tr>
+      <th>ชื่อ</th>
+      <th>ประเภท</th>
+      <th>อุปกรณ์</th>
+      <th>ยี่ห้อ</th>
+      <th>หมายเลขครุภัณฑ์</th>
+      <th>จำนวน</th>
+      <th>รายละเอียด</th>
+      <th>ทำรายการ</th> {/* ✅ เพิ่มช่องทำรายการ */}
+    </tr>
+  </thead>
+  <tbody>
+    {currentItems.length > 0 ? (
+      currentItems.map((item, index) => (
+        <tr key={index}>
+          <td>{item.material}</td>
+          <td>{item.category}</td>
+          <td>{item.equipment}</td>
+          <td>{item.brand}</td>
+          <td>{item.equipment_number}</td>
+          <td>{item.inventory_number}</td>
+          <td>
+            <button
+              className="BorrowEqui-details-btn"
+              onClick={() => handleShowDetails(item)}
+            >
+              รายละเอียด
+            </button>
+          </td>
+          {/* ✅ เพิ่มปุ่มเบิกและยืม */}
+          <td>
+  <div className="BorrowEqui-action-buttons">
+    <button className="BorrowEqui-borrow-btn" onClick={() => handleShowBorrowForm(item)}>
+  เบิก
+</button>
+
+    <button
+      className="BorrowEqui-loan-btn"
+      onClick={() => handleLoan(item)}
+    >
+      ยืม
+    </button>
+  </div>
+</td>
+
+        </tr>
+      ))
+    ) : (
+      <tr>
+        <td colSpan="8">ไม่พบข้อมูล</td>
+      </tr>
+    )}
+  </tbody>
+</table>
+
+<div className="BorrowEqui-pagination">
+  <button onClick={goBack} disabled={currentPage === 1}>
+    ก่อนหน้า
+  </button>
+  {Array.from({ length: totalPages }, (_, i) => (
+    <button
+      key={i + 1}
+      onClick={() => paginate(i + 1)}
+      className={currentPage === i + 1 ? 'active' : ''}
+    >
+      {i + 1}
+    </button>
+  ))}
+  <button onClick={goNext} disabled={currentPage === totalPages}>
+    ถัดไป
+  </button>
+</div>
+
+          {showHistory && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h3 className="modal-title">ประวัติการค้นหา</h3>
+                  <button onClick={handleCloseHistory} className="BorrowEqui-close-btn">
+                    &times;
+                  </button>
+                </div>
+                <table className="history-table">
+                  <thead>
+                    <tr>
+                      <th>ประเภท</th>
+                      <th>อุปกรณ์</th>
+                      <th>ยี่ห้อ</th>
+                      <th>เวลา</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {searchHistory.map((history, index) => (
+                      <tr key={index}>
+                        <td>{history.category}</td>
+                        <td>{history.device}</td>
+                        <td>{history.brand}</td>
+                        <td>{history.timestamp}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+         {/* Modal สำหรับแสดงรายละเอียด */}
+         {showDetails && selectedItem && (
+            <div className="BorrowEqui-modal-overlay">
+            <div className="BorrowEqui-modal-content">
+              <div className="BorrowEqui-modal-header">
+                <h3 className="BorrowEqui-modal-title">รายละเอียด</h3>
+                <button onClick={handleCloseDetails} className="BorrowEqui-close-btn">&times;</button>
+              </div>
+              <div className="BorrowEqui-modal-details">
+                <div className="BorrowEqui-details-section">
+                    <p><strong>ชื่อ:</strong> {selectedItem.material}</p>
+                    <p><strong>ประเภท:</strong> {selectedItem.category}</p>
+                    <p><strong>อุปกรณ์:</strong> {selectedItem.equipment}</p>
+                    <p><strong>ยี่ห้อ:</strong> {selectedItem.brand}</p>
+                  </div>
+                  <div className="BorrowEqui-details-section">
+                    <p><strong>หมายเลขครุภัณฑ์:</strong> {selectedItem.equipment_number || "-"}</p>
+                    <p><strong>Serial:</strong> {selectedItem.serial_number || "-"}</p>
+                    <p><strong>จำนวนทั้งหมด:</strong> {selectedItem.inventory_number}</p>
+                    <p><strong>คงเหลือ:</strong> {selectedItem.remaining}</p>
+                  </div>
+                  <div className="BorrowEqui-details-full">
+                    <p><strong>รายละเอียดเพิ่มเติม:</strong> {selectedItem.details || "ไม่มีข้อมูลเพิ่มเติม"}</p>
+                  </div>
+             </div>
+           </div>
+         </div>
+       )}
+       {showBorrowForm && (
+  <div className="BorrowEqui-modal-overlay">
+    <div className="BorrowEqui-modal-content">
+      <button className="BorrowEqui-close-btn" onClick={handleCloseBorrowForm}>×</button>
+      <h2>รายละเอียดการเบิกวัสดุ</h2>
+      <form onSubmit={handleSubmitBorrow}>
+        <div className="form-group-rqf">
+          <label>ชื่อผู้เบิก:</label>
+          <input type="text" value={borrowFormData.borrowerName} readOnly />
         </div>
-
-        {/* ✅ ใช้ 2 คอลัมน์สำหรับข้อมูลทั่วไป */}
-        <div className="form-group">
-            <label htmlFor="department">ฝ่ายสำนัก:</label>
-            <input type="text" id="department" name="department" value={formData.department} onChange={handleInputChange} required />
+        <div className="form-group-rqf">
+          <label>ฝ่ายสำนัก:</label>
+          <input type="text" value={borrowFormData.department} readOnly />
         </div>
-
-        <div className="form-group">
-            <label htmlFor="phoneExt">เบอร์โทรภายใน:</label>
-            <input type="tel" id="phoneExt" name="phoneExt" value={formData.phoneExt} onChange={handleInputChange} required />
+        <div className="form-group-rqf">
+          <label>เบอร์โทรภายใน:</label>
+          <input type="text" value={borrowFormData.phoneExt} readOnly />
         </div>
-
-        <div className="form-group">
-            <label htmlFor="email">E-mail:</label>
-            <input type="email" id="email" name="email" value={formData.email} onChange={handleInputChange} required />
+        <div className="form-group-rqf">
+          <label>Email:</label>
+          <input type="text" value={borrowFormData.email} readOnly />
         </div>
-
-        <div className="form-group">
-            <label htmlFor="typeId">ประเภท:</label>
-            <select id="typeId" name="typeId" value={formData.typeId} onChange={handleInputChange} required>
-                <option value="">เลือกประเภท</option>
-                <option value="1">ประเภท 1</option>
-                <option value="2">ประเภท 2</option>
-            </select>
+        <div className="form-group-rqf">
+          <label>ชื่อวัสดุ:</label>
+          <input type="text" value={borrowFormData.material} readOnly />
         </div>
-
-        <div className="form-group">
-            <label htmlFor="equipmentId">อุปกรณ์:</label>
-            <select id="equipmentId" name="equipmentId" value={formData.equipmentId} onChange={handleInputChange} required>
-                <option value="">เลือกอุปกรณ์</option>
-                <option value="1">อุปกรณ์ 1</option>
-                <option value="2">อุปกรณ์ 2</option>
-            </select>
+        <div className="form-group-rqf">
+          <label>ประเภท:</label>
+          <input type="text" value={borrowFormData.category} readOnly />
         </div>
-
-        <div className="form-group">
-            <label htmlFor="brand">ยี่ห้อ:</label>
-            <input type="text" id="brand" value={selectedEquipment.brand} className="readonly-input" readOnly />
+        <div className="form-group-rqf">
+          <label>อุปกรณ์:</label>
+          <input type="text" value={borrowFormData.equipment} readOnly />
         </div>
-
-        <div className="form-group">
-            <label htmlFor="availableQuantity">จำนวนคงเหลือ:</label>
-            <input type="number" id="availableQuantity" value={selectedEquipment.availableQuantity} className="readonly-input" readOnly />
+        <div className="form-group-rqf">
+          <label>ยี่ห้อ:</label>
+          <input type="text" value={borrowFormData.brand} readOnly />
         </div>
-
-        <div className="form-group">
-            <label htmlFor="quantity">จำนวน:</label>
-            <input type="number" id="quantity" name="quantity" value={formData.quantity} onChange={handleInputChange} required />
+        <div className="form-group-rqf">
+          <label>จำนวนคงเหลือ:</label>
+          <input type="text" value={borrowFormData.remaining} readOnly />
         </div>
-
-        <div className="form-group">
-            <label htmlFor="note">หมายเหตุ:</label>
-            <input type="text" id="note" name="note" value={formData.note} onChange={handleInputChange} />
+        <div className="form-group-rqf">
+          <label>จำนวน:</label>
+          <input
+            type="number"
+            min="1"
+            max={borrowFormData.remaining}
+            value={borrowFormData.quantity}
+            onChange={(e) => setBorrowFormData({ ...borrowFormData, quantity: e.target.value })}
+            required
+          />
         </div>
-
-        <div className="form-group">
-            <label htmlFor="borrowDate">วันที่ยืม:</label>
-            <input type="date" id="borrowDate" name="borrowDate" value={formData.borrowDate} onChange={handleInputChange} required />
+        <div className="form-group-rqf">
+          <label>หมายเหตุ:</label>
+          <input
+            type="text"
+            value={borrowFormData.note}
+            onChange={(e) => setBorrowFormData({ ...borrowFormData, note: e.target.value })}
+          />
         </div>
-
-        <div className="form-group">
-            <label htmlFor="returnDate">วันที่คืน:</label>
-            <input type="date" id="returnDate" name="returnDate" value={formData.returnDate} onChange={handleInputChange} required />
+        <div className="form-group-rqf">
+          <label>วันที่เบิก:</label>
+          <input
+            type="date"
+            value={borrowFormData.requestDate}
+            onChange={(e) => setBorrowFormData({ ...borrowFormData, requestDate: e.target.value })}
+            required
+          />
         </div>
+        <button className="BorrowEqui-submit-btn" type="submit">บันทึกคำขอ</button>
+      </form>
+    </div>
+  </div>
+)}
 
-        <div className="buttons">
-            <button type="submit" className="submit-button">ยืนยันการยืม</button>
-        </div>
-    </form>
-</main>
-
-
-
-        </div>
-    );
+      </div>
+    </>
+  );  
 };
 
 export default BorrowEquipment;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import Navbar from "../../../components/common/navbar/navbar";
 import './request-history.css';
-import Header from "../../../components/Header";
+import UserDashboard from "./UserDashboard.js";
 
 const RequestHistory = () => {
     const [date, setDate] = useState("");

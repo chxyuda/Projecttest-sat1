@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import Navbar from "./Navbar.js";
-import Header from "../Header"; // ✅ เพิ่ม Header
+import UserDashboard from "./UserDashboard.js";
 import './RequestForm.css';
 
 const RequestForm = () => {
@@ -107,8 +106,8 @@ const RequestForm = () => {
 
     return (
         <>
-            <Header />
-            <Navbar />
+            
+            <UserDashboard />
             <div className="content-rqf">
     <div className="form-container-rqf">
         <h2>รายละเอียดการเบิกวัสดุ</h2>

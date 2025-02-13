@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from "./Navbar.js";
-import Header from "../Header.js"; 
+import UserDashboard from "./UserDashboard.js";
 import './RequestHistory.css';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle, faTimesCircle, faClock } from "@fortawesome/free-solid-svg-icons";
@@ -62,8 +61,8 @@ const RequestHistory = () => {
 
     return (
         <>
-            <Header />
-            <Navbar />
+            
+            <UserDashboard />
 
             <div className="content-hrq">
                 <h2>ประวัติการเบิก</h2>

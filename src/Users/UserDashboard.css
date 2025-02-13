@@ -1,22 +1,75 @@
-.user-dashboard-container {
-  display: flex;
-  margin: 15px auto; /* ระยะห่างจากด้านบน */
-    padding: 20px; /* เพิ่ม Padding ด้านใน */
-    background-color: #ffffff; /* สีพื้นหลัง */
-    border-radius: 10px; /* มุมโค้ง */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
-    max-width: 1800px; /* ความกว้างสูงสุด */
-    width: 100%; /* ใช้ 100% ของหน้าจอ */
-    margin-top: 30px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+.user-dashboard-page {
+  font-family: 'Prompt', sans-serif;
 }
 
-.dashboard-card {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+.user-navbar-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #cfecf3;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ddd;
+  position: fixed; /* ยึดติดตลอด */
+  top: 110px; /* ปรับตามตำแหน่งของ Header */
+  left: 0;
   width: 100%;
-  max-width: 450px;
-  text-align: center;
-  margin-top: 20px; /* ขยับลงมาให้สมดุล */
+  z-index: 1050;
+  box-sizing: border-box; /* ให้ padding รวมอยู่ในความกว้าง */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.user-navbar {
+  display: flex;
+  flex-grow: 1;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap; /* ป้องกันการล้นขอบจอ */
+}
+
+.user-navbar span {
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-navbar span:hover {
+  background-color: #bbdefb;
+}
+
+.user-info-section {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.user-info-section img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.user-logout {
+  color: red;
+}
+
+.user-main-content {
+  margin-top: 100px; /* ขยับเนื้อหาลงมาให้พ้น Navbar */
+  padding: 15px;
+}
+
+.user-profile-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

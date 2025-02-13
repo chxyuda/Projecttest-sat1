@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { NavLink } from 'react-router-dom'; // ✅ ใช้ NavLink แทน <a>
-import Navbar from "./Navbar.js";
-import Header from "../Header"; // ✅ เพิ่ม Header
+import UserDashboard from "./UserDashboard.js";
 import './BorrowStatus.css';
 
 const BorrowStatus = () => {
@@ -79,8 +78,7 @@ const BorrowStatus = () => {
 
     return (
         <>
-            <Header />
-            <Navbar />
+            <UserDashboard />
 
             <div className="content-brs">
                 <h2>สถานะการยืม - คืน</h2>

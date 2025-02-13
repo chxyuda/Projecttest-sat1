@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './WithdrawalHistory.css';
-import Navbar from "./Navbar.js";
-import Header from "../Header.js";
+import UserDashboard from "./UserDashboard.js";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileAlt, faClipboardList } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
@@ -12,8 +12,8 @@ const WithdrawalHistory = () => {
 
     return (
         <>
-            <Header />
-            <Navbar />
+            
+            <UserDashboard />
 
             <div className="content-wdh">
                 <div className="box-container-wdh">

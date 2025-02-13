@@ -195,6 +195,39 @@ app.get('/api/tasks/:sectionId', (req, res) => {
   });
 });
 
+app.get('/api/names', (req, res) => {
+  const { type } = req.query;
+
+  if (!type) {
+    return res.status(400).json({ success: false, message: 'กรุณาระบุประเภท (type)' });
+  }
+
+  const query = 'SELECT name FROM categories WHERE type = ?';
+  db.query(query, [type], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+app.post('/api/search-history', (req, res) => {
+  const { category, brand, status } = req.body;
+
+  const query = `
+    INSERT INTO search_history (category, brand, status)
+    VALUES (?, ?, ?)
+  `;
+  db.query(query, [category, brand, status], (err) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ success: false, error: 'Server error' });
+    }
+    res.status(201).json({ success: true, message: 'บันทึกประวัติการค้นหาสำเร็จ' });
+  });
+});
+
 const checkUserExists = (username, email, callback) => {
   const query = "SELECT COUNT(*) AS count FROM users WHERE username = ? OR email = ?";
   db.query(query, [username, email], (err, results) => {
@@ -1035,40 +1068,118 @@ app.put("/api/update-profile", (req, res) => {
   });
 });
 
+// ✅ เพิ่มคำขอเบิกวัสดุ พร้อม date_requested
+router.post('/requests', (req, res) => {
+  const {
+    borrowerName,
+    department,
+    phone,
+    email,
+    material,
+    category,
+    equipment,
+    brand,
+    quantity,
+    note,
+    requestDate,
+  } = req.body;
 
-app.get('/api/names', (req, res) => {
-  const { type } = req.query;
+  const sql = `
+    INSERT INTO requests (
+      borrower_name, department, phone, email, material, type, equipment, brand, quantity_requested, note, date_requested
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-  if (!type) {
-    return res.status(400).json({ success: false, message: 'กรุณาระบุประเภท (type)' });
-  }
-
-  const query = 'SELECT name FROM categories WHERE type = ?';
-  db.query(query, [type], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ success: false, error: 'Server error' });
+  db.query(
+    sql,
+    [borrowerName, department, phone, email, material, category, equipment, brand, quantity, note, requestDate],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: err.message });
+      }
+      res.status(201).json({ message: 'Request created successfully', id: result.insertId });
     }
-    res.status(200).json(results);
+  );
+});
+
+
+// ✅ 2. ดึงคำขอทั้งหมด
+router.get('/requests', (req, res) => {
+  const sql = 'SELECT * FROM requests ORDER BY created_at DESC';
+  db.query(sql, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
   });
 });
 
-app.post('/api/search-history', (req, res) => {
-  const { category, brand, status } = req.body;
+// ✅ 3. ดึงคำขอตาม ID
+router.get('/requests/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'SELECT * FROM requests WHERE id = ?';
+  db.query(sql, [id], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'ไม่พบคำขอ' });
+    }
+    res.json(results[0]);
+  });
+});
 
-  const query = `
-    INSERT INTO search_history (category, brand, status)
-    VALUES (?, ?, ?)
+// ✅ 4. อัปเดตสถานะคำขอ (สำหรับผู้อนุมัติ)
+router.put('/requests/:id/approve', (req, res) => {
+  const { id } = req.params;
+  const { status, approved_by, date_approved, remark } = req.body;
+
+  const sql = `
+    UPDATE requests 
+    SET status = ?, approved_by = ?, date_approved = ?, remark = ?, notification_status = 1
+    WHERE id = ?
   `;
-  db.query(query, [category, brand, status], (err) => {
+
+  db.query(sql, [status, approved_by, date_approved, remark, id], (err) => {
     if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ success: false, error: 'Server error' });
+      return res.status(500).json({ error: err.message });
     }
-    res.status(201).json({ success: true, message: 'บันทึกประวัติการค้นหาสำเร็จ' });
+    res.json({ message: 'อัปเดตสถานะคำขอสำเร็จ' });
   });
 });
 
+// ✅ 5. อัปเดตสถานะเป็น "รับของแล้ว" (สำหรับ IT Staff)
+router.put('/requests/:id/receive', (req, res) => {
+  const { id } = req.params;
+  const { received_by, date_received } = req.body;
+
+  const sql = `
+    UPDATE requests 
+    SET status = 'Received', received_by = ?, date_received = ?
+    WHERE id = ?
+  `;
+
+  db.query(sql, [received_by, date_received, id], (err) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ message: 'อัปเดตสถานะเป็น รับของแล้ว สำเร็จ' });
+  });
+});
+
+// ✅ 6. อัปเดตสถานะการแจ้งเตือน (เมื่อผู้ใช้กดดูแจ้งเตือน)
+router.put('/requests/:id/notification', (req, res) => {
+  const { id } = req.params;
+
+  const sql = 'UPDATE requests SET notification_status = 0 WHERE id = ?';
+
+  db.query(sql, [id], (err) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ message: 'อัปเดตสถานะแจ้งเตือนสำเร็จ' });
+  });
+});
 
 // Start Server
 app.listen(PORT, () => {
