@@ -5,19 +5,21 @@ import "./RequestStatus.css";
 
 const RequestStatus = () => {
   const [requests, setRequests] = useState([]);
-  const storedUser = JSON.parse(localStorage.getItem('user'));
+
+  const storedUser = JSON.parse(localStorage.getItem('user')) || {};
+  const userId = storedUser.id;
+
+  const fetchRequests = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/requests/user/${userId}`);
+      console.log('ข้อมูลที่ได้:', response.data);
+      setRequests(response.data);
+    } catch (error) {
+      console.error('เกิดข้อผิดพลาด:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const response = await axios.get("http://localhost:5001/api/requests");
-        const userRequests = response.data.filter(req => req.email === storedUser.email);
-        setRequests(userRequests);
-      } catch (error) {
-        console.error("Error fetching requests:", error);
-      }
-    };
-
     fetchRequests();
   }, []);
 
@@ -32,7 +34,7 @@ const RequestStatus = () => {
       case 'Rejected':
         return <span className="status-rejected">ไม่อนุมัติ</span>;
       default:
-        return status;
+        return <span>{status || ' - '}</span>;
     }
   };
 
@@ -59,7 +61,7 @@ const RequestStatus = () => {
                 <td>{request.borrower_name}</td>
                 <td>{request.department}</td>
                 <td>{request.equipment}</td>
-                <td>{new Date(request.created_at).toLocaleDateString('th-TH')}</td>
+                <td>{request.date_requested ? new Date(request.date_requested).toLocaleDateString('th-TH') : '-'}</td>
                 <td>{renderStatus(request.status)}</td>
               </tr>
             ))
@@ -70,7 +72,11 @@ const RequestStatus = () => {
           )}
         </tbody>
       </table>
-      <button onClick={() => window.history.back()} className="back-button-srq">ย้อนกลับ</button>
+
+      <div className="button-group-srq">
+        <button onClick={() => window.history.back()} className="back-button-srq">ย้อนกลับ</button>
+        <button onClick={fetchRequests} className="refresh-button-srq">รีเฟรชข้อมูล</button>
+      </div>
     </div>
   );
 };

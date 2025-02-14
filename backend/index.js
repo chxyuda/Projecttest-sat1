@@ -1068,14 +1068,14 @@ app.put("/api/update-profile", (req, res) => {
   });
 });
 
-// ✅ เพิ่มคำขอเบิกวัสดุ พร้อม date_requested
+// ✅ เพิ่มคำขอเบิกวัสดุ (ดึง user_id จากฐานข้อมูล users อัตโนมัติ)
 router.post('/requests', (req, res) => {
   const {
     borrowerName,
     department,
     phone,
     email,
-    material,
+    material, // ยังรับ material แต่จริง ๆ คือ model
     category,
     equipment,
     brand,
@@ -1084,22 +1084,70 @@ router.post('/requests', (req, res) => {
     requestDate,
   } = req.body;
 
-  const sql = `
-    INSERT INTO requests (
-      borrower_name, department, phone, email, material, type, equipment, brand, quantity_requested, note, date_requested
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const findUserSql = `SELECT id FROM users WHERE fullName = ?`;
+  const checkStockSql = `SELECT remaining FROM products WHERE model = ?`;
+  const insertSql = `
+    INSERT INTO requests (user_id, borrower_name, department, phone, email, material, type, equipment, brand, quantity_requested, note, date_requested)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  const updateProductSql = `
+    UPDATE products 
+    SET remaining = remaining - ? 
+    WHERE model = ? AND remaining >= ?
+  `;
 
-  db.query(
-    sql,
-    [borrowerName, department, phone, email, material, category, equipment, brand, quantity, note, requestDate],
-    (err, result) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: err.message });
-      }
-      res.status(201).json({ message: 'Request created successfully', id: result.insertId });
+  db.query(findUserSql, [borrowerName], (err, userResult) => {
+    if (err) {
+      console.error('FIND USER FAILED:', err);
+      return res.status(500).json({ error: 'FIND USER FAILED: ' + err.message });
     }
-  );
+
+    if (userResult.length === 0) {
+      return res.status(404).json({ error: 'ไม่พบผู้ใช้ในระบบ' });
+    }
+
+    const userId = userResult[0].id;
+
+    db.query(checkStockSql, [material], (err, stockResult) => {
+      if (err) {
+        console.error('CHECK STOCK FAILED:', err);
+        return res.status(500).json({ error: 'CHECK STOCK FAILED: ' + err.message });
+      }
+
+      if (stockResult.length === 0) {
+        return res.status(404).json({ error: 'ไม่พบวัสดุนี้ในคลัง' });
+      }
+
+      const remainingStock = stockResult[0].remaining;
+      if (remainingStock < quantity) {
+        return res.status(400).json({ error: 'จำนวนคงเหลือไม่เพียงพอ' });
+      }
+
+      db.query(
+        insertSql,
+        [userId, borrowerName, department, phone, email, material, category, equipment, brand, quantity, note, requestDate],
+        (err, result) => {
+          if (err) {
+            console.error('INSERT REQUEST FAILED:', err);
+            return res.status(500).json({ error: 'INSERT REQUEST FAILED: ' + err.message });
+          }
+
+          db.query(updateProductSql, [quantity, material, quantity], (err, updateResult) => {
+            if (err) {
+              console.error('UPDATE STOCK FAILED:', err);
+              return res.status(500).json({ error: 'บันทึกคำขอได้ แต่ตัดสต็อกไม่สำเร็จ: ' + err.message });
+            }
+
+            if (updateResult.affectedRows === 0) {
+              return res.status(400).json({ error: 'จำนวนคงเหลือไม่เพียงพอ หรือวัสดุไม่มีอยู่จริง' });
+            }
+
+            res.status(201).json({ message: 'บันทึกคำขอและตัดสต็อกสำเร็จ', id: result.insertId });
+          });
+        }
+      );
+    });
+  });
 });
 
 
@@ -1108,6 +1156,19 @@ router.get('/requests', (req, res) => {
   const sql = 'SELECT * FROM requests ORDER BY created_at DESC';
   db.query(sql, (err, results) => {
     if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+router.get('/requests/user/:userId', (req, res) => {
+  const { userId } = req.params;
+  const sql = 'SELECT * FROM requests WHERE user_id = ? ORDER BY created_at DESC';
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error(err);
       return res.status(500).json({ error: err.message });
     }
     res.json(results);
@@ -1126,6 +1187,21 @@ router.get('/requests/:id', (req, res) => {
       return res.status(404).json({ message: 'ไม่พบคำขอ' });
     }
     res.json(results[0]);
+  });
+});
+
+// ✅ ดึงคำขอตามชื่อผู้เบิก (เช่น fullName)
+// ✅ ดึงคำขอตามชื่อผู้เบิก (เช่น fullName)
+router.get('/requests/user/:username', (req, res) => {
+  const { username } = req.params;
+  const sql = 'SELECT * FROM requests WHERE borrower_name = ? ORDER BY created_at DESC';
+
+  db.query(sql, [username], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
   });
 });
 
@@ -1180,6 +1256,182 @@ router.put('/requests/:id/notification', (req, res) => {
     res.json({ message: 'อัปเดตสถานะแจ้งเตือนสำเร็จ' });
   });
 });
+
+// ✅ เพิ่มคำขอยืมวัสดุ (ดึง user_id จากฐานข้อมูล users อัตโนมัติ)
+router.post('/borrow-requests', (req, res) => {
+  const {
+    user_id,
+    borrower_name,
+    department,
+    phone,
+    email,
+    material,
+    type,
+    equipment,
+    brand,
+    quantity_requested,
+    note,
+    request_date,
+    return_date,
+  } = req.body;
+
+  const checkStockSql = `SELECT remaining FROM products WHERE model = ?`;
+  const insertRequestSql = `
+    INSERT INTO borrow_requests (
+      user_id, borrower_name, department, phone, email, material, type, equipment, brand, quantity_requested, note, request_date, return_date, status
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
+  `;
+  const updateStockSql = `UPDATE products SET remaining = remaining - ? WHERE model = ? AND remaining >= ?`;
+
+  db.query(checkStockSql, [material], (err, results) => {
+    if (err) {
+      console.error('CHECK STOCK FAILED:', err);
+      return res.status(500).json({ error: 'CHECK STOCK FAILED: ' + err.message });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'ไม่พบสินค้าในคลัง' });
+    }
+
+    const remainingStock = results[0].remaining;
+    if (remainingStock < quantity_requested) {
+      return res.status(400).json({ error: 'จำนวนคงเหลือไม่เพียงพอ' });
+    }
+
+    db.query(
+      insertRequestSql,
+      [user_id, borrower_name, department, phone, email, material, type, equipment, brand, quantity_requested, note, request_date, return_date],
+      (err, result) => {
+        if (err) {
+          console.error('INSERT BORROW REQUEST FAILED:', err);
+          return res.status(500).json({ error: 'INSERT BORROW REQUEST FAILED: ' + err.message });
+        }
+
+        db.query(updateStockSql, [quantity_requested, material, quantity_requested], (err) => {
+          if (err) {
+            return res.status(500).json({ error: 'UPDATE STOCK FAILED: ' + err.message });
+          }
+
+          res.status(201).json({ message: 'บันทึกคำขอสำเร็จ', id: result.insertId });
+        });
+      }
+    );
+  });
+});
+
+
+// ✅ ดึงคำขอทั้งหมด
+router.get('/borrow-requests', (req, res) => {
+  const sql = `SELECT * FROM borrow_requests ORDER BY created_at DESC`;
+
+  db.query(sql, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+
+// ✅ ดึงคำขอของผู้ใช้ตาม userId
+router.get('/borrow-requests/user/:userId', (req, res) => {
+  const { userId } = req.params;
+  const sql = `SELECT * FROM borrow_requests WHERE user_id = ? ORDER BY created_at DESC`;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+
+// ✅ ดึงคำขอตาม ID
+router.get('/borrow-requests/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = `SELECT * FROM borrow_requests WHERE id = ?`;
+
+  db.query(sql, [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'ไม่พบคำขอ' });
+    }
+
+    res.json(results[0]);
+  });
+});
+
+
+// ✅ อัปเดตสถานะคำขอ (สำหรับผู้อนุมัติ)
+router.put('/borrow-requests/:id/approve', (req, res) => {
+  const { id } = req.params;
+  const { status, approved_by, date_approved, note } = req.body;
+
+  const sql = `
+    UPDATE borrow_requests 
+    SET status = ?, approved_by = ?, date_approved = ?, note = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `;
+
+  db.query(sql, [status, approved_by, date_approved, note, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    res.json({ message: 'อัปเดตสถานะสำเร็จ' });
+  });
+});
+
+
+// ✅ อัปเดตสถานะเป็น "รับของแล้ว" (สำหรับ IT Staff)
+router.put('/borrow-requests/:id/receive', (req, res) => {
+  const { id } = req.params;
+  const { received_by, date_received } = req.body;
+
+  const sql = `
+    UPDATE borrow_requests 
+    SET status = 'Received', received_by = ?, date_received = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `;
+
+  db.query(sql, [received_by, date_received, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    res.json({ message: 'อัปเดตสถานะเป็น รับของแล้ว สำเร็จ' });
+  });
+});
+
+
+// ✅ อัปเดตสถานะเป็น "คืนของแล้ว" และคืนสต็อก (สำหรับการคืนอุปกรณ์)
+router.put('/borrow-requests/:id/return', (req, res) => {
+  const { id } = req.params;
+  const { return_date } = req.body;
+
+  const getQuantitySql = `SELECT material, quantity_requested FROM borrow_requests WHERE id = ?`;
+  const updateRequestSql = `
+    UPDATE borrow_requests 
+    SET status = 'Returned', return_date = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `;
+  const updateStockSql = `UPDATE products SET remaining = remaining + ? WHERE model = ?`;
+
+  db.query(getQuantitySql, [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    if (results.length === 0) return res.status(404).json({ message: 'ไม่พบคำขอ' });
+
+    const { material, quantity_requested } = results[0];
+
+    db.query(updateRequestSql, [return_date, id], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      db.query(updateStockSql, [quantity_requested, material], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        res.json({ message: 'อัปเดตสถานะคืนของแล้ว และคืนสต็อกสำเร็จ' });
+      });
+    });
+  });
+});
+
+
 
 // Start Server
 app.listen(PORT, () => {

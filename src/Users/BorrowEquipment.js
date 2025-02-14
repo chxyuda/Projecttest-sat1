@@ -45,9 +45,24 @@ const BorrowEquipment = () => {
     phone: '',
     email: ''
   });
-  
-  
 
+  const [showLoanForm, setShowLoanForm] = useState(false);
+  const [loanFormData, setLoanFormData] = useState({
+    borrowerName: '',
+    department: '',
+    phone: '',
+    email: '',
+    material: '',
+    type: '',
+    equipment: '',
+    brand: '',
+    remaining: '',
+    quantity_requested: '',
+    note: '',
+    requestDate: new Date().toISOString().split('T')[0],
+    returnDate: '',
+  });
+  
 
 // คำนวณ index สำหรับแบ่งหน้า
 const indexOfLastItem = currentPage * itemsPerPage;
@@ -216,27 +231,28 @@ const handleShowBorrowForm = (row) => {
     const dataToSend = {
       borrowerName: borrowFormData.borrowerName,
       department: borrowFormData.department,
-      phone: borrowFormData.phoneExt, // ต้องให้ตรงกับ API
+      phone: borrowFormData.phoneExt || '', // ป้องกัน phone เป็น null
       email: borrowFormData.email,
       material: borrowFormData.material,
       category: borrowFormData.category,
       equipment: borrowFormData.equipment,
       brand: borrowFormData.brand,
-      quantity_requested: borrowFormData.quantity, // ให้ตรงกับ column ในฐานข้อมูล
-      note: borrowFormData.note,
-      date_requested: borrowFormData.requestDate, // ให้ตรงกับ column ในฐานข้อมูล
+      quantity: parseInt(borrowFormData.quantity, 10) || 0, // แปลง quantity ให้เป็นตัวเลข
+      note: borrowFormData.note || '',
+      requestDate: borrowFormData.requestDate,
     };
+  
+    console.log('ส่งข้อมูลไป API:', dataToSend);
   
     try {
       const response = await axios.post('http://localhost:5001/api/requests', dataToSend);
       alert('บันทึกคำขอสำเร็จ');
       setShowBorrowForm(false);
     } catch (error) {
-      console.error('เกิดข้อผิดพลาด:', error);
-      alert('เกิดข้อผิดพลาด');
+      console.error('เกิดข้อผิดพลาด:', error.response ? error.response.data : error.message);
+      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.error || 'ไม่ทราบสาเหตุ'));
     }
   };
-  
   
   
   const handleCloseBorrowForm = () => {
@@ -256,6 +272,63 @@ const handleShowBorrowForm = (row) => {
     fetchRequests();
   }, []);
   
+  const handleShowLoanForm = (row) => {
+    setLoanFormData({
+      borrowerName: userData.fullName,
+      department: userData.department_name,
+      phone: userData.phone, // หรือจะเปลี่ยนเป็น phoneExt ให้เหมือนเบิกก็ได้
+      email: userData.email,
+      material: row.material,
+      category: row.category, // เปลี่ยนเป็น category ให้เหมือนเบิก ถ้าฐานข้อมูลส่ง category มา
+      equipment: row.equipment,
+      brand: row.brand,
+      remaining: row.remaining,
+      quantity: '', // ใช้ quantity ให้เหมือนเบิก
+      note: '',
+      requestDate: new Date().toISOString().split('T')[0],
+      returnDate: '',
+    });
+    setShowLoanForm(true);
+  };
+  
+
+  const handleSubmitLoan = async (e) => {
+    e.preventDefault();
+  
+    const userData = JSON.parse(localStorage.getItem('user'));
+  
+    const dataToSend = {
+      user_id: userData.id,
+      borrower_name: loanFormData.borrowerName,
+      department: loanFormData.department,
+      phone: loanFormData.phone || '',
+      email: loanFormData.email,
+      material: loanFormData.material,
+      type: loanFormData.type,
+      equipment: loanFormData.equipment,
+      brand: loanFormData.brand,
+      quantity_requested: parseInt(loanFormData.quantity_requested, 10) || 0, // ใช้ quantity_requested ให้ตรงกับตาราง DB
+      note: loanFormData.note || '',
+      request_date: loanFormData.requestDate,
+      return_date: loanFormData.returnDate,
+    };
+  
+    console.log('ส่งข้อมูลยืมไป API:', dataToSend);
+  
+    try {
+      await axios.post('http://localhost:5001/api/borrow-requests', dataToSend);
+      alert('บันทึกคำขอยืมสำเร็จ');
+      setShowLoanForm(false);
+    } catch (error) {
+      console.error('เกิดข้อผิดพลาด:', error.response ? error.response.data : error.message);
+      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.error || 'ไม่ทราบสาเหตุ'));
+    }
+  };
+  
+
+  const handleCloseLoanForm = () => {
+    setShowLoanForm(false);
+  };
   
   return (
     <>
@@ -339,11 +412,8 @@ const handleShowBorrowForm = (row) => {
   เบิก
 </button>
 
-    <button
-      className="BorrowEqui-loan-btn"
-      onClick={() => handleLoan(item)}
-    >
-      ยืม
+<button className="BorrowEqui-loan-btn" onClick={() => handleShowLoanForm(item)}>
+    ยืม
     </button>
   </div>
 </td>
@@ -511,6 +581,95 @@ const handleShowBorrowForm = (row) => {
     </div>
   </div>
 )}
+{showLoanForm && (
+  <div className="BorrowEqui-modal-overlay">
+    <div className="BorrowEqui-modal-content">
+      <button className="BorrowEqui-close-btn" onClick={handleCloseLoanForm}>×</button>
+      <h2>รายละเอียดการยืมวัสดุ</h2>
+      <form onSubmit={handleSubmitLoan}>
+        <div className="form-group-rqf">
+          <label>ชื่อผู้ยืม:</label>
+          <input type="text" value={loanFormData.borrowerName} readOnly />
+        </div>
+        <div className="form-group-rqf">
+          <label>ฝ่ายสำนัก:</label>
+          <input type="text" value={loanFormData.department} readOnly />
+        </div>
+        <div className="form-group-rqf">
+          <label>เบอร์โทรภายใน:</label>
+          <input type="text" value={loanFormData.phone} readOnly />
+        </div>
+        <div className="form-group-rqf">
+          <label>Email:</label>
+          <input type="text" value={loanFormData.email} readOnly />
+        </div>
+        <div className="form-group-rqf">
+          <label>ชื่อวัสดุ:</label>
+          <input type="text" value={loanFormData.material} readOnly />
+        </div>
+        <div className="form-group-rqf">
+          <label>ประเภท:</label>
+          <input type="text" value={loanFormData.type} readOnly />
+        </div>
+        <div className="form-group-rqf">
+          <label>อุปกรณ์:</label>
+          <input type="text" value={loanFormData.equipment} readOnly />
+        </div>
+        <div className="form-group-rqf">
+          <label>ยี่ห้อ:</label>
+          <input type="text" value={loanFormData.brand} readOnly />
+        </div>
+        <div className="form-group-rqf">
+          <label>จำนวนคงเหลือ:</label>
+          <input type="text" value={loanFormData.remaining} readOnly />
+        </div>
+        <div className="form-group-rqf">
+          <label>จำนวน:</label>
+          <input
+            type="number"
+            min="1"
+            max={loanFormData.remaining}
+            value={loanFormData.quantity_requested} // ตรงนี้เปลี่ยนเป็น quantity_requested
+            onChange={(e) =>
+              setLoanFormData({ ...loanFormData, quantity_requested: e.target.value })
+            }
+            required
+          />
+        </div>
+        <div className="form-group-rqf">
+          <label>หมายเหตุ:</label>
+          <input
+            type="text"
+            value={loanFormData.note}
+            onChange={(e) => setLoanFormData({ ...loanFormData, note: e.target.value })}
+          />
+        </div>
+        <div className="form-group-rqf">
+          <label>วันที่ยืม:</label>
+          <input
+            type="date"
+            value={loanFormData.requestDate}
+            onChange={(e) => setLoanFormData({ ...loanFormData, requestDate: e.target.value })}
+            required
+          />
+        </div>
+        <div className="form-group-rqf">
+          <label>วันที่คืน:</label>
+          <input
+            type="date"
+            value={loanFormData.returnDate}
+            onChange={(e) => setLoanFormData({ ...loanFormData, returnDate: e.target.value })}
+            required
+          />
+        </div>
+        <button className="BorrowEqui-submit-btn" type="submit">
+          บันทึกคำขอ
+        </button>
+      </form>
+    </div>
+  </div>
+)}
+
 
       </div>
     </>

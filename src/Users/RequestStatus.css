@@ -1,66 +1,80 @@
-/* ✅ ปรับตำแหน่งตาราง */
+/* ✅ ปรับตำแหน่งตารางให้เหมาะกับดีไซน์ */
 .table-container-srq {
-    margin: 20px auto;
+    margin-top: 100px; /* ขยับลงมาห่างจากเมนู */
     max-width: 90%;
-    background: #fff;
+    background: #ffffff;
     border-radius: 12px;
     padding: 25px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     overflow-x: auto;
-}
-
-.title-srq {
+  }
+  
+  .title-srq {
     text-align: center;
     color: #333;
-    margin-bottom: 15px;
-}
-
-/* ✅ ปรับปรุงตาราง */
-table.request-table-srq {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  /* ✅ ปรับปรุงตารางให้ดูเป็นมืออาชีพ */
+  table.request-table-srq {
     width: 100%;
     border-collapse: collapse;
     background-color: #fafafa;
-}
-
-.request-table-srq th, .request-table-srq td {
-    padding: 12px;
+  }
+  
+  .request-table-srq th, .request-table-srq td {
+    padding: 14px;
     text-align: center;
     border-bottom: 1px solid #ddd;
     font-size: 14px;
-}
-
-.request-table-srq th {
-    background: #007bff;
+  }
+  
+  .request-table-srq th {
+    background-color: #007bff;
     color: white;
     font-size: 16px;
-}
-
-/* ✅ ปรับสีสถานะ */
-.status-pending {
-    color: orange;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  
+  /* ✅ ปรับสีแถวสลับ */
+  .request-table-srq tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .request-table-srq tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  /* ✅ ปรับสีสถานะ */
+  .status-pending {
+    color: #ffa500;
     font-weight: bold;
-}
-
-.status-approved {
-    color: green;
+  }
+  
+  .status-approved {
+    color: #28a745;
     font-weight: bold;
-}
-
-.status-received {
-    color: blue;
+  }
+  
+  .status-received {
+    color: #007bff;
     font-weight: bold;
-}
-
-.status-rejected {
-    color: red;
+  }
+  
+  .status-rejected {
+    color: #dc3545;
     font-weight: bold;
-}
-
-/* ✅ ปุ่มย้อนกลับ */
-.back-button-srq {
-    display: block;
-    margin: 20px auto;
+  }
+  
+  /* ✅ ปรับปุ่มต่าง ๆ */
+  .back-button-srq, .refresh-button-srq {
+    display: inline-block;
+    margin-top: 30px;
     padding: 10px 25px;
+    margin: 0 8px; /* ปรับช่องว่างระหว่างปุ่ม */
     background-color: #007bff;
     color: white;
     border: none;
@@ -68,8 +82,15 @@ table.request-table-srq {
     cursor: pointer;
     transition: background 0.3s;
     font-size: 14px;
-}
-
-.back-button-srq:hover {
+  }
+  
+  .back-button-srq:hover, .refresh-button-srq:hover {
     background-color: #0056b3;
-}
+  }
+  
+  .button-group-srq {
+    text-align: center;
+    margin-top: 20px;
+    
+  }
+  
