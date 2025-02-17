@@ -86,11 +86,8 @@ const UserDashboard = () => {
           <span onClick={() => navigate("/borrowStatus")}>
             <FontAwesomeIcon icon={faFileAlt} /> สถานะการยืม-คืน
           </span>
-          <span onClick={() => navigate("/requesthistory")}>
-            <FontAwesomeIcon icon={faFileAlt} /> ประวัติการเบิก
-          </span>
           <span onClick={() => navigate("/withdrawalHistory")}>
-            <FontAwesomeIcon icon={faFileAlt} /> ประวัติการยืม-คืน
+            <FontAwesomeIcon icon={faFileAlt} /> ประวัติการเบิก ยืม-คืน
           </span>
           <span onClick={() => navigate("/user-dashboard")}>
             <FontAwesomeIcon icon={faTachometerAlt} /> Dashboard
@@ -107,15 +104,16 @@ const UserDashboard = () => {
       </div>
 
       {showProfile && (
-        <div className="user-profile-modal">
-          <ProfileModal
-            onClose={() => setShowProfile(false)}
-            userData={userData}
-            loading={loading}
-          />
-        </div>
-      )}
-
+  <div className="user-profile-modal">
+    <div className="user-profile-modal-content">
+      <ProfileModal
+        onClose={() => setShowProfile(false)}
+        userData={userData}
+        loading={loading}
+      />
+    </div>
+  </div>
+)}
     </div>
   );
 };

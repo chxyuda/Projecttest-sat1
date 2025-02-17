@@ -1,149 +1,88 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { NavLink } from 'react-router-dom'; // ✅ ใช้ NavLink แทน <a>
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import UserDashboard from "./UserDashboard.js";
 import './BorrowStatus.css';
 
 const BorrowStatus = () => {
-    const [currentTime, setCurrentTime] = useState("");
     const [borrowings, setBorrowings] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const storedUser = JSON.parse(localStorage.getItem('user')) || {};
+    const userId = storedUser.id;
 
-    // ✅ ใช้ useMemo ลดการคำนวณวันที่
-    const currentDate = useMemo(() => {
-        return new Date().toLocaleDateString('th-TH', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-    }, []);
-
-    // ✅ อัปเดตเวลาแบบเรียลไทม์
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date().toLocaleTimeString('th-TH', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            }));
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, []);
-
-    // ✅ ดึงข้อมูลการยืม-คืน
-    useEffect(() => {
-        const fetchBorrowings = async () => {
-            try {
-                const response = await fetch('http://localhost:3000/api/borrowings');
-                const data = await response.json();
-                setBorrowings(data);
-            } catch (error) {
-                console.error('Error fetching borrowings:', error);
-            }
-        };
-
-        fetchBorrowings();
-    }, []);
-
-    // ✅ คำนวณหน้าของข้อมูล
-    const totalPages = Math.ceil(borrowings.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentBorrowings = borrowings.slice(startIndex, endIndex);
-
-    // ✅ แสดงสถานะ
-    const getStatusBadgeClass = (status) => {
-        switch (status) {
-            case 'pending':
-                return 'status-pending-brs';
-            case 'approved':
-                return 'status-approved-brs';
-            case 'returned':
-                return 'status-returned-brs';
-            default:
-                return '';
+    // ✅ ดึงข้อมูลการยืม-คืนตาม userId
+    const fetchBorrowings = async () => {
+        try {
+            const response = await axios.get(`http://localhost:5001/api/borrow-requests/user/${userId}`);
+            setBorrowings(response.data);
+        } catch (error) {
+            console.error('Error fetching borrowings:', error);
         }
     };
 
-    // ✅ ฟอร์แมตวันที่
+    useEffect(() => {
+        fetchBorrowings();
+    }, []);
+
+    const renderStatus = (status) => {
+        switch (status) {
+            case 'Pending':
+                return <span className="status-pending-brs">รอดำเนินการ</span>;
+            case 'Approved':
+                return <span className="status-approved-brs">อนุมัติ</span>;
+            case 'Received':
+                return <span className="status-received-brs">รับของแล้ว</span>;
+            case 'Returned':
+                return <span className="status-returned-brs">คืนแล้ว</span>;
+            case 'Rejected':
+                return <span className="status-rejected-brs">ไม่อนุมัติ</span>;
+            default:
+                return <span>{status || ' - '}</span>;
+        }
+    };
+
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('th-TH', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+        return dateString ? new Date(dateString).toLocaleDateString('th-TH') : '-';
     };
 
     return (
-        <>
+        <div className="table-container-brs">
             <UserDashboard />
-
-            <div className="content-brs">
-                <h2>สถานะการยืม - คืน</h2>
-                <p className="date-time">{currentDate} | {currentTime}</p> {/* ✅ แสดงวันที่-เวลา */}
-
-                <div className="table-container-brs">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ลำดับ</th>
-                                <th>ชื่อผู้ยืม</th>
-                                <th>ฝ่ายสำนัก</th>
-                                <th>อุปกรณ์</th>
-                                <th>วันที่ยืม - วันที่คืน</th>
-                                <th>สถานะ</th>
+            <h2 className="title-brs">สถานะการยืม - คืน</h2>
+            <table className="borrow-table-brs">
+                <thead>
+                    <tr>
+                        <th>ลำดับ</th>
+                        <th>ชื่อผู้ยืม</th>
+                        <th>ฝ่ายสำนัก</th>
+                        <th>อุปกรณ์</th>
+                        <th>วันที่ยืม - วันที่คืน</th>
+                        <th>สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {borrowings.length > 0 ? (
+                        borrowings.map((borrowing, index) => (
+                            <tr key={borrowing.id}>
+                                <td>{index + 1}</td>
+                                <td>{borrowing.borrower_name}</td>
+                                <td>{borrowing.department}</td>
+                                <td>{borrowing.equipment}</td>
+                                <td>{formatDate(borrowing.request_date)} - {formatDate(borrowing.return_date)}</td>
+                                <td>{renderStatus(borrowing.approval_status)}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {currentBorrowings.length > 0 ? (
-                                currentBorrowings.map((borrowing, index) => (
-                                    <tr key={borrowing.id}>
-                                        <td>{startIndex + index + 1}</td>
-                                        <td>{borrowing.borrower_name}</td>
-                                        <td>{borrowing.department}</td>
-                                        <td>{borrowing.equipment?.name || '-'}</td>
-                                        <td>{formatDate(borrowing.borrow_date)} - {formatDate(borrowing.return_date)}</td>
-                                        <td>
-                                            <span className={`status-badge ${getStatusBadgeClass(borrowing.status)}`}>
-                                                {borrowing.status === 'pending' && 'รอดำเนินการ'}
-                                                {borrowing.status === 'approved' && 'อนุมัติแล้ว'}
-                                                {borrowing.status === 'returned' && 'คืนแล้ว'}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="6" className="no-data">ไม่พบข้อมูลการยืม</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-
-                    {/* ✅ Pagination */}
-                    {totalPages > 1 && (
-                        <div className="pagination-brs">
-                            {[...Array(totalPages)].map((_, index) => (
-                                <button
-                                    key={index}
-                                    className={currentPage === index + 1 ? 'active' : ''}
-                                    onClick={() => setCurrentPage(index + 1)}
-                                >
-                                    {index + 1}
-                                </button>
-                            ))}
-                        </div>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="6">ไม่พบข้อมูลการยืม - คืน</td>
+                        </tr>
                     )}
-                </div>
+                </tbody>
+            </table>
 
-                {/* ✅ ปุ่มย้อนกลับ */}
-                <div className="back-button-brs">
-                    <NavLink to="/track">ย้อนกลับ</NavLink>
-                </div>
+            <div className="button-group-brs">
+                <button onClick={() => window.history.back()} className="back-button-brs">ย้อนกลับ</button>
+                <button onClick={fetchBorrowings} className="refresh-button-brs">รีเฟรชข้อมูล</button>
             </div>
-        </>
+        </div>
     );
 };
 

@@ -8,14 +8,29 @@ import { faWarehouse } from "@fortawesome/free-solid-svg-icons";
 function Received() {
     const [totalItems, setTotalItems] = useState(0);
     const [requests, setRequests] = useState([]);
+    const [filteredRequests, setFilteredRequests] = useState([]);
+    const [searchDate, setSearchDate] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 15;
 
     useEffect(() => {
         const fetchRequests = async () => {
             try {
                 const response = await axios.get("http://localhost:5001/api/requests");
                 const approvedRequests = response.data.filter(req => req.status === 'Approved');
-                setRequests(approvedRequests);
-                setTotalItems(approvedRequests.length);
+
+                const userResponses = await Promise.all(
+                    approvedRequests.map(req => axios.get(`http://localhost:5001/api/users/${req.user_id}`))
+                );
+
+                const enrichedRequests = approvedRequests.map((req, index) => ({
+                    ...req,
+                    borrower_name: userResponses[index].data.fullName
+                }));
+
+                setRequests(enrichedRequests);
+                setFilteredRequests(enrichedRequests);
+                setTotalItems(enrichedRequests.length);
             } catch (error) {
                 console.error("Error fetching requests:", error);
             }
@@ -30,14 +45,16 @@ function Received() {
 
         try {
             await axios.put(`http://localhost:5001/api/requests/${id}/receive`, {
-                received_by: 'IT Staff', // ควรดึงจากผู้ใช้งานปัจจุบัน
+                received_by: 'IT Staff',
                 date_received: new Date().toISOString().slice(0, 19).replace('T', ' '),
             });
 
             alert("อัปเดตสถานะรับของแล้วสำเร็จ");
 
-            setRequests(requests.filter(req => req.id !== id));
-            setTotalItems(totalItems - 1);
+            const updatedRequests = requests.filter(req => req.id !== id);
+            setRequests(updatedRequests);
+            setFilteredRequests(updatedRequests);
+            setTotalItems(updatedRequests.length);
         } catch (error) {
             console.error("Error updating status:", error);
             alert("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
@@ -47,6 +64,28 @@ function Received() {
     const handleViewDetails = (id) => {
         window.location.href = `/request-details/${id}`;
     };
+
+    const handleSearchByDate = () => {
+        if (!searchDate) {
+            setFilteredRequests(requests);
+            return;
+        }
+
+        const filtered = requests.filter(req => req.date_requested.startsWith(searchDate));
+        setFilteredRequests(filtered);
+        setCurrentPage(1);
+    };
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredRequests.slice(indexOfFirstItem, indexOfLastItem);
+    const pageNumbers = [];
+
+    for (let i = 1; i <= Math.ceil(filteredRequests.length / itemsPerPage); i++) {
+        pageNumbers.push(i);
+    }
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
         <div>
@@ -71,8 +110,13 @@ function Received() {
                 </div>
 
                 <div className="received-search-bar">
-                    <input type="date" className="received-input" placeholder="ค้นหาด้วยวันที่" />
-                    <button className="received-search-button" onClick={() => alert("ฟังก์ชันค้นหายังไม่ทำงาน")}>ค้นหา</button>
+                    <input
+                        type="date"
+                        className="received-input"
+                        value={searchDate}
+                        onChange={(e) => setSearchDate(e.target.value)}
+                    />
+                    <button className="received-search-button" onClick={handleSearchByDate}>ค้นหา</button>
                 </div>
 
                 <table className="received-table">
@@ -83,36 +127,40 @@ function Received() {
                             <th>ฝ่าย/สำนัก</th>
                             <th>อุปกรณ์</th>
                             <th>วันที่ขอเบิก</th>
+                            <th>สถานะ</th>
                             <th>รายละเอียด</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {requests.length > 0 ? (
-                            requests.map((req, index) => (
+                        {currentItems.length > 0 ? (
+                            currentItems.map((req, index) => (
                                 <tr key={req.id}>
-                                    <td>{index + 1}</td>
-                                    <td>{req.user_id}</td>
+                                    <td>{indexOfFirstItem + index + 1}</td>
+                                    <td>{req.borrower_name}</td>
                                     <td>{req.department}</td>
                                     <td>{req.type}</td>
                                     <td>{req.date_requested}</td>
                                     <td>
-                                        <button onClick={() => handleViewDetails(req.id)}>
-                                            ดู
-                                        </button>
+                                        <button onClick={() => handleReceiveItem(req.id)}>รับของแล้ว</button>
+                                    </td>
+                                    <td>
+                                        <button onClick={() => handleViewDetails(req.id)}>ดู</button>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="6">ไม่มีข้อมูล</td>
+                                <td colSpan="7">ไม่มีข้อมูล</td>
                             </tr>
                         )}
                     </tbody>
                 </table>
 
                 <div className="received-pagination">
-                    {[1, 2, 3, 4, 5].map((num) => (
-                        <button className="received-page-button" key={num} onClick={() => alert("ฟังก์ชันแบ่งหน้ายังไม่ทำงาน")}>{num}</button>
+                    {pageNumbers.map(number => (
+                        <button key={number} className="received-page-button" onClick={() => paginate(number)}>
+                            {number}
+                        </button>
                     ))}
                 </div>
 

@@ -1,7 +1,7 @@
 /* คอนเทนเนอร์หลัก */
-.received-container {
+.borrowing-container {
     max-width: 1000px;
-    margin: 150px auto 0 auto;
+    margin: 20px auto;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
@@ -9,7 +9,7 @@
 }
 
 /* ชื่อหัวข้อ */
-.received-title {
+.borrowing-title {
     font-size: 24px;
     font-weight: bold;
     color: #333;
@@ -22,20 +22,20 @@
 }
 
 /* จำนวนรายการ */
-.received-count {
+.borrowing-count {
     font-size: 18px;
     color: #555;
     margin-bottom: 15px;
 }
 
-/* ปุ่ม รอรับของ / รับของแล้ว */
-.received-button-container {
+/* ปุ่ม ขอยืม / ยืม-คืน */
+.button-container {
     margin-bottom: 15px;
     display: flex;
     gap: 10px;
 }
 
-.received-button {
+.button-container button {
     background-color: #007bff;
     color: white;
     border: none;
@@ -45,24 +45,24 @@
     transition: background-color 0.3s ease;
 }
 
-.received-button:hover {
+.button-container button:hover {
     background-color: #0056b3;
 }
 
 /* แถบค้นหา */
-.received-search-bar {
+.search-bar {
     margin-bottom: 20px;
     display: flex;
     gap: 10px;
 }
 
-.received-input {
+.search-bar input[type="date"] {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
 
-.received-search-button {
+.search-bar button {
     background-color: #28a745;
     color: white;
     border: none;
@@ -71,73 +71,47 @@
     cursor: pointer;
 }
 
-.received-search-button:hover {
+.search-bar button:hover {
     background-color: #218838;
 }
 
 /* ตาราง */
-.received-table {
+.table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
 }
 
-.received-table th, .received-table td {
+.table th, .table td {
     border: 1px solid #ddd;
     padding: 12px;
     text-align: center;
 }
 
-.received-table th {
+.table th {
     background-color: #007bff;
     color: white;
 }
 
-.received-table tr:nth-child(even) {
+.table tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
-/* ปุ่มดูรายละเอียด */
-.received-table button {
-    background-color: #ffc107;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
+/* ปุ่มย้อนกลับ */
+.back-button-container {
+    text-align: center;
+    margin-top: 15px;
 }
 
-.received-table button:hover {
-    background-color: #e0a800;
-}
-
-/* ปุ่มแบ่งหน้า */
-.received-pagination {
-    display: flex;
-    gap: 5px;
-}
-
-.received-page-button {
+.back-button {
     background-color: #6c757d;
     color: white;
-    border: none;
-    padding: 8px 12px;
+    padding: 8px 16px;
     border-radius: 5px;
-    cursor: pointer;
-}
-
-.received-page-button:hover {
-    background-color: #5a6268;
-}
-
-/* ปุ่มย้อนกลับ */
-.received-back-button {
-    display: inline-block;
-    margin-top: 10px;
-    color: #007bff;
     text-decoration: none;
-    font-weight: bold;
+    transition: background-color 0.3s ease;
 }
 
-.received-back-button:hover {
-    text-decoration: underline;
+.back-button:hover {
+    background-color: #5a6268;
 }

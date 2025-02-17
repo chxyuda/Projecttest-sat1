@@ -1,73 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import UserDashboard from "./UserDashboard.js";
+import UserDashboard from './UserDashboard';
 import './RequestHistory.css';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheckCircle, faTimesCircle, faClock } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from 'react-router-dom';
 
 const RequestHistory = () => {
-    const [currentPage, setCurrentPage] = useState(1);
     const [requests, setRequests] = useState([]);
-    const [totalPages, setTotalPages] = useState(1);
-    const itemsPerPage = 5;
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchRequests = async () => {
             try {
-                const response = await fetch('http://localhost:3000/api/borrowings');
+                const userData = JSON.parse(localStorage.getItem('user'));
+                const response = await fetch(`http://localhost:5001/api/requests/user/${userData.id}`);
                 const data = await response.json();
-
-                // คำนวณจำนวนหน้าทั้งหมด
-                setTotalPages(Math.ceil(data.length / itemsPerPage));
-
-                // กำหนดรายการที่ต้องแสดงในหน้าปัจจุบัน
-                const startIndex = (currentPage - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                setRequests(data.slice(startIndex, endIndex));
+                setRequests(data);
             } catch (error) {
                 console.error('Error fetching requests:', error);
             }
         };
 
         fetchRequests();
-    }, [currentPage]);
-
-    // ✅ เพิ่มไอคอนสถานะ
-    const getStatusBadge = (status) => {
-        switch (status) {
-            case 'pending':
-                return <span className="status-pending">
-                    <FontAwesomeIcon icon={faClock} className="status-icon" /> รอดำเนินการ
-                </span>;
-            case 'approved':
-                return <span className="status-approved">
-                    <FontAwesomeIcon icon={faCheckCircle} className="status-icon" /> อนุมัติแล้ว
-                </span>;
-            case 'returned':
-                return <span className="status-returned">
-                    <FontAwesomeIcon icon={faTimesCircle} className="status-icon" /> คืนแล้ว
-                </span>;
-            default:
-                return status;
-        }
-    };
-
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('th-TH', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        });
-    };
+    }, []);
 
     return (
         <>
-            
             <UserDashboard />
-
-            <div className="content-hrq">
-                <h2>ประวัติการเบิก</h2>
-                <div className="table-container-hrq">
-                    <table>
+            <div className="request-history-container">
+                <div className="request-history-box">
+                    <h2>ประวัติการเบิก</h2>
+                    <table className="request-history-table">
                         <thead>
                             <tr>
                                 <th>ลำดับ</th>
@@ -82,39 +43,23 @@ const RequestHistory = () => {
                             {requests.length > 0 ? (
                                 requests.map((request, index) => (
                                     <tr key={request.id}>
-                                        <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                                        <td>{index + 1}</td>
                                         <td>{request.borrower_name}</td>
                                         <td>{request.department}</td>
-                                        <td>{request.equipment?.name || 'N/A'}</td>
-                                        <td>{formatDate(request.borrow_date)}</td>
-                                        <td>{getStatusBadge(request.status)}</td>
+                                        <td>{request.material}</td>
+                                        <td>{new Date(request.date_requested).toLocaleDateString('th-TH')}</td>
+                                        <td>{request.status || 'รอดำเนินการ'}</td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="no-data-hrq">ไม่พบข้อมูลการเบิก</td>
+                                    <td colSpan="6">ไม่พบข้อมูลการเบิก</td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
-
-                    {totalPages > 1 && (
-                        <div className="pagination-hrq">
-                            {[...Array(totalPages)].map((_, index) => (
-                                <button
-                                    key={index}
-                                    className={currentPage === index + 1 ? 'active' : ''}
-                                    onClick={() => setCurrentPage(index + 1)}
-                                >
-                                    {index + 1}
-                                </button>
-                            ))}
-                        </div>
-                    )}
                 </div>
-                <div className="back-button-hrq">
-                    <a href="/WithdrawalHistory">ย้อนกลับ</a>
-                </div>
+                <button className="back-button" onClick={() => navigate(-1)}>ย้อนกลับ</button>
             </div>
         </>
     );

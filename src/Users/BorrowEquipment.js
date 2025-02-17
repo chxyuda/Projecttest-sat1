@@ -291,7 +291,7 @@ const handleShowBorrowForm = (row) => {
     setShowLoanForm(true);
   };
   
-
+  
   const handleSubmitLoan = async (e) => {
     e.preventDefault();
   
@@ -609,7 +609,7 @@ const handleShowBorrowForm = (row) => {
         </div>
         <div className="form-group-rqf">
           <label>ประเภท:</label>
-          <input type="text" value={loanFormData.type} readOnly />
+          <input type="text" value={loanFormData.category} readOnly />
         </div>
         <div className="form-group-rqf">
           <label>อุปกรณ์:</label>

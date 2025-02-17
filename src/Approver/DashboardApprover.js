@@ -82,12 +82,12 @@ const DashboardApprover = () => {
             <FontAwesomeIcon icon={faWarehouse} /> คลังวัสดุ
           </span>
           <span onClick={() => navigate("/received")}>
-            <FontAwesomeIcon icon={faCogs} /> สถานะการขอเบิก
+            <FontAwesomeIcon icon={faCogs} /> การขอเบิก
           </span>
-          <span onClick={() => navigate("/")}>
-            <FontAwesomeIcon icon={faUsers} /> สถานะการยืม-คืน
+          <span onClick={() => navigate("/borrowing")}>
+            <FontAwesomeIcon icon={faUsers} /> การยืม-คืน
           </span>
-          <span onClick={() => navigate("/")}>
+          <span onClick={() => navigate("/req-borrowhistory")}>
             <FontAwesomeIcon icon={faFileAlt} /> ประวัติการเบิก-การยืม-คืน
           </span>
           <span onClick={() => navigate("/")}>

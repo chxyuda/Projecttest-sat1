@@ -20,6 +20,7 @@ import ProfileModal from "./Pages/ProfileModal";
 import Borrow from "./Users/BorrowEquipment.js";
 import RequestForm from "./Users/RequestForm.js";
 import RequestStatus from "./Users/RequestStatus.js";
+import ReturningHistory from "./Users/ReturningHistory.js";
 import Track from "./Users/Track.js";
 import BorrowStatus from "./Users/BorrowStatus.js";
 import RequestHistory from "./Users/RequestHistory.js";
@@ -27,6 +28,8 @@ import WithdrawalHistory from "./Users/WithdrawalHistory.js";
 import DashboardApprover from "./Approver/DashboardApprover.js";
 import InventoryApprover from "./Approver/InventoryApprover.js"
 import Received from "./Approver/Received.js";
+import Borrowing from "./Approver/Borrowing.js";
+import ReqBorrowHistory from "./Approver/ReqBorrowHistory.js";
 
 function App() {
   const [currentTime, setCurrentTime] = useState("");
@@ -97,6 +100,7 @@ function App() {
           <Route path="/borrow" element={<Borrow />} />
           <Route path="/requestForm" element={<RequestForm />} />
           <Route path="/requestStatus" element={<RequestStatus />} /> {/* ✅ เปลี่ยน path ไม่ให้ชนกัน */}
+          <Route path="/returning-history" element={<ReturningHistory />} />
           <Route path="/track" element={<Track />} />
           <Route path="/borrowStatus" element={<BorrowStatus />} /> {/* ✅ ใช้ตัวอักษรใหญ่เหมือน component */}
           <Route path="/requesthistory" element={<RequestHistory /> } />
@@ -104,6 +108,8 @@ function App() {
           <Route path="/approver-dashboard" element={<DashboardApprover />} />
           <Route path="/inventory-approver" element={<InventoryApprover />} />
           <Route path="/received" element={<Received />} />
+          <Route path="/borrowing" element={<Borrowing />} />
+          <Route path="/req-borrowhistory" element={<ReqBorrowHistory />} />
         </Routes>
       </div>
     </Router>

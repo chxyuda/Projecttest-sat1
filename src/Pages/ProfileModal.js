@@ -159,8 +159,6 @@ const ViewProfile = ({ userData, setIsEditing }) => (
 const EditProfile = ({ formData, imagePreview, handleChange, handleFileChange, handleSave, handleCancel, departments, sections, tasks }) => (
   <>
     <div className="edit-profile">
-      <h2>แก้ไขโปรไฟล์</h2>
-
       {/* 🔹 ชื่อ - นามสกุล */}
       <label>ชื่อ - นามสกุล:</label>
       <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} />

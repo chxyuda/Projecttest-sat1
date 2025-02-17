@@ -119,9 +119,6 @@ const ITDashboard = () => {
           <span onClick={handleLogout} className="logout">
   <FontAwesomeIcon icon={faSignOutAlt} /> ออกจากระบบ
 </span>
-
-
-
           {/* ✅ คลิกที่โปรไฟล์แล้วเปิด Modal */}
           <div className="it-info" onClick={() => setShowProfile(true)}>
   <img src={userData?.image || userIcon} alt="User Icon" className="user-icon" />

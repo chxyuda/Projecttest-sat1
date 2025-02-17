@@ -96,16 +96,17 @@ const InventoryApprover = () => {
   setSearchHistory((prevHistory) => [newSearch, ...prevHistory]);
 };
 
-  
-  const paginate = (pageNumber) => {
-    console.log(`เปลี่ยนไปยังหน้า: ${pageNumber}`);
-    setCurrentPage(pageNumber);
-  };
-  
-  const indexOfLastItem = currentPage * itemsPerPage; // ดัชนีของแถวสุดท้ายในหน้านั้น
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage; // ดัชนีของแถวแรกในหน้านั้น
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem); // ดึงข้อมูลเฉพาะหน้าปัจจุบัน
+// คำนวณ index สำหรับแบ่งหน้า
+const indexOfLastItem = currentPage * itemsPerPage;
+const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
+// จำนวนหน้าทั้งหมด
+const totalPages = Math.ceil(data.length / itemsPerPage);
+
+// เปลี่ยนหน้า
+const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  
 
   const handleShowHistory = () => {
     setShowHistory(true);
@@ -219,6 +220,17 @@ const InventoryApprover = () => {
               )}
            </tbody>
           </table>
+          <div className="pagination">
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => paginate(i + 1)}
+              className={currentPage === i + 1 ? 'active' : ''}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
           {showHistory && (
             <div className="modal-overlay">
               <div className="modal-content">
