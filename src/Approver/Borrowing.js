@@ -1,94 +1,314 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import DashboardApprover from "./DashboardApprover.js";
+import DashboardApprover from "./DashboardApprover";
+import "./Borrowing.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faWarehouse } from "@fortawesome/free-solid-svg-icons";
-import './Borrowing.css';
+import { faWarehouse, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 
-const Borrowing = () => {
+function Borrowing() {
     const [requests, setRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [filteredRequests, setFilteredRequests] = useState([]);
+    const [searchDate, setSearchDate] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedRequest, setSelectedRequest] = useState(null);
+    const itemsPerPage = 15;
+    const [remark, setRemark] = useState("");
+    const [showRejectReason, setShowRejectReason] = useState(false);
+    const [rejectReason, setRejectReason] = useState("");
+
+
 
     useEffect(() => {
-        const fetchBorrowRequests = async () => {
-            try {
-                const response = await axios.get('http://localhost:5001/api/borrow-requests');
-                setRequests(response.data);
-            } catch (error) {
-                console.error('Error fetching borrow requests:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchBorrowRequests();
+      const fetchBorrowRequests = async () => {
+        try {
+          const response = await axios.get("http://localhost:5001/api/borrow-requests");
+          const pendingRequests = response.data.filter((req) => req.status === "Pending");
+          setRequests(pendingRequests);
+          setFilteredRequests(pendingRequests);          
+        } catch (error) {
+          console.error("Error fetching borrow requests:", error);
+        }
+      };
+  
+      fetchBorrowRequests();
     }, []);
+  
+    const handleSearchByDate = () => {
+      if (searchDate) {
+        const filtered = requests.filter((req) => req.request_date === searchDate);
+        setFilteredRequests(filtered);
+      } else {
+        setFilteredRequests(requests);
+      }
+      setCurrentPage(1);
+    };
+  
+    const handleViewDetails = (request) => {
+        setSelectedRequest(request);
+        setRemark(""); // เคลียร์หมายเหตุเมื่อเปิดหน้าต่างใหม่
+      };
+      
+  
+      const handleCloseModal = () => {
+        setSelectedRequest(null);
+      };
+      
+  
+      const handleApprove = async (status) => {
+        try {
+          const note = status === "Rejected" ? rejectReason : remark;
+          const finalStatus = status === "Approved" ? "WaitingReceive" : "Rejected";
+      
+          await axios.put(
+            `http://localhost:5001/api/borrow-requests/${selectedRequest.id}/approve`,
+            {
+              status: finalStatus,
+              approved_by: "ชื่อผู้อนุมัติ",
+              date_approved: new Date().toISOString().slice(0, 10),
+              note,
+            }
+          );
+          alert(`ทำการ${status === "Approved" ? "อนุมัติ" : "ไม่อนุมัติ"}สำเร็จ`);
+          setSelectedRequest(null);
+          setShowRejectReason(false);
+          setRejectReason("");
+          window.location.reload();
+        } catch (error) {
+          console.error("Error updating status:", error);
+          alert("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+        }
+      };
+      
+    
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredRequests.slice(indexOfFirstItem, indexOfLastItem);
+  
+    const pageNumbers = [];
+    for (let i = 1; i <= Math.ceil(filteredRequests.length / itemsPerPage); i++) {
+      pageNumbers.push(i);
+    }
+  
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  
+    
 
-    return (
-        <>
-            <DashboardApprover />
-            <div className="borrowing-container">
-                <div className="borrowing-title">
-                    <FontAwesomeIcon icon={faWarehouse} style={{ marginRight: "10px" }} />
-                    ข้อมูลการยืม
-                </div>
-                <div className="borrowing-count">จำนวนการขอยืม: {requests.length} รายการ</div>
-
-                <div className="button-container">
-                    <button onClick={() => window.location.href = '/borrow-form'}>ขอยืม</button>
-                    <button onClick={() => window.location.href = '/borrow-return'}>ยืม - คืน</button>
-                </div>
-
-                <div className="search-bar">
-                    <input type="date" id="searchDate" placeholder="ค้นหาด้วยวันที่" />
-                    <button onClick={() => console.log('Implement search function')}>ค้นหา</button>
-                </div>
-
-                <table className="table" id="dataTable">
-                    <thead>
-                        <tr>
-                            <th>ลำดับ</th>
-                            <th>ชื่อผู้ขอยืม</th>
-                            <th>ฝ่ายสำนัก</th>
-                            <th>ชื่อวัสดุอุปกรณ์</th>
-                            <th>วันที่ขอยืม</th>
-                            <th>จำนวน</th>
-                            <th>สถานะ</th>
-                            <th>หมายเหตุ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        {loading ? (
-                            <tr>
-                                <td colSpan="8" style={{ textAlign: "center", verticalAlign: "middle" }}>กำลังโหลดข้อมูล...</td>
-                            </tr>
-                        ) : requests.length > 0 ? (
-                            requests.map((request, index) => (
-                                <tr key={request.id}>
-                                    <td>{index + 1}</td>
-                                    <td>{request.borrower_name}</td>
-                                    <td>{request.department}</td>
-                                    <td>{request.equipment}</td>
-                                    <td>{request.request_date}</td>
-                                    <td>{request.quantity_requested}</td>
-                                    <td>{request.status}</td>
-                                    <td>{request.note || '-'}</td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="8" style={{ textAlign: "center", verticalAlign: "middle" }}>ไม่มีข้อมูล</td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-
-                <div className="back-button-container">
-                    <a href="/approver-page" className="back-button">ย้อนกลับ</a>
-                </div>
+  return (
+    <div>
+      <DashboardApprover />
+        <div className="borrowing-container">
+            <div className="borrowing-title">
+                <FontAwesomeIcon icon={faWarehouse} style={{ marginRight: "10px" }} />
+                ข้อมูลการยืม
             </div>
-        </>
-    );
-};
+            <div className="borrowing-button-group">
+                <button
+                    className="borrowing-tab-button"
+                    onClick={() => window.location.href = "/waiting-receive-borrow"}
+                >
+                    รอรับของ
+                </button>
+                <button
+                    className="borrowing-tab-button"
+                    onClick={() => window.location.href = "/returneditems"}
+                >
+                    คืนของแล้ว
+                </button>
+            </div>
+        <div className="borrowing-search-bar">
+          <input
+            type="date"
+            value={searchDate}
+            onChange={(e) => setSearchDate(e.target.value)}
+          />
+          <button onClick={handleSearchByDate}>ค้นหา</button>
+        </div>
+
+        <table className="borrowing-table">
+          <thead>
+            <tr>
+              <th>ลำดับ</th>
+              <th>ชื่อผู้ยืม</th>
+              <th>ฝ่าย/สำนัก</th>
+              <th>อุปกรณ์</th>
+              <th>วันที่ยืม</th>
+              <th>จำนวน</th>
+              <th>สถานะ</th>
+              <th>รายละเอียด</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentItems.length > 0 ? (
+              currentItems.map((req, index) => (
+                <tr key={req.id}>
+                  <td>{indexOfFirstItem + index + 1}</td>
+                  <td>{req.borrower_name}</td>
+                  <td>{req.department}</td>
+                  <td>{req.equipment}</td>
+                  <td>
+                    {new Date(req.request_date).toLocaleDateString("th-TH")}
+                  </td>
+                  <td>{req.quantity_requested}</td>
+                  <td>
+                        {req.status === "Pending"
+                        ? "รอดำเนินการ"
+                        : req.status === "Approved"
+                        ? "อนุมัติแล้ว"
+                        : req.status === "Rejected"
+                        ? "ไม่อนุมัติ"
+                        : req.status === "Received"
+                        ? "รับของแล้ว"
+                        : req.status === "Returned"
+                        ? "คืนของแล้ว"
+                        : req.status === "WaitingReceive"
+                        ? "รอรับของ"
+                        : req.status}
+                    </td>
+                    <td>
+                    <button
+                        className="detail-button"
+                        onClick={() => handleViewDetails(req)}
+                    >
+                        ดูรายละเอียด
+                    </button>
+                    </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="9">ไม่มีข้อมูล</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+        <div className="borrowing-pagination">
+          {pageNumbers.map((number) => (
+            <button key={number} onClick={() => paginate(number)}>
+              {number}
+            </button>
+          ))}
+        </div>
+        {selectedRequest && (
+  <div className="modal-overlay">
+    <div className="modal">
+      <FontAwesomeIcon
+        icon={faTimesCircle}
+        className="modal-close-icon"
+        onClick={handleCloseModal}
+      />
+      <h3>รายละเอียดการขอยืมวัสดุ</h3>
+      <form className="modal-form">
+        <div className="form-group">
+          <label>ชื่อผู้ยืม:</label>
+          <input type="text" value={selectedRequest.borrower_name} readOnly />
+        </div>
+        <div className="form-group">
+          <label>ฝ่าย/สำนัก:</label>
+          <input type="text" value={selectedRequest.department} readOnly />
+        </div>
+        <div className="form-group">
+          <label>เบอร์โทร:</label>
+          <input type="text" value={selectedRequest.phone} readOnly />
+        </div>
+        <div className="form-group">
+          <label>Email:</label>
+          <input type="text" value={selectedRequest.email} readOnly />
+        </div>
+        <div className="form-group">
+          <label>วัสดุ:</label>
+          <input type="text" value={selectedRequest.material} readOnly />
+        </div>
+        <div className="form-group">
+          <label>ประเภท:</label>
+          <input type="text" value={selectedRequest.type} readOnly />
+        </div>
+        <div className="form-group">
+          <label>อุปกรณ์:</label>
+          <input type="text" value={selectedRequest.equipment} readOnly />
+        </div>
+        <div className="form-group">
+          <label>ยี่ห้อ:</label>
+          <input type="text" value={selectedRequest.brand} readOnly />
+        </div>
+        <div className="form-group">
+          <label>จำนวน:</label>
+          <input type="text" value={selectedRequest.quantity_requested} readOnly />
+        </div>
+        <div className="form-group">
+          <label>วันที่ขอยืม:</label>
+          <input
+            type="text"
+            value={
+              selectedRequest.request_date
+                ? new Date(selectedRequest.request_date).toLocaleDateString("th-TH", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "ไม่ระบุ"
+            }
+            readOnly
+          />
+        </div>
+        <div className="form-group">
+          <label>วันที่คืน:</label>
+          <input
+            type="text"
+            value={
+              selectedRequest.return_date
+                ? new Date(selectedRequest.return_date).toLocaleDateString("th-TH", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "ไม่ระบุ"
+            }
+            readOnly
+          />
+        </div>
+        <div className="form-group">
+          <label>หมายเหตุ:</label>
+          <textarea value={selectedRequest.note || "-"} readOnly />
+        </div>
+      </form>
+
+      <div className="modal-buttons">
+        <button className="approve-button" onClick={() => handleApprove("Approved")}>
+          อนุมัติ
+        </button>
+        <button
+          className="reject-button"
+          onClick={() => setShowRejectReason(true)}
+        >
+          ไม่อนุมัติ
+        </button>
+      </div>
+
+      {/* ส่วนแสดงช่องใส่เหตุผลการไม่อนุมัติ */}
+      {showRejectReason && (
+        <div className="form-group">
+          <label>เหตุผลการไม่อนุมัติ:</label>
+          <textarea
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="กรุณาระบุเหตุผลการไม่อนุมัติ"
+          />
+          <button
+            className="reject-button"
+            onClick={() => handleApprove("Rejected")}
+            disabled={!rejectReason.trim()}
+          >
+            ยืนยันการไม่อนุมัติ
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+    </div>
+    </div>
+  );
+}
 
 export default Borrowing;

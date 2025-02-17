@@ -20,34 +20,16 @@ const ReqBorrowHistory = () => {
 
   const navigate = useNavigate();
 
+  // เบิกวัสดุ
   useEffect(() => {
     if (view === 'withdrawHistory') {
-      const fetchRequests = async () => {
-        try {
-          const response = await axios.get('http://localhost:5001/api/requests');
-          setRequests(response.data);
-          setFilteredRequests(response.data);
-          setTotalPages(Math.ceil(response.data.length / itemsPerPage));
-        } catch (error) {
-          console.error('Failed to fetch data:', error);
-        }
-      };
       fetchRequests();
     }
   }, [view]);
 
+  // ยืมวัสดุ
   useEffect(() => {
     if (view === 'borrowHistory') {
-      const fetchBorrowRequests = async () => {
-        try {
-          const response = await axios.get('http://localhost:5001/api/borrow-requests');
-          setBorrowRequests(response.data);
-          setFilteredBorrowRequests(response.data);
-          setTotalPages(Math.ceil(response.data.length / itemsPerPage));
-        } catch (error) {
-          console.error('Failed to fetch borrow data:', error);
-        }
-      };
       fetchBorrowRequests();
     }
   }, [view]);
@@ -62,23 +44,58 @@ const ReqBorrowHistory = () => {
     setCurrentPage(pageNumber);
   };
 
+  // ฟังก์ชันค้นหาตามวันที่ สำหรับเบิกวัสดุ
   const handleSearch = () => {
-    const filtered = requests.filter((request) =>
-      request.date_requested.includes(searchDate)
+    const filtered = requests.filter(
+      (request) =>
+        request.date_requested.includes(searchDate) && request.status !== 'Pending'
     );
     setFilteredRequests(filtered);
     setCurrentPage(1);
     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
   };
 
+  // ฟังก์ชันค้นหาตามวันที่ สำหรับยืมวัสดุ
   const handleSearchBorrow = () => {
-    const filtered = borrowRequests.filter((request) =>
-      request.request_date.includes(searchDate)
+    const filtered = borrowRequests.filter(
+      (request) =>
+        request.request_date.includes(searchDate) && request.status !== 'Pending'
     );
     setFilteredBorrowRequests(filtered);
     setCurrentPage(1);
     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
   };
+
+  // ดึงข้อมูลเบิกวัสดุ ยกเว้น Pending
+  const fetchRequests = async () => {
+    try {
+      const response = await axios.get('http://localhost:5001/api/requests');
+      const approvedOrRejected = response.data.filter(
+        (request) => request.status !== 'Pending'
+      );
+      setRequests(approvedOrRejected);
+      setFilteredRequests(approvedOrRejected);
+      setTotalPages(Math.ceil(approvedOrRejected.length / itemsPerPage));
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    }
+  };
+
+  // ดึงข้อมูลยืมวัสดุ ยกเว้น Pending
+  const fetchBorrowRequests = async () => {
+    try {
+      const response = await axios.get('http://localhost:5001/api/borrow-requests');
+      const approvedOrOtherStatus = response.data.filter(
+        (request) => request.status !== 'Pending'
+      );
+      setBorrowRequests(approvedOrOtherStatus);
+      setFilteredBorrowRequests(approvedOrOtherStatus);
+      setTotalPages(Math.ceil(approvedOrOtherStatus.length / itemsPerPage));
+    } catch (error) {
+      console.error('Failed to fetch borrow data:', error);
+    }
+  };
+  
 
   return (
     <>
@@ -136,9 +153,36 @@ const ReqBorrowHistory = () => {
                         <td>{request.borrower_name}</td>
                         <td>{request.department}</td>
                         <td>{request.equipment}</td>
-                        <td>{request.date_requested}</td>
-                        <td>{request.date_approved || '-'}</td>
-                        <td>{request.status}</td>
+                        <td>
+  {request.date_requested
+    ? new Date(request.date_requested).toLocaleDateString('th-TH', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+    : '-'}
+</td>
+<td>
+  {request.date_approved
+    ? new Date(request.date_approved).toLocaleDateString('th-TH', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+    : '-'}
+</td>
+                        <td>
+  {request.status === 'Approved'
+    ? 'อนุมัติแล้ว'
+    : request.status === 'Rejected'
+    ? 'ไม่อนุมัติ'
+    : request.status === 'Received'
+    ? 'รับของแล้ว'
+    : request.status === 'Returned'
+    ? 'คืนของแล้ว'
+    : request.status}
+</td>
+
                       </tr>
                     ))
                   ) : (
@@ -193,9 +237,35 @@ const ReqBorrowHistory = () => {
                         <td>{request.borrower_name}</td>
                         <td>{request.department}</td>
                         <td>{request.equipment}</td>
-                        <td>{request.request_date}</td>
-                        <td>{request.date_approved || '-'}</td>
-                        <td>{request.status}</td>
+                        <td>
+  {request.request_date
+    ? new Date(request.request_date).toLocaleDateString('th-TH', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+    : '-'}
+</td>
+<td>
+  {request.date_approved
+    ? new Date(request.date_approved).toLocaleDateString('th-TH', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+    : '-'}
+</td>
+<td>
+  {request.status === 'Approved'
+    ? 'อนุมัติแล้ว'
+    : request.status === 'Rejected'
+    ? 'ไม่อนุมัติ'
+    : request.status === 'Received'
+    ? 'รับของแล้ว'
+    : request.status === 'Returned'
+    ? 'คืนของแล้ว'
+    : request.status}
+</td>
                       </tr>
                     ))
                   ) : (

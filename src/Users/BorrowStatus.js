@@ -67,7 +67,7 @@ const BorrowStatus = () => {
                                 <td>{borrowing.department}</td>
                                 <td>{borrowing.equipment}</td>
                                 <td>{formatDate(borrowing.request_date)} - {formatDate(borrowing.return_date)}</td>
-                                <td>{renderStatus(borrowing.approval_status)}</td>
+                                <td>{renderStatus(borrowing.status)}</td>
                             </tr>
                         ))
                     ) : (

@@ -1208,21 +1208,22 @@ router.get('/requests/user/:username', (req, res) => {
 // ✅ 4. อัปเดตสถานะคำขอ (สำหรับผู้อนุมัติ)
 router.put('/requests/:id/approve', (req, res) => {
   const { id } = req.params;
-  const { status, approved_by, date_approved, remark } = req.body;
+  const { status, approved_by, date_approved, note } = req.body; // เปลี่ยนเป็น note
 
   const sql = `
     UPDATE requests 
-    SET status = ?, approved_by = ?, date_approved = ?, remark = ?, notification_status = 1
+    SET status = ?, approved_by = ?, date_approved = ?, note = ?, notification_status = 1
     WHERE id = ?
   `;
 
-  db.query(sql, [status, approved_by, date_approved, remark, id], (err) => {
+  db.query(sql, [status, approved_by, date_approved, note, id], (err) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
     res.json({ message: 'อัปเดตสถานะคำขอสำเร็จ' });
   });
 });
+
 
 // ✅ 5. อัปเดตสถานะเป็น "รับของแล้ว" (สำหรับ IT Staff)
 router.put('/requests/:id/receive', (req, res) => {
@@ -1430,8 +1431,6 @@ router.put('/borrow-requests/:id/return', (req, res) => {
     });
   });
 });
-
-
 
 // Start Server
 app.listen(PORT, () => {

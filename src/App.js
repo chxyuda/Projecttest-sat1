@@ -30,7 +30,10 @@ import InventoryApprover from "./Approver/InventoryApprover.js"
 import Received from "./Approver/Received.js";
 import Borrowing from "./Approver/Borrowing.js";
 import ReqBorrowHistory from "./Approver/ReqBorrowHistory.js";
-
+import WaitingReceive from "./Approver/WaitingReceive.js";
+import ReceivedItems from "./Approver/ReceivedItems.js";
+import WaitingReceiveBorrow from "./Approver/WaitingReceiveBorrow.js";
+import ReturnedItems from "./Approver/ReturnedItems.js";
 function App() {
   const [currentTime, setCurrentTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
@@ -110,6 +113,10 @@ function App() {
           <Route path="/received" element={<Received />} />
           <Route path="/borrowing" element={<Borrowing />} />
           <Route path="/req-borrowhistory" element={<ReqBorrowHistory />} />
+          <Route path="/waiting-receive" element={<WaitingReceive />} />
+          <Route path="/received-items" element={<ReceivedItems />} />
+          <Route path="/waiting-receive-borrow" element={<WaitingReceiveBorrow />} />
+          <Route path="/returneditems" element={<ReturnedItems />} />
         </Routes>
       </div>
     </Router>

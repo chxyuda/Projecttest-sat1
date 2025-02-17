@@ -1,117 +1,80 @@
-/* คอนเทนเนอร์หลัก */
 .borrowing-container {
     max-width: 1000px;
-    margin: 20px auto;
+    background-color: #fbfdff;
+    margin: 150px auto 0 auto;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    margin-top: 200px;
-}
-
-/* ชื่อหัวข้อ */
-.borrowing-title {
+  }
+  
+  .borrowing-title {
     font-size: 24px;
     font-weight: bold;
     color: #333;
     margin-bottom: 20px;
-    border-bottom: 3px solid #007bff;
-    padding-bottom: 5px;
     display: flex;
     align-items: center;
-    gap: 10px;
-}
-
-/* จำนวนรายการ */
-.borrowing-count {
-    font-size: 18px;
-    color: #555;
-    margin-bottom: 15px;
-}
-
-/* ปุ่ม ขอยืม / ยืม-คืน */
-.button-container {
-    margin-bottom: 15px;
+  }
+  
+  .borrowing-button-group {
     display: flex;
     gap: 10px;
-}
-
-.button-container button {
+    margin-bottom: 20px; /* เพิ่มระยะห่างด้านล่าง */
+  }
+  
+  .borrowing-tab-button {
     background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.button-container button:hover {
-    background-color: #0056b3;
-}
-
-/* แถบค้นหา */
-.search-bar {
-    margin-bottom: 20px;
-    display: flex;
-    gap: 10px;
-}
-
-.search-bar input[type="date"] {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-.search-bar button {
-    background-color: #28a745;
     color: white;
     border: none;
     padding: 8px 16px;
     border-radius: 5px;
     cursor: pointer;
-}
+  }
+  
+  .borrowing-tab-button:hover {
+    background-color: #007bff;
+  }
+  .borrowing-search-bar {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+  }
 
-.search-bar button:hover {
-    background-color: #218838;
-}
-
-/* ตาราง */
-.table {
+  .borrowing-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-.table th, .table td {
+  }
+  
+  .borrowing-table th,
+  .borrowing-table td {
     border: 1px solid #ddd;
-    padding: 12px;
+    padding: 8px;
     text-align: center;
-}
-
-.table th {
-    background-color: #007bff;
-    color: white;
-}
-
-.table tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
-/* ปุ่มย้อนกลับ */
-.back-button-container {
-    text-align: center;
-    margin-top: 15px;
-}
-
-.back-button {
-    background-color: #6c757d;
-    color: white;
-    padding: 8px 16px;
+  }
+  
+  .borrowing-pagination {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .borrowing-pagination button {
+    margin: 0 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  .detail-button {
+    background-color: #ffc107;
+    color: black;
+    border: none;
+    padding: 5px 10px;
     border-radius: 5px;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
-}
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .detail-button:hover {
+    background-color: #e0a800;
+  }
 
-.back-button:hover {
-    background-color: #5a6268;
-}
+  
