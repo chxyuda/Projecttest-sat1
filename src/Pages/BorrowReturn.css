@@ -4,18 +4,18 @@
   padding: 20px;
   border-radius: 12px;
   width: 100%;
-  margin: 20px auto;
+  margin-top: 70px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* ✅ ปรับหัวข้อให้มีไอคอน */
 .borrow-return-title {
-    display: flex;
-    align-items: center;
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 15px;
-  }
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
 
 /* ✅ ปรับปุ่ม */
 .borrow-return-buttons-container {
@@ -23,100 +23,127 @@
   justify-content: center;
   gap: 15px;
   margin-top: 20px;
+  margin-bottom: 20px; /* เพิ่มระยะห่างด้านล่าง */
 }
 
 .borrow-return-buttons-container button {
-    background-color: #007bff;
-    color: white;
-    font-size: 16px;
-    padding: 10px 15px;  /* ปรับขนาด padding */
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
-    min-width: 150px; /* กำหนดขนาดขั้นต่ำให้ปุ่ม */
-    text-align: center;
-    white-space: nowrap; /* ป้องกันการขึ้นบรรทัดใหม่ */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px; /* เพิ่มระยะห่างระหว่างไอคอนกับตัวหนังสือ */
-  }
-  
+  background-color: #007bff;
+  color: white;
+  font-size: 16px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  min-width: 150px;
+  text-align: center;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
 
 .borrow-return-buttons-container button:hover {
-    background-color: #0056b3;
-  }
-  
-  /* ✅ ปรับขนาดของปุ่มเพิ่มให้เท่ากัน */
-  .add-btn {
-    background-color: #28a745;
-    color: white;
-    font-size: 16px;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
-    min-width: 150px;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    white-space: nowrap;
-  }
-  
-  .add-btn:hover {
-    background-color: #218838;
-  }
+  background-color: #0056b3;
+}
+
+/* ✅ ปรับขนาดของปุ่มเพิ่มให้เท่ากัน */
+.add-btn {
+  background-color: #28a745;
+  color: white;
+  font-size: 16px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  min-width: 150px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.add-btn:hover {
+  background-color: #218838;
+}
 
 /* ✅ Modal Overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
-/* ✅ Modal Content */
 .modal-content {
-  background: white;
+  background-color: #fff;
   padding: 20px;
   border-radius: 12px;
-  width: 400px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  width: 70%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.modal-content h2 {
-  text-align: center;
-}
-
-.modal-content label {
-  font-weight: bold;
-  display: block;
-  margin-top: 10px;
-}
-
-.modal-content input {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-
-/* ✅ ปุ่มใน Modal */
-.modal-buttons {
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  cursor: pointer;
   display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
+  align-items: center;
+  justify-content: center;
 }
+
+.close-btn:hover {
+  background-color: darkred;
+}
+
+
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.form-group span {
+  color: #555;
+}
+
 
 .save-btn {
   background-color: #007bff;
@@ -145,3 +172,31 @@
 .cancel-btn:hover {
   background-color: #c82333;
 }
+
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+  margin-top: 10px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  background-color: #f9f9f9;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.form-group span {
+  font-size: 14px;
+  color: #555;
+}
+

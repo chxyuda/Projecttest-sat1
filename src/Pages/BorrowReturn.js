@@ -1,15 +1,49 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ITDashboard from "./ITDashboard";
 import "./BorrowReturn.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faClock, faCheck, faTimes, faList, faClipboard, faPlus, faSyncAlt } from "@fortawesome/free-solid-svg-icons";
+import {
+  faClock,
+  faCheck,
+  faTimes,
+  faList,
+  faClipboard,
+  faPlus,
+  faSyncAlt,
+  faTimesCircle,
+} from "@fortawesome/free-solid-svg-icons";
 
 const BorrowReturn = () => {
-  const [selectedFilter, setSelectedFilter] = useState("pending");
+  const [borrowRequests, setBorrowRequests] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState("approved");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // สำหรับแบ่งหน้า
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:5001/api/borrow-requests"); // เปลี่ยนพอร์ตให้ตรง
+        const data = await response.json();
+        setBorrowRequests(data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching borrow requests:", error);
+        setLoading(false);
+      }
+    };
+  
+    fetchData();
+  }, []);
+  
 
   const handleFilterChange = (filter) => {
     setSelectedFilter(filter);
+    setCurrentPage(1); // รีเซ็ตหน้ากลับไปหน้าแรก
   };
 
   const openAddModal = () => {
@@ -20,89 +54,258 @@ const BorrowReturn = () => {
     setShowAddModal(false);
   };
 
+  const handleViewDetails = (request) => {
+    setSelectedRequest(request);
+  };
+
+  const closeDetailsModal = () => {
+    setSelectedRequest(null);
+  };
+
+  const handleCloseHistory = () => {
+    setSelectedRequest(null);
+  };
+  
+
+  // กรองข้อมูลตามสถานะ
+  const filteredData = borrowRequests.filter((request) => {
+    switch (selectedFilter) {
+      case "pending":
+        return request.status === "Pending";
+      case "approved":
+        return request.status === "Approved";
+      case "rejected":
+        return request.status === "Rejected";
+      case "borrow-return":
+        return request.status === "Returned" || request.status === "Received";
+      case "borrow-status":
+        return true;
+      default:
+        return true;
+    }
+  });
+
+  const getStatusInThai = (status) => {
+  switch (status) {
+    case "Pending":
+      return "รออนุมัติ";
+    case "Approved":
+      return "อนุมัติแล้ว";
+    case "Rejected":
+      return "ไม่อนุมัติ";
+    case "Received":
+      return "รับของแล้ว";
+    case "Returned":
+      return "คืนของแล้ว";
+    case "WaitingReceive":
+      return "รอรับของ";
+    default:
+      return status;
+  }
+};
+
+  console.log("Filtered Data:", filteredData);
+  // Pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div>
-      {/* ✅ Navbar และเมนูด้านบน */}
       <ITDashboard />
-
       <div className="borrow-return-container">
-  {/* ✅ ปรับตำแหน่งหัวข้อ "ยืม/คืน" ให้ชิดซ้าย */}
-  <h1 className="borrow-return-title">
-    <FontAwesomeIcon icon={faSyncAlt} /> ยืม/คืน
-  </h1>
+        <h1 className="borrow-return-title">
+          <FontAwesomeIcon icon={faSyncAlt} /> ยืม/คืน
+        </h1>
 
-        {/* ✅ กรอบปุ่ม */}
         <div className="borrow-return-buttons">
-  <div className="borrow-return-buttons-container">
-    <button className={selectedFilter === "pending" ? "active" : ""} onClick={() => handleFilterChange("pending")}>
-      <FontAwesomeIcon icon={faClock} /> รออนุมัติ
-    </button>
-    <button className={selectedFilter === "approved" ? "active" : ""} onClick={() => handleFilterChange("approved")}>
-      <FontAwesomeIcon icon={faCheck} /> อนุมัติแล้ว
-    </button>
-    <button className={selectedFilter === "rejected" ? "active" : ""} onClick={() => handleFilterChange("rejected")}>
-      <FontAwesomeIcon icon={faTimes} /> ไม่อนุมัติ
-    </button>
-    <button className={selectedFilter === "borrow-return" ? "active" : ""} onClick={() => handleFilterChange("borrow-return")}>
-      <FontAwesomeIcon icon={faList} /> รายการยืม-คืน
-    </button>
-    <button className={selectedFilter === "borrow-status" ? "active" : ""} onClick={() => handleFilterChange("borrow-status")}>
-      <FontAwesomeIcon icon={faClipboard} /> สถานะยืม-คืน
-    </button>
-    <button className="add-btn" onClick={openAddModal}>
-      <FontAwesomeIcon icon={faPlus} /> เพิ่ม
-    </button>
-  </div>
-</div>
+          <div className="borrow-return-buttons-container">
+            <button className={selectedFilter === "pending" ? "active" : ""} onClick={() => handleFilterChange("pending")}>
+              <FontAwesomeIcon icon={faClock} /> รออนุมัติ
+            </button>
+            <button className={selectedFilter === "approved" ? "active" : ""} onClick={() => handleFilterChange("approved")}>
+              <FontAwesomeIcon icon={faCheck} /> อนุมัติแล้ว
+            </button>
+            <button className={selectedFilter === "rejected" ? "active" : ""} onClick={() => handleFilterChange("rejected")}>
+              <FontAwesomeIcon icon={faTimes} /> ไม่อนุมัติ
+            </button>
+            <button className={selectedFilter === "borrow-return" ? "active" : ""} onClick={() => handleFilterChange("borrow-return")}>
+              <FontAwesomeIcon icon={faList} /> รายการยืม-คืน
+            </button>
+            <button className={selectedFilter === "borrow-status" ? "active" : ""} onClick={() => handleFilterChange("borrow-status")}>
+              <FontAwesomeIcon icon={faClipboard} /> สถานะยืม-คืน
+            </button>
+            <button className="add-btn" onClick={openAddModal}>
+              <FontAwesomeIcon icon={faPlus} /> เพิ่ม
+            </button>
+          </div>
+        </div>
 
-        {/* ✅ Modal สำหรับเพิ่มรายการ */}
+        <div className="borrow-return-list">
+          {loading ? (
+            <p>กำลังโหลดข้อมูล...</p>
+          ) : (
+            <table className="borrow-return-table">
+              <thead>
+                <tr>
+                  <th>ลำดับ</th>
+                  <th>ชื่อผู้ยืม</th>
+                  <th>ฝ่าย/สำนัก</th>
+                  <th>อุปกรณ์</th>
+                  <th>วันที่ยืม</th>
+                  <th>จำนวน</th>
+                  <th>สถานะ</th>
+                  <th>รายละเอียด</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentItems.length > 0 ? (
+                  currentItems.map((req, index) => (
+                    <tr key={req.id}>
+                      <td>{indexOfFirstItem + index + 1}</td>
+                      <td>{req.borrower_name}</td>
+                      <td>{req.department}</td>
+                      <td>{req.equipment}</td>
+                      <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
+                      <td>{req.quantity_requested}</td>
+                      <td>{req.status === "Pending" ? "รอดำเนินการ" : req.status === "Approved" ? "อนุมัติแล้ว" : req.status === "Rejected" ? "ไม่อนุมัติ" : req.status === "Received" ? "รับของแล้ว" : req.status === "Returned" ? "คืนของแล้ว" : req.status}</td>
+                      <td>
+                        <button className="detail-button" onClick={() => handleViewDetails(req)}>ดูรายละเอียด</button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="8">ไม่มีข้อมูล</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Pagination */}
+        <div className="pagination">
+          {Array.from({ length: Math.ceil(filteredData.length / itemsPerPage) }, (_, i) => (
+            <button key={i + 1} onClick={() => paginate(i + 1)}>
+              {i + 1}
+            </button>
+          ))}
+        </div>
+
+        {selectedRequest && (
+  <div className="modal-overlay">
+    <div className="modal-content">
+    <FontAwesomeIcon icon={faTimesCircle} className="modal-close-icon" onClick={handleCloseHistory} />
+      <h3>รายละเอียดคำขอ</h3>
+      <div className="modal-form-grid">
+        <div className="form-group">
+          <label>ชื่อผู้ขอ:</label>
+          <span>{selectedRequest.borrower_name}</span>
+        </div>
+        <div className="form-group">
+          <label>ฝ่าย/สำนัก:</label>
+          <span>{selectedRequest.department}</span>
+        </div>
+
+        <div className="form-group">
+          <label>โทรศัพท์:</label>
+          <span>{selectedRequest.phone}</span>
+        </div>
+        <div className="form-group">
+          <label>อีเมล:</label>
+          <span>{selectedRequest.email}</span>
+        </div>
+
+        <div className="form-group">
+          <label>วัสดุ/รุ่น:</label>
+          <span>{selectedRequest.material}</span>
+        </div>
+        <div className="form-group">
+          <label>ประเภท:</label>
+          <span>{selectedRequest.type || "-"}</span>
+        </div>
+
+        <div className="form-group">
+          <label>อุปกรณ์:</label>
+          <span>{selectedRequest.equipment}</span>
+        </div>
+        <div className="form-group">
+          <label>ยี่ห้อ:</label>
+          <span>{selectedRequest.brand}</span>
+        </div>
+
+        <div className="form-group">
+          <label>จำนวน:</label>
+          <span>{selectedRequest.quantity_requested}</span>
+        </div>
+        <div className="form-group">
+          <label>สถานะ:</label>
+          <span>{getStatusInThai(selectedRequest.status)}</span>
+        </div>
+
+        <div className="form-group">
+          <label>วันที่ขอ:</label>
+          <span>{new Date(selectedRequest.request_date).toLocaleDateString("th-TH")}</span>
+        </div>
+        <div className="form-group">
+          <label>วันที่คืน:</label>
+          <span>
+            {selectedRequest.return_date
+              ? new Date(selectedRequest.return_date).toLocaleDateString("th-TH")
+              : "-"}
+          </span>
+        </div>
+
+        <div className="form-group">
+          <label>อนุมัติโดย:</label>
+          <span>{selectedRequest.approved_by || "-"}</span>
+        </div>
+        <div className="form-group">
+          <label>วันที่อนุมัติ:</label>
+          <span>
+            {selectedRequest.date_approved
+              ? new Date(selectedRequest.date_approved).toLocaleDateString("th-TH")
+              : "-"}
+          </span>
+        </div>
+
+        <div className="form-group">
+          <label>รับของโดย:</label>
+          <span>{selectedRequest.received_by || "-"}</span>
+        </div>
+        <div className="form-group">
+          <label>วันที่รับของ:</label>
+          <span>
+            {selectedRequest.date_received
+              ? new Date(selectedRequest.date_received).toLocaleDateString("th-TH")
+              : "-"}
+          </span>
+        </div>
+
+        <div className="form-group">
+          <label>หมายเหตุ:</label>
+          <span>{selectedRequest.note || "-"}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
         {showAddModal && <AddBorrowModal onClose={closeAddModal} />}
       </div>
     </div>
   );
 };
 
-// ✅ **ฟอร์ม Modal สำหรับเพิ่มข้อมูลใหม่**
-const AddBorrowModal = ({ onClose }) => {
-  const [formData, setFormData] = useState({
-    department: "",
-    item: "",
-    date: "",
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("✅ เพิ่มรายการสำเร็จ!");
-    onClose();
-  };
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>เพิ่มรายการใหม่</h2>
-        <form onSubmit={handleSubmit}>
-          <label>ฝ่าย/สำนัก:</label>
-          <input type="text" name="department" value={formData.department} onChange={handleChange} required />
-
-          <label>อุปกรณ์:</label>
-          <input type="text" name="item" value={formData.item} onChange={handleChange} required />
-
-          <label>วันที่ยืม:</label>
-          <input type="date" name="date" value={formData.date} onChange={handleChange} required />
-
-          <div className="modal-buttons">
-            <button type="submit" className="save-btn">บันทึก</button>
-            <button type="button" className="cancel-btn" onClick={onClose}>ยกเลิก</button>
-          </div>
-        </form>
-      </div>
+const AddBorrowModal = ({ onClose }) => (
+  <div className="modal-overlay">
+    <div className="modal-content">
+      <h2>เพิ่มรายการใหม่ (ยังไม่ได้ทำ)</h2>
+      <button onClick={onClose}>ปิด</button>
     </div>
-  );
-};
+  </div>
+);
 
 export default BorrowReturn;

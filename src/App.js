@@ -34,6 +34,8 @@ import WaitingReceive from "./Approver/WaitingReceive.js";
 import ReceivedItems from "./Approver/ReceivedItems.js";
 import WaitingReceiveBorrow from "./Approver/WaitingReceiveBorrow.js";
 import ReturnedItems from "./Approver/ReturnedItems.js";
+import BorrowPending from "./Pages/BorrowPending.js";
+
 function App() {
   const [currentTime, setCurrentTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
@@ -117,6 +119,8 @@ function App() {
           <Route path="/received-items" element={<ReceivedItems />} />
           <Route path="/waiting-receive-borrow" element={<WaitingReceiveBorrow />} />
           <Route path="/returneditems" element={<ReturnedItems />} />
+          <Route path="/borrow-pending" element={<BorrowPending />} />
+
         </Routes>
       </div>
     </Router>
