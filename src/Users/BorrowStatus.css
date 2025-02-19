@@ -3,7 +3,7 @@
 .table-container-brs {
     margin-left: auto;
     margin-right: auto;
-    margin-top: 50px;
+    margin-top: 190px;
     padding: 20px;
     background-color: #f9f9f9;
     border-radius: 10px;
@@ -12,6 +12,7 @@
     width: 80%;
     max-width: 1000px;
     text-align: center;
+    max-height: 500px; /* หรือความสูงที่ต้องการ */
   }
   
   .title-brs {

@@ -163,38 +163,75 @@
 }
 
 
-.modal {
+.req-borrow-history-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1050; /* ให้สูงกว่า header */
+}
+
+/* ปรับหัวข้อให้อยู่ตรงกลาง */
+.req-borrow-history-modal h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.req-borrow-history-modal {
   background: white;
   padding: 20px;
   border-radius: 10px;
+  width: 50vw;
   max-height: 90vh;
+  position: fixed;
+  top: 0; /* ให้ติดขอบบน */
+  left: 50%;
+  transform: translateX(-50%);
   overflow-y: auto;
-  width: 40vw; /* หรือกำหนดขนาดตามต้องการ */
-  max-width: 800px;
+  z-index: 1060; /* ให้สูงสุด */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.req-borrow-history-modal-close-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  color: red;
+  cursor: pointer;
+}
 
-.form-grid {
+.req-borrow-history-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: 30px; /* ปรับระยะห่างระหว่างคอลัมน์ */
 }
 
-.form-group {
+.req-borrow-history-form-group {
   display: flex;
   flex-direction: column;
 }
 
-.form-group.full-width {
+.req-borrow-history-full-width {
   grid-column: span 2;
 }
 
-input,
-textarea {
+.req-borrow-history-form-group input,
+.req-borrow-history-form-group textarea {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 14px;
 }
+
+/* เพิ่ม margin ให้ modal ห่างจากขอบจอด้านบนเล็กน้อย */
+.req-borrow-history-modal {
+  top: 5px;
+}
+
+
 
 

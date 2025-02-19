@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import DashboardApprover from "./DashboardApprover";
-import "./Received.css";
+import "./WaitingReceive.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWarehouse, faTimesCircle, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
@@ -78,26 +78,25 @@ function WaitingReceive() {
   return (
     <div>
       <DashboardApprover />
-      <div className="received-container">
-        <div className="received-title">
+      <div className="waiting-receive-container">
+        <div className="waiting-receive-title">
           <FontAwesomeIcon icon={faWarehouse} style={{ marginRight: "10px" }} />
           รอรับของ
         </div>
 
-        <div className="received-search-bar">
+        <div className="waiting-search-bar">
           <input
             type="text"
-            className="received-input"
+            className="waiting-input"
             placeholder="ค้นหาชื่อผู้เบิก"
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
           />
-          <button className="received-search-button" onClick={handleSearchByName}>
+          <button className="waiting-search-button" onClick={handleSearchByName}>
             ค้นหา
           </button>
         </div>
-
-        <table className="received-table">
+        <table className="waiting-receive-table">
           <thead>
             <tr>
               <th>ลำดับ</th>
@@ -125,7 +124,7 @@ function WaitingReceive() {
                   </td>
                   <td>รอรับของ</td>
                   <td>
-                    <button className="detail-button" onClick={() => handleViewDetails(req)}>
+                    <button className="waiting-receive-detail-button" onClick={() => handleViewDetails(req)}>
                       ดูรายละเอียด
                     </button>
                   </td>
@@ -139,69 +138,67 @@ function WaitingReceive() {
           </tbody>
         </table>
 
-        <div className="received-pagination">
+        <div className="waiting-receive-pagination">
           {pageNumbers.map((number) => (
-            <button key={number} className="received-page-button" onClick={() => paginate(number)}>
+            <button key={number} className="waiting-receive-page-button" onClick={() => paginate(number)}>
               {number}
             </button>
           ))}
         </div>
-        <div className="button-group">
-  <button className="back-button" onClick={() => navigate(-1)}>
+        <div className="waiting-receive-button-group">
+  <button className="waiting-receive-back-button" onClick={() => navigate(-1)}>
     <FontAwesomeIcon icon={faArrowLeft} /> ย้อนกลับ
   </button>
-  <button className="refresh-button" onClick={fetchRequests}>
+  <button className="waiting-receive-refresh-button" onClick={fetchRequests}>
     รีเฟรชข้อมูล
   </button>
-</div>
-
-        {selectedRequest && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <FontAwesomeIcon icon={faTimesCircle} className="modal-close-icon" onClick={handleCloseModal} />
+</div>                                                                                                                         {selectedRequest && ( 
+          <div className="waiting-receive-modal-overlay">
+            <div className="waiting-receive-modal">
+              <FontAwesomeIcon icon={faTimesCircle} className="waiting-receive-modal-close-icon" onClick={handleCloseModal} />
               <h3>รายละเอียดการเบิกวัสดุ</h3>
-              <form className="modal-form">
-                <div className="form-group">
+              <form className="waiting-receive-modal-form">
+                <div className="waiting-receive-form-group">
                   <label>ชื่อผู้เบิก:</label>
                   <input type="text" value={selectedRequest.borrower_name} readOnly />
                 </div>
-                <div className="form-group">
+                <div className="waiting-receive-form-group">
                   <label>ฝ่าย/สำนัก:</label>
                   <input type="text" value={selectedRequest.department} readOnly />
                 </div>
-                <div className="form-group">
+                <div className="waiting-receive-form-group">
                   <label>เบอร์โทร:</label>
                   <input type="text" value={selectedRequest.phone} readOnly />
                 </div>
-                <div className="form-group">
+                <div className="waiting-receive-form-group">
                   <label>Email:</label>
                   <input type="text" value={selectedRequest.email} readOnly />
                 </div>
-                <div className="form-group">
+                <div className="waiting-receive-form-group">
                   <label>วัสดุ:</label>
                   <input type="text" value={selectedRequest.material} readOnly />
                 </div>
-                <div className="form-group">
+                <div className="waiting-receive-form-group">
                   <label>ประเภท:</label>
                   <input type="text" value={selectedRequest.type} readOnly />
                 </div>
-                <div className="form-group">
+                <div className="waiting-receive-form-group">
                   <label>อุปกรณ์:</label>
                   <input type="text" value={selectedRequest.equipment} readOnly />
                 </div>
-                <div className="form-group">
+                <div className="waiting-receive-form-group">
                   <label>ยี่ห้อ:</label>
                   <input type="text" value={selectedRequest.brand} readOnly />
                 </div>
-                <div className="form-group">
+                <div className="waiting-receive-form-group">
                   <label>จำนวน:</label>
                   <input type="text" value={selectedRequest.quantity_requested} readOnly />
                 </div>
-                <div className="form-group">
+                <div className="waiting-receive-form-group">
                   <label>หมายเหตุ:</label>
                   <textarea value={selectedRequest.note || "-"} readOnly />
                 </div>
-                <div className="form-group">
+                <div className="waiting-receive-form-group">
                     <label>วันที่ขอเบิก:</label>
                     <input
                         type="text"
@@ -222,7 +219,7 @@ function WaitingReceive() {
                             readOnly
                      />
                 </div>
-        <div className="form-group">
+        <div className="waiting-receive-form-group">
           <label>สถานะ:</label>
           <input type="text" value="รอรับของ" readOnly />
         </div>
@@ -230,6 +227,7 @@ function WaitingReceive() {
     </div>
   </div>
 )}
+
       </div>
     </div>
   );

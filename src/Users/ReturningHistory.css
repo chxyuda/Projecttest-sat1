@@ -3,6 +3,7 @@
     flex-direction: column;
     align-items: center;
     margin-top: 20px;
+    max-height: 500px; /* หรือความสูงที่ต้องการ */
 }
 
 .history-box-breth {

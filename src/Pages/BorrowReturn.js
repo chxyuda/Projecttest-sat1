@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ITDashboard from "./ITDashboard";
 import "./BorrowReturn.css";
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faClock,
@@ -23,6 +24,8 @@ const BorrowReturn = () => {
   // สำหรับแบ่งหน้า
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -122,7 +125,7 @@ const BorrowReturn = () => {
 
         <div className="borrow-return-buttons">
           <div className="borrow-return-buttons-container">
-            <button className={selectedFilter === "pending" ? "active" : ""} onClick={() => handleFilterChange("pending")}>
+            <button onClick={() => navigate('/borrow-pending')}>
               <FontAwesomeIcon icon={faClock} /> รออนุมัติ
             </button>
             <button className={selectedFilter === "approved" ? "active" : ""} onClick={() => handleFilterChange("approved")}>
@@ -197,60 +200,60 @@ const BorrowReturn = () => {
 
         {selectedRequest && (
   <div className="modal-overlay">
-    <div className="modal-content">
-    <FontAwesomeIcon icon={faTimesCircle} className="modal-close-icon" onClick={handleCloseHistory} />
+    <div className="modal-content borrow-return-modal">
+      <FontAwesomeIcon icon={faTimesCircle} className="modal-close-icon" onClick={handleCloseHistory} />
       <h3>รายละเอียดคำขอ</h3>
-      <div className="modal-form-grid">
-        <div className="form-group">
+      <div className="borrow-return-form-grid">
+        <div className="borrow-return-form-group">
           <label>ชื่อผู้ขอ:</label>
           <span>{selectedRequest.borrower_name}</span>
         </div>
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>ฝ่าย/สำนัก:</label>
           <span>{selectedRequest.department}</span>
         </div>
 
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>โทรศัพท์:</label>
           <span>{selectedRequest.phone}</span>
         </div>
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>อีเมล:</label>
           <span>{selectedRequest.email}</span>
         </div>
 
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>วัสดุ/รุ่น:</label>
           <span>{selectedRequest.material}</span>
         </div>
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>ประเภท:</label>
           <span>{selectedRequest.type || "-"}</span>
         </div>
 
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>อุปกรณ์:</label>
           <span>{selectedRequest.equipment}</span>
         </div>
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>ยี่ห้อ:</label>
           <span>{selectedRequest.brand}</span>
         </div>
 
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>จำนวน:</label>
           <span>{selectedRequest.quantity_requested}</span>
         </div>
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>สถานะ:</label>
           <span>{getStatusInThai(selectedRequest.status)}</span>
         </div>
 
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>วันที่ขอ:</label>
           <span>{new Date(selectedRequest.request_date).toLocaleDateString("th-TH")}</span>
         </div>
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>วันที่คืน:</label>
           <span>
             {selectedRequest.return_date
@@ -259,11 +262,11 @@ const BorrowReturn = () => {
           </span>
         </div>
 
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>อนุมัติโดย:</label>
           <span>{selectedRequest.approved_by || "-"}</span>
         </div>
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>วันที่อนุมัติ:</label>
           <span>
             {selectedRequest.date_approved
@@ -272,11 +275,11 @@ const BorrowReturn = () => {
           </span>
         </div>
 
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>รับของโดย:</label>
           <span>{selectedRequest.received_by || "-"}</span>
         </div>
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>วันที่รับของ:</label>
           <span>
             {selectedRequest.date_received
@@ -285,7 +288,7 @@ const BorrowReturn = () => {
           </span>
         </div>
 
-        <div className="form-group">
+        <div className="borrow-return-form-group">
           <label>หมายเหตุ:</label>
           <span>{selectedRequest.note || "-"}</span>
         </div>
@@ -293,6 +296,7 @@ const BorrowReturn = () => {
     </div>
   </div>
 )}
+
         {showAddModal && <AddBorrowModal onClose={closeAddModal} />}
       </div>
     </div>

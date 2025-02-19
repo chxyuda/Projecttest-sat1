@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import DashboardApprover from "./DashboardApprover";
-import "./Received.css";
+import "./ReceivedItems.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWarehouse, faTimesCircle, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 

@@ -1,0 +1,182 @@
+/* คอนเทนเนอร์หลัก */
+.returned-container {
+    max-width: 1000px;
+    background-color: #fbfdff;
+    margin: 150px auto 0 auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* ชื่อหัวข้อ */
+  .returned-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  /* ช่องค้นหา */
+  .returned-search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .returned-input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    flex-grow: 1;
+  }
+  
+  .returned-search-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .returned-search-button:hover {
+    background-color: #218838;
+  }
+  
+  /* ตาราง */
+  .returned-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .returned-table th, .returned-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+  }
+  
+  .returned-table th {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .returned-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  /* ปุ่มดูรายละเอียด */
+  .returned-detail-button {
+    background-color: #ffc107;
+    color: black;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .returned-detail-button:hover {
+    background-color: #e0a800;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    justify-content: center;
+  }
+  
+  .refresh-button,
+  .back-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .refresh-button {
+    background-color: #6c757d;
+    color: white;
+  }
+  
+  .back-button {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .refresh-button:hover {
+    background-color: #5a6268;
+  }
+  
+  .back-button:hover {
+    background-color: #0056b3;
+  }
+  
+  
+  /* ปุ่มแบ่งหน้า */
+  .returned-pagination {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .returned-page-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .returned-page-button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Modal */
+  .returned-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+  }
+  
+  .returned-modal {
+    background-color: white;
+    padding: 20px;
+    width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .returned-modal-close-icon {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    font-size: 28px;
+    color: red;
+    cursor: pointer;
+    background-color: white;
+    border-radius: 50%;
+    padding: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  }
+  
+  .returned-modal h3 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  

@@ -11,16 +11,18 @@ const ReturningHistory = () => {
     useEffect(() => {
         const fetchBorrowings = async () => {
             try {
-                const response = await axios.get('http://localhost:5001/api/borrow-requests');
+                const userId = localStorage.getItem('user_id'); // ดึง user_id
+                const response = await axios.get(`http://localhost:5001/api/borrow-requests/user/${userId}`);
                 setBorrowings(response.data);
-                setFilteredBorrowings(response.data); // ตั้งค่าเริ่มต้นให้เหมือนกัน
+                setFilteredBorrowings(response.data);
             } catch (error) {
                 console.error('เกิดข้อผิดพลาดในการดึงข้อมูลการยืม - คืน:', error);
             }
         };
-
+    
         fetchBorrowings();
     }, []);
+    
 
     const formatDate = (dateString) => {
         return dateString ? new Date(dateString).toLocaleDateString('th-TH') : '-';

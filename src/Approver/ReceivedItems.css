@@ -1,0 +1,198 @@
+/* คอนเทนเนอร์หลัก */
+.received-container {
+    max-width: 1000px;
+    background-color: #fbfdff;
+    margin: 150px auto 0 auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 200px;
+  }
+  
+  /* ชื่อหัวข้อ */
+  .received-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 3px solid #007bff;
+    padding-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  /* แถบค้นหา */
+  .received-search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .received-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .received-search-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .received-search-button:hover {
+    background-color: #218838;
+  }
+  
+  /* ตาราง */
+  .received-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+  }
+  
+  .received-table th,
+  .received-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+  }
+  
+  .received-table th {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  /* ปุ่มดูรายละเอียด */
+  .detail-button {
+    background-color: #ffc107;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .detail-button:hover {
+    background-color: #e0a800;
+  }
+  
+  /* ปุ่มแบ่งหน้า */
+  .received-pagination {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  
+  .received-page-button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .received-page-button:hover {
+    background-color: #5a6268;
+  }
+  
+  /* กลุ่มปุ่ม */
+  .button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .back-button,
+  .refresh-button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .back-button:hover,
+  .refresh-button:hover {
+    background-color: #5a6268;
+  }
+  
+  .refresh-button {
+    background-color: #4caf50;
+  }
+  
+  .refresh-button:hover {
+    background-color: #45a049;
+  }
+  
+  /* Modal Overlay */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+  }
+  
+  /* Modal */
+  .modal {
+    background-color: white;
+    padding: 20px;
+    width: 500px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+  }
+  
+  .modal h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 20px;
+    text-align: center;
+  }
+  
+  .modal p {
+    margin: 5px 0;
+  }
+  
+  /* Close Button */
+  .modal-close-icon {
+    position: absolute;
+    top: -18px;
+    right: -18px;
+    font-size: 28px;
+    color: red;
+    cursor: pointer;
+    background-color: white;
+    border-radius: 50%;
+    padding: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .modal button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .modal button:hover {
+    background-color: #5a6268;
+  }
+  

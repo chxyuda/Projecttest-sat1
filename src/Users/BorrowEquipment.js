@@ -276,14 +276,14 @@ const handleShowBorrowForm = (row) => {
     setLoanFormData({
       borrowerName: userData.fullName,
       department: userData.department_name,
-      phone: userData.phone, // หรือจะเปลี่ยนเป็น phoneExt ให้เหมือนเบิกก็ได้
+      phone: userData.phone,
       email: userData.email,
       material: row.material,
-      category: row.category, // เปลี่ยนเป็น category ให้เหมือนเบิก ถ้าฐานข้อมูลส่ง category มา
+      type: row.category, // ตรงนี้ต้องเป็น "type"
       equipment: row.equipment,
       brand: row.brand,
       remaining: row.remaining,
-      quantity: '', // ใช้ quantity ให้เหมือนเบิก
+      quantity_requested: '',
       note: '',
       requestDate: new Date().toISOString().split('T')[0],
       returnDate: '',
@@ -291,12 +291,10 @@ const handleShowBorrowForm = (row) => {
     setShowLoanForm(true);
   };
   
-  
   const handleSubmitLoan = async (e) => {
     e.preventDefault();
   
     const userData = JSON.parse(localStorage.getItem('user'));
-  
     const dataToSend = {
       user_id: userData.id,
       borrower_name: loanFormData.borrowerName,
@@ -304,10 +302,10 @@ const handleShowBorrowForm = (row) => {
       phone: loanFormData.phone || '',
       email: loanFormData.email,
       material: loanFormData.material,
-      type: loanFormData.type,
+      type: loanFormData.type, // ตรงนี้เปลี่ยนจาก category เป็น type
       equipment: loanFormData.equipment,
       brand: loanFormData.brand,
-      quantity_requested: parseInt(loanFormData.quantity_requested, 10) || 0, // ใช้ quantity_requested ให้ตรงกับตาราง DB
+      quantity_requested: parseInt(loanFormData.quantity_requested, 10) || 0,
       note: loanFormData.note || '',
       request_date: loanFormData.requestDate,
       return_date: loanFormData.returnDate,
@@ -325,7 +323,6 @@ const handleShowBorrowForm = (row) => {
     }
   };
   
-
   const handleCloseLoanForm = () => {
     setShowLoanForm(false);
   };

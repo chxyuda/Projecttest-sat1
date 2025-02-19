@@ -76,5 +76,124 @@
   .detail-button:hover {
     background-color: #e0a800;
   }
+  .loan-request-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+  }
+  
+  .loan-request-modal {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  
+  .loan-request-modal-close-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    color: red;
+    cursor: pointer;
+  }
+  
+  .loan-request-modal h3 {
+    text-align: center;
+    font-size: 22px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .loan-request-modal-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 25px;
+  }
+  
+  .loan-request-form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .loan-request-form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+  }
+  
+  .loan-request-form-group input,
+  .loan-request-form-group textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #f9f9f9;
+  }
+  
+  .loan-request-form-group textarea {
+    resize: none;
+    height: 60px;
+  }
+  
+  .loan-request-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+  }
+  
+  .loan-request-approve-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .loan-request-approve-button:hover {
+    background-color: #218838;
+  }
+  
+  .loan-request-reject-button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .loan-request-reject-button:hover {
+    background-color: #c82333;
+  }
+  
+  /* กรณี textarea เหตุผลไม่อนุมัติ */
+  button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  /* ปรับให้คอลัมน์เต็มแถวกรณีข้อความยาว */
+  .loan-request-form-group:nth-child(12),
+  .loan-request-form-group:nth-child(13) {
+    grid-column: span 2;
+  }
+  
 
   

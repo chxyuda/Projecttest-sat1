@@ -1,0 +1,181 @@
+/* Container หลัก */
+.waiting-receive-container {
+    max-width: 1000px;
+    background-color: #fbfdff;
+    margin: 150px auto 0 auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 200px;
+  }
+  
+  /* หัวข้อ */
+  .waiting-receive-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 3px solid #007bff;
+    padding-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  /* ตาราง */
+  .waiting-receive-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  .waiting-receive-table th, .waiting-receive-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+  }
+  
+  .waiting-receive-table th {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .waiting-receive-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  /* ปุ่มดูรายละเอียด */
+  .waiting-receive-detail-button {
+    background-color: #ffc107;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .waiting-receive-detail-button:hover {
+    background-color: #e0a800;
+  }
+  
+  /* Modal Overlay */
+  .waiting-receive-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1200;
+  }
+  
+  /* Modal Container */
+  .waiting-receive-modal {
+    background-color: white;
+    padding: 20px;
+    width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Close Button */
+  .waiting-receive-modal-close-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 28px;
+    color: red;
+    cursor: pointer;
+    background-color: white;
+    border-radius: 50%;
+    padding: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Modal Form */
+  .waiting-receive-modal-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 30px;
+  }
+  
+  .waiting-receive-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .waiting-receive-form-group input,
+  .waiting-receive-form-group textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    font-size: 14px;
+    resize: none;
+    width: 100%;
+  }
+  
+  /* ปุ่มย้อนกลับ / รีเฟรช */
+  .waiting-receive-button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .waiting-receive-back-button,
+  .waiting-receive-refresh-button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .waiting-receive-back-button:hover,
+  .waiting-receive-refresh-button:hover {
+    background-color: #5a6268;
+  }
+  
+  .waiting-receive-refresh-button {
+    background-color: #28a745;
+  }
+  
+  .waiting-receive-refresh-button:hover {
+    background-color: #218838;
+  }
+  
+  .waiting-search-bar {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .waiting-input {
+    padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  }
+  
+  .waiting-search-button {
+    background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  }
+  
+  .waiting-search-button:hover {
+    background-color: #218838;
+  }
+  
+  
+  

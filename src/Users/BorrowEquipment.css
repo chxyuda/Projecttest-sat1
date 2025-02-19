@@ -3,6 +3,7 @@ body {
   }
   
   .BorrowEqui-container {
+    max-height: 400px; /* หรือความสูงที่ต้องการ */
     margin: 15px auto;
     padding: 20px;
     background-color: #ffffff;

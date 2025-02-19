@@ -190,52 +190,52 @@ function Borrowing() {
           ))}
         </div>
         {selectedRequest && (
-  <div className="modal-overlay">
-    <div className="modal">
+  <div className="loan-request-modal-overlay">
+    <div className="loan-request-modal">
       <FontAwesomeIcon
         icon={faTimesCircle}
-        className="modal-close-icon"
+        className="loan-request-modal-close-icon"
         onClick={handleCloseModal}
       />
       <h3>รายละเอียดการขอยืมวัสดุ</h3>
-      <form className="modal-form">
-        <div className="form-group">
+      <form className="loan-request-modal-form">
+        <div className="loan-request-form-group">
           <label>ชื่อผู้ยืม:</label>
           <input type="text" value={selectedRequest.borrower_name} readOnly />
         </div>
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>ฝ่าย/สำนัก:</label>
           <input type="text" value={selectedRequest.department} readOnly />
         </div>
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>เบอร์โทร:</label>
           <input type="text" value={selectedRequest.phone} readOnly />
         </div>
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>Email:</label>
           <input type="text" value={selectedRequest.email} readOnly />
         </div>
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>วัสดุ:</label>
           <input type="text" value={selectedRequest.material} readOnly />
         </div>
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>ประเภท:</label>
           <input type="text" value={selectedRequest.type} readOnly />
         </div>
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>อุปกรณ์:</label>
           <input type="text" value={selectedRequest.equipment} readOnly />
         </div>
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>ยี่ห้อ:</label>
           <input type="text" value={selectedRequest.brand} readOnly />
         </div>
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>จำนวน:</label>
           <input type="text" value={selectedRequest.quantity_requested} readOnly />
         </div>
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>วันที่ขอยืม:</label>
           <input
             type="text"
@@ -251,7 +251,7 @@ function Borrowing() {
             readOnly
           />
         </div>
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>วันที่คืน:</label>
           <input
             type="text"
@@ -267,18 +267,18 @@ function Borrowing() {
             readOnly
           />
         </div>
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>หมายเหตุ:</label>
           <textarea value={selectedRequest.note || "-"} readOnly />
         </div>
       </form>
 
-      <div className="modal-buttons">
-        <button className="approve-button" onClick={() => handleApprove("Approved")}>
+      <div className="loan-request-modal-buttons">
+        <button className="loan-request-approve-button" onClick={() => handleApprove("Approved")}>
           อนุมัติ
         </button>
         <button
-          className="reject-button"
+          className="loan-request-reject-button"
           onClick={() => setShowRejectReason(true)}
         >
           ไม่อนุมัติ
@@ -287,7 +287,7 @@ function Borrowing() {
 
       {/* ส่วนแสดงช่องใส่เหตุผลการไม่อนุมัติ */}
       {showRejectReason && (
-        <div className="form-group">
+        <div className="loan-request-form-group">
           <label>เหตุผลการไม่อนุมัติ:</label>
           <textarea
             value={rejectReason}
@@ -295,7 +295,7 @@ function Borrowing() {
             placeholder="กรุณาระบุเหตุผลการไม่อนุมัติ"
           />
           <button
-            className="reject-button"
+            className="loan-request-reject-button"
             onClick={() => handleApprove("Rejected")}
             disabled={!rejectReason.trim()}
           >
@@ -306,6 +306,7 @@ function Borrowing() {
     </div>
   </div>
 )}
+
     </div>
     </div>
   );

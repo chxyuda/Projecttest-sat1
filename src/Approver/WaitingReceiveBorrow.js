@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import DashboardApprover from "./DashboardApprover";
-import "./Received.css";
+import "./WaitingReceiveBorrow.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWarehouse, faTimesCircle, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
@@ -153,107 +153,108 @@ function WaitingReceiveBorrow() {
         </div>
 
         {selectedRequest && (
-  <div className="modal-overlay">
-    <div className="modal">
-        <FontAwesomeIcon icon={faTimesCircle} className="modal-close-icon" onClick={handleCloseModal} />
+  <div className="modal-overlay-borrow">
+    <div className="modal-borrow">
+      <FontAwesomeIcon icon={faTimesCircle} className="modal-close-icon-borrow" onClick={handleCloseModal} />
       <h3>รายละเอียดการขอยืมวัสดุ</h3>
-      <form className="modal-form">
-        <div className="form-group">
+      <form className="modal-form-borrow">
+        <div className="form-group-borrow">
           <label>ชื่อผู้ยืม:</label>
           <input type="text" value={selectedRequest.borrower_name} readOnly />
         </div>
-        <div className="form-group">
+        <div className="form-group-borrow">
           <label>ฝ่าย/สำนัก:</label>
           <input type="text" value={selectedRequest.department} readOnly />
         </div>
-        <div className="form-group">
+        <div className="form-group-borrow">
           <label>เบอร์โทร:</label>
           <input type="text" value={selectedRequest.phone} readOnly />
         </div>
-        <div className="form-group">
+        <div className="form-group-borrow">
           <label>Email:</label>
           <input type="text" value={selectedRequest.email} readOnly />
         </div>
-        <div className="form-group">
+        <div className="form-group-borrow">
           <label>วัสดุ:</label>
           <input type="text" value={selectedRequest.material} readOnly />
         </div>
-        <div className="form-group">
+        <div className="form-group-borrow">
           <label>ประเภท:</label>
           <input type="text" value={selectedRequest.type} readOnly />
         </div>
-        <div className="form-group">
+        <div className="form-group-borrow">
           <label>อุปกรณ์:</label>
           <input type="text" value={selectedRequest.equipment} readOnly />
         </div>
-        <div className="form-group">
+        <div className="form-group-borrow">
           <label>ยี่ห้อ:</label>
           <input type="text" value={selectedRequest.brand} readOnly />
         </div>
-        <div className="form-group">
+        <div className="form-group-borrow">
           <label>จำนวน:</label>
           <input type="text" value={selectedRequest.quantity_requested} readOnly />
         </div>
-        <div className="form-group">
+        <div className="form-group-borrow">
           <label>วันที่ขอยืม:</label>
-            <input
-                type="text"
-                value={
-                    selectedRequest.request_date
-                    ? new Date(selectedRequest.request_date).toLocaleDateString("th-TH", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                    })
-                    : "-"
-                }
-                readOnly
-            />
+          <input
+            type="text"
+            value={
+              selectedRequest.request_date
+                ? new Date(selectedRequest.request_date).toLocaleDateString("th-TH", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "-"
+            }
+            readOnly
+          />
         </div>
-        <div className="form-group">
+        <div className="form-group-borrow">
           <label>วันที่คืน:</label>
-            <input
-                type="text"
-                value={
-                    selectedRequest.return_date
-                    ? new Date(selectedRequest.return_date).toLocaleDateString("th-TH", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                    })
-                    : "-"
-                }
-                readOnly
-            />
+          <input
+            type="text"
+            value={
+              selectedRequest.return_date
+                ? new Date(selectedRequest.return_date).toLocaleDateString("th-TH", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "-"
+            }
+            readOnly
+          />
         </div>
-        <div className="form-group">
-          <label>หมายเหตุ:</label>
-          <textarea value={selectedRequest.note || '-'} readOnly />
-        </div>
-        <div className="form-group">
+        <div className="form-group-borrow">
           <label>สถานะ:</label>
-            <input
-                type="text"
-                value={
-                    selectedRequest.status === "Pending"
-                    ? "รอดำเนินการ"
-                    : selectedRequest.status === "Approved"
-                    ? "รอรับของ"
-                    : selectedRequest.status === "Rejected"
-                    ? "ไม่อนุมัติ"
-                    : selectedRequest.status === "Received"
-                    ? "รับของแล้ว"
-                    : selectedRequest.status === "Returned"
-                    ? "คืนของแล้ว"
-                    : selectedRequest.status
-                }
-                readOnly
-            />
+          <input
+            type="text"
+            value={
+              selectedRequest.status === "Pending"
+                ? "รอดำเนินการ"
+                : selectedRequest.status === "Approved"
+                ? "รอรับของ"
+                : selectedRequest.status === "Rejected"
+                ? "ไม่อนุมัติ"
+                : selectedRequest.status === "Received"
+                ? "รับของแล้ว"
+                : selectedRequest.status === "Returned"
+                ? "คืนของแล้ว"
+                : selectedRequest.status
+            }
+            readOnly
+          />
+        </div>
+        <div className="form-group-borrow">
+          <label>หมายเหตุ:</label>
+          <textarea value={selectedRequest.note || "-"} readOnly />
         </div>
       </form>
     </div>
   </div>
 )}
+
 
       </div>
     </div>

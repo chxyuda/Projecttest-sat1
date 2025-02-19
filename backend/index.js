@@ -1267,7 +1267,7 @@ router.post('/borrow-requests', (req, res) => {
     phone,
     email,
     material,
-    type,
+    category,
     equipment,
     brand,
     quantity_requested,
@@ -1275,7 +1275,8 @@ router.post('/borrow-requests', (req, res) => {
     request_date,
     return_date,
   } = req.body;
-
+  
+  const type = category; // <<< เพิ่มบรรทัดนี้
   const checkStockSql = `SELECT remaining FROM products WHERE model = ?`;
   const insertRequestSql = `
     INSERT INTO borrow_requests (
@@ -1367,16 +1368,38 @@ router.put('/borrow-requests/:id/approve', (req, res) => {
   const { id } = req.params;
   const { status, approved_by, date_approved, note } = req.body;
 
-  const sql = `
+  const updateRequestSql = `
     UPDATE borrow_requests 
     SET status = ?, approved_by = ?, date_approved = ?, note = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `;
 
-  db.query(sql, [status, approved_by, date_approved, note, id], (err) => {
+  db.query(updateRequestSql, [status, approved_by, date_approved, note, id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
 
-    res.json({ message: 'อัปเดตสถานะสำเร็จ' });
+    if (status === 'Rejected') {
+      // ดึงข้อมูลวัสดุที่ขอ เพื่อคืนจำนวนในกรณีไม่อนุมัติ
+      const getRequestSql = `SELECT material, quantity_requested FROM borrow_requests WHERE id = ?`;
+      const updateStockSql = `UPDATE products SET remaining = remaining + ? WHERE model = ?`;
+
+      db.query(getRequestSql, [id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        if (results.length > 0) {
+          const { material, quantity_requested } = results[0];
+
+          db.query(updateStockSql, [quantity_requested, material], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+
+            return res.json({ message: 'อัปเดตสถานะเป็น ไม่อนุมัติ และคืนจำนวนอุปกรณ์สำเร็จ' });
+          });
+        } else {
+          return res.status(404).json({ message: 'ไม่พบคำขอ' });
+        }
+      });
+    } else {
+      res.json({ message: 'อัปเดตสถานะสำเร็จ' });
+    }
   });
 });
 

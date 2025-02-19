@@ -1,6 +1,7 @@
 /* ✅ ปรับตำแหน่งตารางให้เหมาะกับดีไซน์ */
 .table-container-srq {
     margin-top: 100px; /* ขยับลงมาห่างจากเมนู */
+    max-height: 500px; /* หรือความสูงที่ต้องการ */
     max-width: 90%;
     background: #ffffff;
     border-radius: 12px;
