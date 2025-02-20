@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import ITDashboard from "./ITDashboard";
-import "./BorrowReturn.css";
+import "./BorrowPending.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSyncAlt, faEye } from "@fortawesome/free-solid-svg-icons";
 
@@ -8,6 +9,7 @@ const BorrowPending = () => {
   const [borrowRequests, setBorrowRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,21 +39,25 @@ const BorrowPending = () => {
     setSelectedRequest(null);
   };
 
+  const handleGoBack = () => {
+    navigate(-1); 
+  };
+
   return (
     <div>
       <ITDashboard />
-      <div className="borrow-return-container">
-        <h1 className="borrow-return-title">
+      <div className="borrow-pending-container">
+        <h1 className="borrow-pending-title">
           <FontAwesomeIcon icon={faSyncAlt} /> รออนุมัติ
         </h1>
 
-        <div className="borrow-return-list">
+        <div className="borrow-pending-list">
           {loading ? (
             <p>กำลังโหลดข้อมูล...</p>
           ) : pendingRequests.length === 0 ? (
             <p>ไม่มีรายการรออนุมัติ</p>
           ) : (
-            <table className="borrow-return-table">
+            <table className="borrow-pending-table">
               <thead>
                 <tr>
                   <th>ลำดับ</th>
@@ -74,12 +80,13 @@ const BorrowPending = () => {
                     <td>{req.quantity_requested}</td>
                     <td>
                       <button
-                        className="detail-button"
+                        className="borrow-pending-detail-button"
                         onClick={() => handleViewDetails(req)}
                       >
                         <FontAwesomeIcon icon={faEye} /> ดูรายละเอียด
                       </button>
                     </td>
+                    
                   </tr>
                 ))}
               </tbody>
@@ -89,27 +96,95 @@ const BorrowPending = () => {
 
         {/* Modal ดูรายละเอียด */}
         {selectedRequest && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <span className="modal-close" onClick={handleCloseDetails}>
-                &times;
-              </span>
-              <h3>รายละเอียดคำขอ</h3>
-              <p>ชื่อผู้ขอ: {selectedRequest.borrower_name}</p>
-              <p>ฝ่าย/สำนัก: {selectedRequest.department}</p>
-              <p>โทรศัพท์: {selectedRequest.phone}</p>
-              <p>อีเมล: {selectedRequest.email}</p>
-              <p>วัสดุ/รุ่น: {selectedRequest.material}</p>
-              <p>ประเภท: {selectedRequest.type || "-"}</p>
-              <p>อุปกรณ์: {selectedRequest.equipment}</p>
-              <p>ยี่ห้อ: {selectedRequest.brand}</p>
-              <p>จำนวน: {selectedRequest.quantity_requested}</p>
-              <p>วันที่ขอ: {new Date(selectedRequest.request_date).toLocaleDateString("th-TH")}</p>
-              <p>วันที่คืน: {selectedRequest.return_date ? new Date(selectedRequest.return_date).toLocaleDateString("th-TH") : "-"}</p>
-              <p>หมายเหตุ: {selectedRequest.note || "-"}</p>
-            </div>
-          </div>
-        )}
+  <div className="borrow-pending-modal-overlay">
+    <div className="borrow-pending-modal-content">
+      <span className="borrow-pending-modal-close" onClick={handleCloseDetails}>
+        &times;
+      </span>
+      <h3>รายละเอียดคำขอ</h3>
+
+      <div className="borrow-pending-modal-form">
+        <div className="borrow-pending-form-group">
+          <label>ชื่อผู้ขอ:</label>
+          <input type="text" value={selectedRequest.borrower_name} readOnly />
+        </div>
+
+        <div className="borrow-pending-form-group">
+          <label>ฝ่าย/สำนัก:</label>
+          <input type="text" value={selectedRequest.department} readOnly />
+        </div>
+
+        <div className="borrow-pending-form-group">
+          <label>โทรศัพท์:</label>
+          <input type="text" value={selectedRequest.phone} readOnly />
+        </div>
+
+        <div className="borrow-pending-form-group">
+          <label>อีเมล:</label>
+          <input type="text" value={selectedRequest.email} readOnly />
+        </div>
+
+        <div className="borrow-pending-form-group">
+          <label>ชื่อ:</label>
+          <input type="text" value={selectedRequest.material} readOnly />
+        </div>
+
+        <div className="borrow-pending-form-group">
+          <label>ประเภท:</label>
+          <input type="text" value={selectedRequest.type || "-"} readOnly />
+        </div>
+
+        <div className="borrow-pending-form-group">
+          <label>อุปกรณ์:</label>
+          <input type="text" value={selectedRequest.equipment} readOnly />
+        </div>
+
+        <div className="borrow-pending-form-group">
+          <label>ยี่ห้อ:</label>
+          <input type="text" value={selectedRequest.brand} readOnly />
+        </div>
+
+        <div className="borrow-pending-form-group">
+          <label>จำนวน:</label>
+          <input type="text" value={selectedRequest.quantity_requested} readOnly />
+        </div>
+
+        <div className="borrow-pending-form-group">
+          <label>วันที่ขอ:</label>
+          <input
+            type="text"
+            value={new Date(selectedRequest.request_date).toLocaleDateString("th-TH")}
+            readOnly
+          />
+        </div>
+
+        <div className="borrow-pending-form-group">
+          <label>วันที่คืน:</label>
+          <input
+            type="text"
+            value={
+              selectedRequest.return_date
+                ? new Date(selectedRequest.return_date).toLocaleDateString("th-TH")
+                : "-"
+            }
+            readOnly
+          />
+        </div>
+
+        <div className="borrow-pending-form-group">
+          <label>หมายเหตุ:</label>
+          <textarea value={selectedRequest.note || "-"} readOnly />
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+        {/* ปุ่มย้อนกลับอยู่ตรงนี้ */}
+<div className="borrow-pending-footer">
+  <button className="borrow-pending-back-button" onClick={() => navigate(-1)}>
+    ย้อนกลับ
+  </button>
+</div>
       </div>
     </div>
   );

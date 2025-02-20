@@ -8,7 +8,7 @@ import {
   faCheck,
   faTimes,
   faList,
-  faClipboard,
+  faClipboardList,
   faPlus,
   faSyncAlt,
   faTimesCircle,
@@ -16,10 +16,11 @@ import {
 
 const BorrowReturn = () => {
   const [borrowRequests, setBorrowRequests] = useState([]);
-  const [selectedFilter, setSelectedFilter] = useState("approved");
+  const [selectedFilter, setSelectedFilter] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
+  
 
   // สำหรับแบ่งหน้า
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,22 +72,23 @@ const BorrowReturn = () => {
   
 
   // กรองข้อมูลตามสถานะ
-  const filteredData = borrowRequests.filter((request) => {
+  const filteredRequests = borrowRequests.filter((req) => {
     switch (selectedFilter) {
-      case "pending":
-        return request.status === "Pending";
       case "approved":
-        return request.status === "Approved";
+        return req.status === "Approved";
+      case "pending":
+        return req.status === "Pending";
       case "rejected":
-        return request.status === "Rejected";
-      case "borrow-return":
-        return request.status === "Returned" || request.status === "Received";
+        return req.status === "Rejected";
       case "borrow-status":
-        return true;
+        return req.status === "Received" || req.status === "Returned";
+      case "all":
+        return true; // แสดงทั้งหมด
       default:
         return true;
     }
   });
+  
 
   const getStatusInThai = (status) => {
   switch (status) {
@@ -107,12 +109,11 @@ const BorrowReturn = () => {
   }
 };
 
-  console.log("Filtered Data:", filteredData);
+console.log("Filtered Data:", filteredRequests);
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-
+  const currentItems = filteredRequests.slice(indexOfFirstItem, indexOfLastItem);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
@@ -128,18 +129,21 @@ const BorrowReturn = () => {
             <button onClick={() => navigate('/borrow-pending')}>
               <FontAwesomeIcon icon={faClock} /> รออนุมัติ
             </button>
-            <button className={selectedFilter === "approved" ? "active" : ""} onClick={() => handleFilterChange("approved")}>
+            <button onClick={() => navigate('/borrow-approved')}>
               <FontAwesomeIcon icon={faCheck} /> อนุมัติแล้ว
             </button>
-            <button className={selectedFilter === "rejected" ? "active" : ""} onClick={() => handleFilterChange("rejected")}>
-              <FontAwesomeIcon icon={faTimes} /> ไม่อนุมัติ
+            <button
+              className={selectedFilter === "rejected" ? "active" : ""}
+              onClick={() => navigate("/borrow-rejected")}
+            >
+              <FontAwesomeIcon icon={faTimesCircle} /> ไม่อนุมัติ
             </button>
-            <button className={selectedFilter === "borrow-return" ? "active" : ""} onClick={() => handleFilterChange("borrow-return")}>
-              <FontAwesomeIcon icon={faList} /> รายการยืม-คืน
-            </button>
-            <button className={selectedFilter === "borrow-status" ? "active" : ""} onClick={() => handleFilterChange("borrow-status")}>
-              <FontAwesomeIcon icon={faClipboard} /> สถานะยืม-คืน
-            </button>
+            <button
+              className="borrow-return-status-button"
+              onClick={() => navigate("/borrow-statusit")}
+            >
+              <FontAwesomeIcon icon={faClipboardList} /> สถานะยืม-คืน
+            </button>;
             <button className="add-btn" onClick={openAddModal}>
               <FontAwesomeIcon icon={faPlus} /> เพิ่ม
             </button>
@@ -191,18 +195,22 @@ const BorrowReturn = () => {
 
         {/* Pagination */}
         <div className="pagination">
-          {Array.from({ length: Math.ceil(filteredData.length / itemsPerPage) }, (_, i) => (
-            <button key={i + 1} onClick={() => paginate(i + 1)}>
-              {i + 1}
-            </button>
-          ))}
-        </div>
+  {Array.from({ length: Math.ceil(filteredRequests.length / itemsPerPage) }, (_, i) => (
+    <button key={i + 1} onClick={() => paginate(i + 1)}>
+      {i + 1}
+    </button>
+  ))}
+</div>
 
         {selectedRequest && (
-  <div className="modal-overlay">
-    <div className="modal-content borrow-return-modal">
-      <FontAwesomeIcon icon={faTimesCircle} className="modal-close-icon" onClick={handleCloseHistory} />
-      <h3>รายละเอียดคำขอ</h3>
+  <div className="borrow-return-modal-overlay">
+    <div className="borrow-return-modal-content">
+      <FontAwesomeIcon
+        icon={faTimesCircle}
+        className="borrow-return-modal-close-icon"
+        onClick={handleCloseHistory}
+      />
+      <h3 className="modal-title">รายละเอียดคำขอ</h3>
       <div className="borrow-return-form-grid">
         <div className="borrow-return-form-group">
           <label>ชื่อผู้ขอ:</label>
@@ -296,7 +304,6 @@ const BorrowReturn = () => {
     </div>
   </div>
 )}
-
         {showAddModal && <AddBorrowModal onClose={closeAddModal} />}
       </div>
     </div>

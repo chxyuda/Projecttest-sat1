@@ -647,7 +647,6 @@ const handleDeleteConfirm = async () => {
     }
   };
   
-   
   const handleEditBrand = (index) => {
     console.log("🔹 Editing ID:", brands[index]?.id); // ✅ Debug ค่า ID
   
@@ -734,11 +733,9 @@ const handleCloseBrandModal = () => {
   fetchData();
 }, []);
 
-  
   const handleShowAddProductForm = () => {
     setShowAddProductModal(true); // แสดง Modal
   };
-
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
@@ -766,8 +763,6 @@ const handleCloseBrandModal = () => {
         alert("❌ เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
     }
 };
-
-
 
   const fetchProducts = async () => {
     try {
@@ -925,7 +920,13 @@ useEffect(() => {
   console.log("Brands:", brands);
 }, [equipments, categories, brands]);
 
-
+useEffect(() => {
+  if (showModal || showEquipmentsModal || showBrandModal || showAddProductModal || showEditModal) {
+    document.body.classList.add('modal-open');
+  } else {
+    document.body.classList.remove('modal-open');
+  }
+}, [showModal, showEquipmentsModal, showBrandModal, showAddProductModal, showEditModal]);
 
 
   return (

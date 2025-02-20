@@ -1,0 +1,172 @@
+.borrow-pending-container {
+    margin: 15px auto; /* ระยะห่างจากด้านบน */
+    padding: 20px; /* เพิ่ม Padding ด้านใน */
+    background-color: #ffffff; /* สีพื้นหลัง */
+    border-radius: 10px; /* มุมโค้ง */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+    max-width: 1800px; /* ความกว้างสูงสุด */
+    width: 100%; /* ใช้ 100% ของหน้าจอ */
+    margin-top: 170px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+  }
+  
+  .borrow-pending-title {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .borrow-pending-list {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .borrow-pending-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  .borrow-pending-table th,
+  .borrow-pending-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  
+  .borrow-pending-table th {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .borrow-pending-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .borrow-pending-table tr:hover {
+    background-color: #ddd;
+  }
+
+  .borrow-pending-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* เพื่อให้ Modal อยู่บนสุด */
+  }
+  
+  .borrow-pending-modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 500px;
+    max-width: 90%;
+    max-height: 80vh; /* จำกัดความสูงไม่ให้เกิน 80% ของหน้าจอ */
+    overflow-y: auto; /* ให้มีแถบเลื่อนแนวตั้ง */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+  }
+
+  .borrow-pending-detail-button {
+    background-color: #f5bd07;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .borrow-pending-detail-button:hover {
+    background-color: #1976d2;
+  }
+  
+  .borrow-pending-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ff4d4f; /* สีพื้นหลังแดง */
+    color: white;
+    border: none;
+    border-radius: 50%; /* ทำให้เป็นวงกลม */
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+  
+  .borrow-pending-modal-close:hover {
+    background-color: #d9363e; /* สีเข้มขึ้นเมื่อ hover */
+    transform: scale(1.1); /* ขยายขนาดเล็กน้อย */
+  }
+  
+  /* Modal */
+  .borrow-pending-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .borrow-pending-form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .borrow-pending-form-group label {
+    font-weight: bold;
+  }
+  
+  .borrow-pending-form-group input[readonly],
+  .borrow-pending-form-group textarea[readonly] {
+    background-color: #f3f3f3;
+    border: 1px solid #ddd;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: not-allowed;
+  }
+  
+  
+  .borrow-pending-modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+  }
+  
+  .borrow-pending-modal-content p {
+    margin: 5px 0;
+  }
+
+  .borrow-pending-footer {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .borrow-pending-back-button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .borrow-pending-back-button:hover {
+    background-color: #5a6268;
+  }
+  
+  

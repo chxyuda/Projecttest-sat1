@@ -1,0 +1,138 @@
+.borrow-rejected-container {
+    margin: 15px auto; /* ระยะห่างจากด้านบน */
+    padding: 20px; /* เพิ่ม Padding ด้านใน */
+    background-color: #ffffff; /* สีพื้นหลัง */
+    border-radius: 10px; /* มุมโค้ง */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+    max-width: 1800px; /* ความกว้างสูงสุด */
+    width: 100%; /* ใช้ 100% ของหน้าจอ */
+    margin-top: 170px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+  }
+  
+  .borrow-rejected-title {
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  .borrow-rejected-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .borrow-rejected-table th,
+  .borrow-rejected-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .borrow-rejected-footer {
+    margin-top: 20px; /* เพิ่มระยะห่างด้านบน */
+    display: flex;
+    justify-content: center;
+  }
+  
+  
+  .borrow-rejected-detail-button {
+    background-color: #ffc107;
+    color: black;
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .borrow-rejected-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .borrow-rejected-modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%; /* ปรับความกว้าง */
+    max-width: 700px; /* จำกัดความกว้างสูงสุด */
+    max-height: 80vh; /* จำกัดความสูงสูงสุด */
+    overflow-y: auto; /* เพิ่มการเลื่อนเมื่อเนื้อหาเกิน */
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .borrow-rejected-modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ff4d4f;
+    color: white;
+    font-size: 18px;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .borrow-rejected-modal-close-btn:hover {
+    background-color: #d9363e;
+  }
+  
+  .borrow-rejected-modal-title {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 22px;
+  }
+  
+  .borrow-rejected-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 32px; /* ระยะห่างระหว่างแถวและคอลัมน์ */
+    margin-top: 10px;
+  }
+  
+  .borrow-rejected-form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .borrow-rejected-form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .borrow-rejected-form-group input,
+  .borrow-rejected-form-group textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    font-size: 14px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+  
+  .borrow-rejected-form-group textarea {
+    resize: none;
+    height: 60px;
+  }
+  
+  .borrow-rejected-form-group.full-width {
+    grid-column: span 2;
+  }
+  
+  
+  
