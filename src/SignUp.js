@@ -29,6 +29,7 @@ const SignUp = () => {
     const [passwordMatch, setPasswordMatch] = useState(true);
     const navigate = useNavigate();
 
+
     // ✅ Fetch departments
     useEffect(() => {
         axios.get('http://localhost:5001/api/departments')
@@ -90,17 +91,38 @@ const SignUp = () => {
     // ✅ อัปโหลดไฟล์รูปภาพ
     const handleImageChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            setImage(file); // ✅ บันทึกไฟล์ใน state
-            setFormData(prev => ({ ...prev, image: file })); // ✅ อัปเดต `formData`
-            
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewImage(reader.result); // ✅ แสดง preview แต่ไม่ส่งไป backend
+        if (!file) return;
+    
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+    
+        reader.onloadend = () => {
+            const img = new Image();
+            img.src = reader.result;
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+    
+                const MAX_WIDTH = 800; // กำหนดขนาดกว้างสุดของภาพ
+                const scaleSize = MAX_WIDTH / img.width;
+                canvas.width = MAX_WIDTH;
+                canvas.height = img.height * scaleSize;
+    
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    
+                canvas.toBlob((blob) => {
+                    const compressedFile = new File([blob], file.name, {
+                        type: "image/jpeg",
+                        lastModified: Date.now(),
+                    });
+    
+                    setPreviewImage(URL.createObjectURL(blob)); // แสดง preview
+                    setImage(compressedFile); // อัปเดต state ของรูปภาพ
+                }, "image/jpeg", 0.7);  // ลดคุณภาพรูปเหลือ 70%
             };
-            reader.readAsDataURL(file);
-        }
+        };
     };
+    
     const validateForm = () => {
         if (!formData.username || !formData.password || !formData.confirmPassword || !formData.fullName || !formData.email || !formData.phone || !formData.department_id || !formData.section_id || !formData.task_id) {
             alert("❌ กรุณากรอกข้อมูลให้ครบทุกช่อง!");
@@ -137,7 +159,7 @@ const SignUp = () => {
         data.append("section_name", selectedSection ? selectedSection.name : "");
         data.append("task_name", selectedTask ? selectedTask.name : "");
     
-        if (image) { // ✅ ใช้ state `image` เพื่อป้องกันปัญหา
+        if (image) { 
             data.append("image", image);
         }
     
@@ -156,7 +178,7 @@ const SignUp = () => {
             console.error("❌ Signup Error:", error.response?.data?.message);
             alert(error.response?.data?.message || '❌ เกิดข้อผิดพลาด');
         }
-    };    
+    };
     
     const handleDragOver = (e) => {
         e.preventDefault();

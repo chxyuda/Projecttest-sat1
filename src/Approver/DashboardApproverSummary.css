@@ -1,0 +1,165 @@
+/* โครงสร้างหลักของหน้า Dashboard Summary */
+.dashboard-summary-content {
+    margin: 15px auto; /* ระยะห่างจากด้านบน */
+    padding: 20px; /* เพิ่ม Padding ด้านใน */
+    background-color: #ffffff; /* สีพื้นหลัง */
+    border-radius: 10px; /* มุมโค้ง */
+    max-width: 1800px; /* ความกว้างสูงสุด */
+    width: 100%; /* ใช้ 100% ของหน้าจอ */
+    margin-top: 200px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* หัวข้อหลัก */
+.dashboard-summary-title {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+/* กล่องแสดงสรุปข้อมูล */
+/* ✅ ปรับขนาดกล่องและระยะห่าง */
+.dashboard-summary-box-container {
+    display: flex;
+    justify-content: center; /* จัดให้อยู่ตรงกลาง */
+    align-items: center;
+    gap: 40px; /* เพิ่มระยะห่างระหว่างกล่อง */
+    flex-wrap: wrap; /* ให้เรียงแนวตั้งเมื่อหน้าจอเล็ก */
+    margin-top: 30px;
+    margin-bottom: 30px; /* ✅ เพิ่มระยะห่างข้างล่าง */
+  }
+  
+  /* ✅ ปรับขนาดของกล่อง */
+  .dashboard-summary-box {
+    flex: 1;
+    max-width: 200px; /* ลดขนาดของกล่อง */
+    min-width: 100px; /* ป้องกันกล่องเล็กเกินไป */
+    height: 100px; /* ลดความสูง */
+    background-color: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    transition: transform 0.2s;
+  }
+  
+  .dashboard-summary-box:hover {
+    transform: scale(1.05); /* เพิ่มเอฟเฟกต์เมื่อชี้เมาส์ */
+  }
+  
+  /* ✅ สีพื้นหลังของแต่ละกล่อง */
+  .dashboard-summary-box1 {
+    background-color: #3498db; /* สีฟ้า */
+    color: white;
+  }
+  
+  .dashboard-summary-box2 {
+    background-color: #2ecc71; /* สีเขียว */
+    color: white;
+  }
+  
+  .dashboard-summary-box3 {
+    background-color: #f39c12; /* สีส้ม */
+    color: white;
+  }
+  
+  /* ✅ ปรับให้แสดงเป็นแนวตั้งเมื่อหน้าจอเล็ก */
+  @media screen and (max-width: 768px) {
+    .dashboard-summary-box-container {
+      flex-direction: column; /* บนมือถือให้เรียงแนวตั้ง */
+    }
+  
+    .dashboard-summary-box {
+      max-width: 100%; /* ใช้เต็มความกว้าง */
+    }
+  }  
+
+/* ส่วนของตัวเลือกปี */
+.dashboard-summary-year-selector {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.dashboard-summary-year-selector label {
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.dashboard-summary-year-selector select {
+    padding: 8px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background: #fff;
+}
+
+/* ✅ จัดให้สองกราฟอยู่ข้างกัน */
+.dashboard-summary-charts {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap; /* ให้แสดงเป็นแนวตั้งถ้าหน้าจอเล็ก */
+    margin-top: 20px;
+  }
+  
+  /* ✅ กำหนดขนาดให้กล่องของแต่ละกราฟ */
+  .dashboard-summary-chart-container {
+    flex: 1; /* ให้กล่องปรับขนาดอัตโนมัติ */
+    max-width: 48%; /* จำกัดขนาดไว้ไม่ให้ใหญ่เกินครึ่ง */
+    min-width: 350px; /* ป้องกันกล่องเล็กเกินไป */
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+  }
+  
+  /* ✅ ให้กราฟแสดงเต็มพื้นที่ของกล่อง */
+  .dashboard-summary-chart-container canvas {
+    width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* ✅ ปรับขนาดให้เหมาะกับมือถือ */
+  @media screen and (max-width: 768px) {
+    .dashboard-summary-charts {
+      flex-direction: column; /* บนมือถือให้เป็นแนวตั้ง */
+    }
+  
+    .dashboard-summary-chart-container {
+      max-width: 100%; /* ใช้เต็มความกว้าง */
+    }
+  }
+  
+.dashboard-summary-chart-container h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+/* ทำให้แคนวาสของกราฟมีขนาดคงที่ */
+canvas {
+    max-width: 100%;
+    height: 300px !important;
+}
+
+/* ปรับแต่งปุ่มที่อยู่ใน Dashboard */
+button {
+    padding: 10px 15px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #2c3e50;
+    color: white;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background-color: #34495e;
+}

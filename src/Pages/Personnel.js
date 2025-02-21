@@ -181,7 +181,6 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
     }
   };
   
-
   const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleImageClick = (imageUrl) => {
@@ -195,7 +194,7 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
   const handleViewDetails = async (user) => {
     try {
         const response = await axios.get(`http://localhost:5001/api/users/${user.id}`);
-        console.log("✅ User Details from API:", response.data);  
+        console.log("✅ User Details from API:", response.data);  // ตรวจสอบว่ามีค่า image หรือไม่
         setSelectedUser(response.data);
         setShowModal(true);
     } catch (error) {
@@ -203,7 +202,6 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
         alert("❌ ไม่สามารถดึงข้อมูลผู้ใช้ได้");
     }
 };
-
 
   const handleCloseModal = () => {
     setSelectedUser(null);

@@ -14,6 +14,7 @@ const ReqBorrowHistory = () => {
   const [filteredBorrowRequests, setFilteredBorrowRequests] = useState([]);
   const [selectedBorrowRequest, setSelectedBorrowRequest] = useState(null);
   const [selectedReturnRequest, setSelectedReturnRequest] = useState(null);
+  
 
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,26 +50,52 @@ const ReqBorrowHistory = () => {
 
   // ฟังก์ชันค้นหาตามวันที่ สำหรับเบิกวัสดุ
   const handleSearch = () => {
-    const filtered = requests.filter(
-      (request) =>
-        request.date_requested.includes(searchDate) && request.status !== 'Pending'
-    );
+    if (!searchDate) {
+      setFilteredRequests(requests); // รีเซ็ตเป็นข้อมูลทั้งหมดหากไม่มีวันที่เลือก
+      return;
+    }
+  
+    // แปลงวันที่ที่เลือกเป็นรูปแบบ YYYY-MM-DD
+    const formattedSearchDate = new Date(searchDate).toLocaleDateString('en-CA');
+  
+    // กรองข้อมูลโดยใช้ "วันที่อนุมัติ"
+    const filtered = requests.filter((request) => {
+      if (!request.date_approved) return false; // ถ้าวันที่อนุมัติเป็น null ให้ข้าม
+  
+      const approvedDate = new Date(request.date_approved).toLocaleDateString('en-CA');
+  
+      return approvedDate === formattedSearchDate && request.status !== 'Pending';
+    });
+  
     setFilteredRequests(filtered);
     setCurrentPage(1);
     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
   };
-
+  
   // ฟังก์ชันค้นหาตามวันที่ สำหรับยืมวัสดุ
   const handleSearchBorrow = () => {
-    const filtered = borrowRequests.filter(
-      (request) =>
-        request.request_date.includes(searchDate) && request.status !== 'Pending'
-    );
+    if (!searchDate) {
+      setFilteredBorrowRequests(borrowRequests); // รีเซ็ตเป็นข้อมูลทั้งหมดหากไม่มีวันที่เลือก
+      return;
+    }
+  
+    // แปลงวันที่ที่เลือกเป็นรูปแบบ YYYY-MM-DD
+    const formattedSearchDate = new Date(searchDate).toLocaleDateString('en-CA');
+  
+    // กรองข้อมูลโดยใช้ "วันที่อนุมัติ"
+    const filtered = borrowRequests.filter((request) => {
+      if (!request.date_approved) return false; // ถ้าวันที่อนุมัติเป็น null หรือ undefined ให้ข้าม
+  
+      const approvedDate = new Date(request.date_approved).toLocaleDateString('en-CA');
+  
+      return approvedDate === formattedSearchDate && request.status !== 'Pending';
+    });
+  
     setFilteredBorrowRequests(filtered);
     setCurrentPage(1);
     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
   };
-
+  
   // ดึงข้อมูลเบิกวัสดุ ยกเว้น Pending
   const fetchRequests = async () => {
     try {
@@ -141,174 +168,176 @@ const handleCloseReturnModal = () => {
             </div>
           )}
 
-          {view === 'withdrawHistory' && (
-            <div className="content">
-              <h2 className="section-title">ประวัติการเบิก</h2>
-              <div className="search-bar">
-                <input
-                  type="date"
-                  value={searchDate}
-                  onChange={(e) => setSearchDate(e.target.value)}
-                />
-                <button className="search-button" onClick={handleSearch}>
-                  ค้นหา
-                </button>
-              </div>
-              <p id="page-info">หน้าที่ {currentPage} จากทั้งหมด {totalPages} หน้า</p>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>ลำดับ</th>
-                    <th>ชื่อผู้ขอเบิก</th>
-                    <th>ชื่อฝ่ายสำนัก</th>
-                    <th>อุปกรณ์</th>
-                    <th>วันที่ขอเบิก</th>
-                    <th>วันที่อนุมัติ</th>
-                    <th>สถานะ</th>
-                    <th>รายละเอียด</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentRequests.length > 0 ? (
-                    currentRequests.map((request, index) => (
-                      <tr key={request.id}>
-                        <td>{indexOfFirstItem + index + 1}</td>
-                        <td>{request.borrower_name}</td>
-                        <td>{request.department}</td>
-                        <td>{request.equipment}</td>
-                        <td>
-                        {request.date_requested
-                          ? new Date(request.date_requested).toLocaleDateString('th-TH', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                        })
-                        : '-'}
-                      </td>
-                      <td>
-                        {request.date_approved
-                          ? new Date(request.date_approved).toLocaleDateString('th-TH', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                        })
-                        : '-'}
-                      </td>
-                      <td>
-                        {request.status === 'Approved'
-                          ? 'อนุมัติแล้ว'
-                          : request.status === 'Rejected'
-                          ? 'ไม่อนุมัติ'
-                          : request.status === 'Received'
-                          ? 'รับของแล้ว'
-                          : request.status === 'Returned'
-                          ? 'คืนของแล้ว'
-                          : request.status}
-                        </td>
-                        <td>
-                          <button onClick={() => handleViewBorrowDetails(request)}>ดูรายละเอียด</button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="7" style={{ textAlign: 'center' }}>ไม่มีข้อมูล</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-              <div className="pagination">
-                {[...Array(totalPages)].map((_, index) => (
-                  <button key={index} onClick={() => goToPage(index + 1)}>
-                    {index + 1}
-                  </button>
-                ))}
-              </div>
-              <button onClick={() => setView('menu')}>ย้อนกลับ</button>
-            </div>
-          )}
+{view === 'withdrawHistory' && (
+  <div className="content">
+    <h2 className="section-title">ประวัติการเบิก</h2>
 
-          {view === 'borrowHistory' && (
-            <div className="content">
-              <h2 className="section-title">ประวัติการยืม - คืน</h2>
-              <div className="search-bar">
-                <input
-                  type="date"
-                  value={searchDate}
-                  onChange={(e) => setSearchDate(e.target.value)}
-                />
-                <button className="search-button" onClick={handleSearchBorrow}>
-                  ค้นหา
-                </button>
-              </div>
-              <p id="page-info">หน้าที่ {currentPage} จากทั้งหมด {totalPages} หน้า</p>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>ลำดับ</th>
-                    <th>ชื่อยืม-คืน</th>
-                    <th>ฝ่ายสำนัก</th>
-                    <th>อุปกรณ์</th>
-                    <th>วันที่ยืม-คืน</th>
-                    <th>วันที่อนุมัติ</th>
-                    <th>สถานะ</th>
-                    <th>รายละเอียด</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentBorrowRequests.length > 0 ? (
-                    currentBorrowRequests.map((request, index) => (
-                      <tr key={request.id}>
-                        <td>{indexOfFirstItem + index + 1}</td>
-                        <td>{request.borrower_name}</td>
-                        <td>{request.department}</td>
-                        <td>{request.equipment}</td>
-                        <td>
-                          {request.request_date
-                            ? new Date(request.request_date).toLocaleDateString('th-TH', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          })
-                          : '-'}
-                        </td>
-                        <td>
-                          {request.date_approved
-                            ? new Date(request.date_approved).toLocaleDateString('th-TH', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          })
-                          : '-'}
-                        </td>
-                        <td>
-                          {request.status === 'Approved'
-                            ? 'อนุมัติแล้ว'
-                            : request.status === 'Rejected'
-                            ? 'ไม่อนุมัติ'
-                            : request.status === 'Received'
-                            ? 'รับของแล้ว'
-                            : request.status === 'Returned'
-                            ? 'คืนของแล้ว'
-                          : request.status}
-                        </td>
-                        <td>
-                          <button onClick={() => handleViewReturnDetails(request)}>
-                            ดูรายละเอียด
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="7" style={{ textAlign: 'center' }}>ไม่มีข้อมูล</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-              <button onClick={() => setView('menu')}>ย้อนกลับ</button>
-            </div>
-          )}
+    {/* ✅ ช่องค้นหาวันที่ (แก้ไขให้เหลือแค่ช่องเดียว) */}
+    <div className="search-bar">
+      <input
+        type="date"
+        value={searchDate}
+        onChange={(e) => setSearchDate(e.target.value)}
+      />
+      <button className="search-button" onClick={handleSearch}>
+        ค้นหา
+      </button>
+    </div>
+
+    <p id="page-info">หน้าที่ {currentPage} จากทั้งหมด {totalPages} หน้า</p>
+
+    <table className="table">
+      <thead>
+        <tr>
+          <th>ลำดับ</th>
+          <th>ชื่อผู้ขอเบิก</th>
+          <th>ชื่อฝ่ายสำนัก</th>
+          <th>อุปกรณ์</th>
+          <th>วันที่ขอเบิก</th>
+          <th>วันที่อนุมัติ</th>
+          <th>สถานะ</th>
+          <th>รายละเอียด</th>
+        </tr>
+      </thead>
+      <tbody>
+        {currentRequests.length > 0 ? (
+          currentRequests.map((request, index) => (
+            <tr key={request.id}>
+              <td>{indexOfFirstItem + index + 1}</td>
+              <td>{request.borrower_name}</td>
+              <td>{request.department}</td>
+              <td>{request.equipment}</td>
+              <td>
+                {request.date_requested
+                  ? new Date(request.date_requested).toLocaleDateString('th-TH', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })
+                  : '-'}
+              </td>
+              <td>
+                {request.date_approved
+                  ? new Date(request.date_approved).toLocaleDateString('th-TH', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })
+                  : '-'}
+              </td>
+              <td>
+                {request.status === 'Approved'
+                  ? 'อนุมัติแล้ว'
+                  : request.status === 'Rejected'
+                  ? 'ไม่อนุมัติ'
+                  : request.status === 'Received'
+                  ? 'รับของแล้ว'
+                  : request.status === 'Returned'
+                  ? 'คืนของแล้ว'
+                  : request.status}
+              </td>
+              <td>
+                <button onClick={() => handleViewBorrowDetails(request)}>ดูรายละเอียด</button>
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan="8" style={{ textAlign: 'center' }}>ไม่มีข้อมูล</td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+
+    <button onClick={() => setView('menu')}>ย้อนกลับ</button>
+  </div>
+)}
+
+{view === 'borrowHistory' && (
+  <div className="content">
+    <h2 className="section-title">ประวัติการยืม - คืน</h2>
+
+    {/* ✅ ช่องค้นหาวันที่ (แก้ไขให้เหลือแค่ช่องเดียว) */}
+    <div className="search-bar">
+  <input
+    type="date"
+    value={searchDate}
+    onChange={(e) => setSearchDate(e.target.value)}
+  />
+  <button className="search-button" onClick={handleSearchBorrow}>
+    ค้นหา
+  </button>
+</div>
+
+
+    <p id="page-info">หน้าที่ {currentPage} จากทั้งหมด {totalPages} หน้า</p>
+
+    <table className="table">
+      <thead>
+        <tr>
+          <th>ลำดับ</th>
+          <th>ชื่อยืม-คืน</th>
+          <th>ฝ่ายสำนัก</th>
+          <th>อุปกรณ์</th>
+          <th>วันที่ยืม-คืน</th>
+          <th>วันที่อนุมัติ</th>
+          <th>สถานะ</th>
+          <th>รายละเอียด</th>
+        </tr>
+      </thead>
+      <tbody>
+        {currentBorrowRequests.length > 0 ? (
+          currentBorrowRequests.map((request, index) => (
+            <tr key={request.id}>
+              <td>{indexOfFirstItem + index + 1}</td>
+              <td>{request.borrower_name}</td>
+              <td>{request.department}</td>
+              <td>{request.equipment}</td>
+              <td>
+                {request.request_date
+                  ? new Date(request.request_date).toLocaleDateString('th-TH', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })
+                  : '-'}
+              </td>
+              <td>
+                {request.date_approved
+                  ? new Date(request.date_approved).toLocaleDateString('th-TH', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })
+                  : '-'}
+              </td>
+              <td>
+                {request.status === 'Approved'
+                  ? 'อนุมัติแล้ว'
+                  : request.status === 'Rejected'
+                  ? 'ไม่อนุมัติ'
+                  : request.status === 'Received'
+                  ? 'รับของแล้ว'
+                  : request.status === 'Returned'
+                  ? 'คืนของแล้ว'
+                  : request.status}
+              </td>
+              <td>
+                <button onClick={() => handleViewReturnDetails(request)}>ดูรายละเอียด</button>
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan="8" style={{ textAlign: 'center' }}>ไม่มีข้อมูล</td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+
+    <button onClick={() => setView('menu')}>ย้อนกลับ</button>
+  </div>
+)}
           {selectedBorrowRequest && (
   <div className="req-borrow-history-modal-overlay">
     <div className="req-borrow-history-modal">

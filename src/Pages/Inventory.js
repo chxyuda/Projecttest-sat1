@@ -258,10 +258,10 @@ const Inventory = () => {
                 </div>
                 <div className="modal-details">
                   <div className="details-section">
-                    <p><strong>ชื่อ:</strong> {selectedItem.material}</p>
-                    <p><strong>ประเภท:</strong> {selectedItem.category}</p>
-                    <p><strong>อุปกรณ์:</strong> {selectedItem.equipment}</p>
-                    <p><strong>ยี่ห้อ:</strong> {selectedItem.brand}</p>
+                    <p><strong>ชื่อ:</strong> {selectedItem.model}</p>
+                    <p><strong>ประเภท:</strong> {selectedItem.category_name}</p>
+                    <p><strong>อุปกรณ์:</strong> {selectedItem.name}</p>
+                    <p><strong>ยี่ห้อ:</strong> {selectedItem.brand_name}</p>
                   </div>
                   <div className="details-section">
                     <p><strong>หมายเลขครุภัณฑ์:</strong> {selectedItem.equipment_number || "-"}</p>

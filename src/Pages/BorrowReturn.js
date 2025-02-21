@@ -3,11 +3,10 @@ import ITDashboard from "./ITDashboard";
 import "./BorrowReturn.css";
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import {
   faClock,
   faCheck,
-  faTimes,
-  faList,
   faClipboardList,
   faPlus,
   faSyncAlt,

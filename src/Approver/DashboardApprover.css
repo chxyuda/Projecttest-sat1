@@ -51,31 +51,29 @@
 .approver-info {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 8px; /* เว้นระยะห่างระหว่างไอคอนและข้อความ */
+  white-space: nowrap; /* ป้องกันข้อความขึ้นบรรทัดใหม่ */
+  overflow: hidden;
+  text-overflow: ellipsis; /* ถ้าข้อความยาวเกินจะมี ... */
+  max-width: 250px; /* ปรับขนาดให้เหมาะสม */
+  padding: 5px 10px; /* เพิ่ม padding เพื่อความสวยงาม */
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
-  max-width: 250px; /* ✅ ป้องกันการล้นขอบ */
-  white-space: nowrap; /* ✅ ป้องกันข้อความขึ้นบรรทัดใหม่ */
 }
 
-/* ✅ ปรับขนาดไอคอนและเว้นระยะ */
 .approver-info img {
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
 }
 
 .approver-info span {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  white-space: nowrap;
+  flex-grow: 1; /* ขยายตามพื้นที่ว่าง */
+  min-width: 100px; /* ป้องกันการบีบตัว */
   overflow: hidden;
-  text-overflow: ellipsis; /* ✅ ให้ข้อความที่ยาวเกินไปตัดออก */
-  max-width: 150px; /* ✅ ป้องกันชื่อฝ่ายยาวเกินขอบ */
+  text-overflow: ellipsis;
 }
+
 
 /* ✅ ปรับตำแหน่ง Profile Container */
 .profile-container {

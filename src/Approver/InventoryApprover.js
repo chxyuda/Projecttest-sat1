@@ -60,10 +60,9 @@ const InventoryApprover = () => {
     }
   
     const filtered = data.filter((item) => {
-      const matchCategory = category === "all" || item.category === category;
-      const matchDevice = device === "all" || item.equipment === device;
-      const matchBrand =
-        brand === "all" || item.brand.toLowerCase() === brand.toLowerCase();
+      const matchCategory = category === "all" || (item.category && item.category.toLowerCase() === category.toLowerCase());
+      const matchDevice = device === "all" || (item.equipment && item.equipment.toLowerCase() === device.toLowerCase());
+      const matchBrand = brand === "all" || (item.brand && item.brand.toLowerCase() === brand.toLowerCase());
   
       return matchCategory && matchDevice && matchBrand;
     });
@@ -75,9 +74,9 @@ const InventoryApprover = () => {
     }
   
     setFilteredData(filtered);
-    setCurrentPage(1);
+    setCurrentPage(1); // ✅ รีเซ็ตเป็นหน้าแรกเมื่อมีการค้นหาใหม่
   
-    // เพิ่มประวัติการค้นหา
+    // ✅ บันทึกประวัติการค้นหา
     const newSearch = {
       category: category !== "all" ? category : "ประเภททั้งหมด",
       device: device !== "all" ? device : "อุปกรณ์ทั้งหมด",
@@ -86,13 +85,18 @@ const InventoryApprover = () => {
     };
     setSearchHistory((prevHistory) => [newSearch, ...prevHistory]);
   };
+  
+  useEffect(() => {
+    setFilteredData(data);
+  }, [data]);
+  
 // คำนวณ index สำหรับแบ่งหน้า
+// ✅ แบ่งหน้าจากข้อมูลที่ผ่านการกรอง (filteredData)
 const indexOfLastItem = currentPage * itemsPerPage;
 const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-// จำนวนหน้าทั้งหมด
-const totalPages = Math.ceil(data.length / itemsPerPage);
 
 // เปลี่ยนหน้า
 const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -121,15 +125,26 @@ const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleShowDetails = async (item) => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/products/${item.id}`); // ดึงข้อมูลล่าสุดของสินค้านี้จากฐานข้อมูล
-      setSelectedItem(response.data); // เซ็ตข้อมูลใหม่ที่ได้จากฐานข้อมูล
-      setShowDetails(true);
-    } catch (error) {
-      console.error('Error fetching product details:', error);
-      alert('ไม่สามารถโหลดข้อมูลล่าสุดได้');
-    }
-  };
+        const response = await axios.get(`http://localhost:5001/api/products/${item.id}`);
+        console.log("Product Details Response:", response.data); // 🔍 Debug ข้อมูล API
 
+        // ตรวจสอบว่า API ส่งข้อมูลมาเป็น `data` หรือ `data.product`
+        const product = response.data.product || response.data;
+
+        if (!product) {
+            alert('ไม่พบข้อมูลสินค้า');
+            return;
+        }
+
+        setSelectedItem(product); // เซ็ตข้อมูลที่ได้จาก API
+        setShowDetails(true);
+    } catch (error) {
+        console.error('Error fetching product details:', error);
+        alert('ไม่สามารถโหลดข้อมูลล่าสุดได้');
+    }
+};
+
+  
   const handleCloseDetails = () => {
     setShowDetails(false);
     setSelectedItem(null);
@@ -261,32 +276,34 @@ const paginate = (pageNumber) => setCurrentPage(pageNumber);
           )}
          {/* Modal สำหรับแสดงรายละเอียด */}
          {showDetails && selectedItem && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h3 className="modal-title">รายละเอียด</h3>
-                  <button onClick={handleCloseDetails} className="close-btn">&times;</button>
-                </div>
-                <div className="modal-details">
-                  <div className="details-section">
-                    <p><strong>ชื่อ:</strong> {selectedItem.material}</p>
-                    <p><strong>ประเภท:</strong> {selectedItem.category}</p>
-                    <p><strong>อุปกรณ์:</strong> {selectedItem.equipment}</p>
-                    <p><strong>ยี่ห้อ:</strong> {selectedItem.brand}</p>
-                  </div>
-                  <div className="details-section">
-                    <p><strong>หมายเลขครุภัณฑ์:</strong> {selectedItem.equipment_number || "-"}</p>
-                    <p><strong>Serial:</strong> {selectedItem.serial_number || "-"}</p>
-                    <p><strong>จำนวนทั้งหมด:</strong> {selectedItem.inventory_number}</p>
-                    <p><strong>คงเหลือ:</strong> {selectedItem.remaining}</p>
-                  </div>
-                  <div className="details-full">
-                    <p><strong>รายละเอียดเพิ่มเติม:</strong> {selectedItem.details || "ไม่มีข้อมูลเพิ่มเติม"}</p>
-                  </div>
-             </div>
-           </div>
-         </div>
-       )}
+  <div className="modal-overlay">
+    <div className="modal-content">
+      <div className="modal-header">
+        <h3 className="modal-title">รายละเอียด</h3>
+        <button onClick={handleCloseDetails} className="close-btn">&times;</button>
+      </div>
+      <div className="modal-details">
+        {/* ✅ แก้ไขฟิลด์ให้ตรงกับฐานข้อมูล */}
+        <div className="details-section">
+          <p><strong>ชื่อ:</strong> {selectedItem.model}</p>
+          <p><strong>ประเภท:</strong> {selectedItem.category_name}</p>
+          <p><strong>อุปกรณ์:</strong> {selectedItem.name}</p>
+          <p><strong>ยี่ห้อ:</strong> {selectedItem.brand_name}</p>
+        </div>
+        <div className="details-section">
+          <p><strong>หมายเลขครุภัณฑ์:</strong> {selectedItem.equipment_number || "-"}</p>
+          <p><strong>Serial:</strong> {selectedItem.serial_number || "-"}</p>
+          <p><strong>จำนวนทั้งหมด:</strong> {selectedItem.inventory_number || "ไม่มีข้อมูล"}</p>
+          <p><strong>คงเหลือ:</strong> {selectedItem.remaining || "ไม่มีข้อมูล"}</p>
+        </div>
+        <div className="details-full">
+          <p><strong>รายละเอียดเพิ่มเติม:</strong> {selectedItem.details || "ไม่มีข้อมูลเพิ่มเติม"}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
       </div>
     </>
   );  

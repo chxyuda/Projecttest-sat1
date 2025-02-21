@@ -90,7 +90,7 @@ const DashboardApprover = () => {
           <span onClick={() => navigate("/req-borrowhistory")}>
             <FontAwesomeIcon icon={faFileAlt} /> ประวัติการเบิก-การยืม-คืน
           </span>
-          <span onClick={() => navigate("/")}>
+          <span onClick={() => navigate("/dash-app-summary")}>
             <FontAwesomeIcon icon={faTachometerAlt} /> Dashboard
           </span>
           <span onClick={handleLogout} className="logout">

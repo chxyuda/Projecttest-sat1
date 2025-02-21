@@ -30,8 +30,8 @@ const Login = () => {
               localStorage.setItem("user", JSON.stringify(user));
           }          
             // ✅ เช็ค role แล้ว navigate ไปหน้าเหมาะสม
-            if (user.role === "IT") navigate("/it-dashboard");
-            else if (user.role === "Approver") navigate("/approver-dashboard");
+            if (user.role === "IT") navigate("/welcome-it");
+            else if (user.role === "Approver") navigate("/welcome");
             else if (user.role === "User") navigate("/welcome-users");
             else alert("⚠️ บทบาทของคุณไม่ถูกต้อง");
         } else {

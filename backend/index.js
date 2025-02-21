@@ -5,7 +5,6 @@ const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const db = require("./db"); // ✅ ใช้ `db.js` ที่เราแยกไว้
 require("dotenv").config();
-const multer = require("multer");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -236,45 +235,68 @@ const checkUserExists = (username, email, callback) => {
   });
 };
 // API: เพิ่มผู้ใช้งานใหม่
-const upload = multer({ storage: multer.memoryStorage() });
+const multer = require("multer");
 
-router.post("/signup", upload.single("image"), async (req, res) => { 
-    console.log("📩 ข้อมูลที่ได้รับจาก Frontend:", req.body);
-
-    const { username, password, fullName, email, phone, department_name, section_name, task_name } = req.body;
-    const image = req.file ? req.file.buffer.toString("base64") : null; // ✅ ถ้าไม่มีรูปให้ส่ง `null`
-
-    if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
-        return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบ" });
-    }
-
-    try {
-        let query, values;
-
-        if (image) {
-            query = `
-                INSERT INTO users (username, password, fullName, email, phone, department_name, section_name, task_name, image, role, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')
-            `;
-            values = [username, password, fullName, email, phone, department_name, section_name, task_name, image];
-        } else {
-            query = `
-                INSERT INTO users (username, password, fullName, email, phone, department_name, section_name, task_name, role, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')
-            `;
-            values = [username, password, fullName, email, phone, department_name, section_name, task_name];
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 2 * 1024 * 1024 }, // จำกัดขนาดไฟล์ 2MB
+    fileFilter: (req, file, cb) => {
+        if (!file.mimetype.startsWith("image/")) {
+            return cb(new Error("❌ ต้องเป็นไฟล์รูปภาพเท่านั้น!"), false);
         }
-
-        db.query(query, values, (err, result) => {
-            if (err) return res.status(500).json({ success: false, error: err.message });
-            return res.status(201).json({ success: true, message: "✅ สมัครสมาชิกสำเร็จ!" });
-        });
-
-    } catch (error) {
-        return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาด" });
+        cb(null, true);
     }
 });
 
+router.post("/signup", upload.single("image"), async (req, res) => { 
+  console.log("📩 ข้อมูลที่ได้รับจาก Frontend:", req.body);
+  console.log("📸 รูปภาพที่ได้รับ:", req.file ? "มีไฟล์" : "ไม่มีไฟล์");
+
+  // ✅ รับค่าจาก req.body
+  const { username, password, fullName, email, phone, department_name, section_name, task_name } = req.body;
+
+  // ✅ ตรวจสอบว่ามีไฟล์หรือไม่ ถ้าไม่มีให้ `image` เป็น `NULL`
+  const image = req.file ? req.file.buffer : null; // ใช้ Buffer แทน Base64
+
+  // ✅ Debug ข้อมูลที่รับเข้ามา
+  console.log({
+      username, password, fullName, email, phone,
+      department_name, section_name, task_name, image
+  });
+
+  // ✅ ตรวจสอบข้อมูลว่าครบหรือไม่
+  if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
+      return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบ" });
+  }
+
+  try {
+      let query, values;
+
+      // ✅ SQL รองรับ `image` เป็น `NULL`
+      query = `
+          INSERT INTO users (username, password, fullName, email, phone, department_name, section_name, task_name, image, role, status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')
+      `;
+      values = [username, password, fullName, email, phone, department_name, section_name, task_name, image];
+
+      // ✅ Debug SQL Query
+      console.log("📝 Query:", query);
+      console.log("🔢 Values:", values);
+
+      // ✅ รัน SQL
+      db.query(query, values, (err, result) => {
+          if (err) {
+              console.error("❌ SQL Error:", err);
+              return res.status(500).json({ success: false, error: err.message });
+          }
+          return res.status(201).json({ success: true, message: "✅ สมัครสมาชิกสำเร็จ!" });
+      });
+
+  } catch (error) {
+      console.error("❌ Error:", error);
+      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาด" });
+  }
+});
 
 app.put('/api/approve-user/:id', (req, res) => { 
   const userId = req.params.id;
@@ -1058,7 +1080,6 @@ app.post("/api/update-profile", upload.single("image"), (req, res) => {
 });
 
 
-
 app.post("/api/upload-profile", upload.single("image"), (req, res) => {
   if (!req.file) return res.status(400).json({ message: "ไม่พบไฟล์ที่อัปโหลด" });
 
@@ -1069,15 +1090,21 @@ app.post("/api/upload-profile", upload.single("image"), (req, res) => {
 
 
 app.put("/api/update-profile", (req, res) => {
-  const { id, fullName, phone, email, department_name, section_name, task_name, image } = req.body;
+  let { id, fullName, phone, email, department_name, section_name, task_name, image } = req.body;
 
   if (!id) {
       return res.status(400).json({ success: false, message: "❌ ไม่มี ID ของผู้ใช้" });
   }
 
+  // ✅ ตรวจสอบค่าก่อนอัปเดต
+  department_name = department_name?.trim() || null;
+  section_name = section_name?.trim() || null;
+  task_name = task_name?.trim() || null;
+  image = image || null; // ถ้าไม่มีรูป ไม่ต้องอัปเดต
+
   const query = `
       UPDATE users 
-      SET fullName = ?, phone = ?, email = ?, department_name = ?, section_name = ?, task_name = ?, image = ?
+      SET fullName = ?, phone = ?, email = ?, department_name = ?, section_name = ?, task_name = ?, image = IFNULL(?, image)
       WHERE id = ?
   `;
 
@@ -1091,8 +1118,8 @@ app.put("/api/update-profile", (req, res) => {
           return res.status(404).json({ success: false, message: "❌ ไม่พบผู้ใช้ที่ต้องการอัปเดต" });
       }
 
-      // ✅ ส่งข้อมูลที่อัปเดตกลับไปยัง React
-      db.query("SELECT * FROM users WHERE id = ?", [id], (err, updatedResults) => {
+      // ✅ ดึงข้อมูลล่าสุดกลับไปยัง React
+      db.query("SELECT id, fullName, phone, email, department_name, section_name, task_name, image FROM users WHERE id = ?", [id], (err, updatedResults) => {
         if (err) {
           return res.status(500).json({ message: "❌ ไม่สามารถดึงข้อมูลที่อัปเดตได้" });
         }
@@ -1100,6 +1127,7 @@ app.put("/api/update-profile", (req, res) => {
       });
   });
 });
+
 
 // ✅ เพิ่มคำขอเบิกวัสดุ (ดึง user_id จากฐานข้อมูล users อัตโนมัติ)
 router.post('/requests', (req, res) => {
