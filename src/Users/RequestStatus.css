@@ -1,13 +1,13 @@
 /* ✅ ปรับตำแหน่งตารางให้เหมาะกับดีไซน์ */
 .table-container-srq {
-    margin-top: 100px; /* ขยับลงมาห่างจากเมนู */
-    max-height: 500px; /* หรือความสูงที่ต้องการ */
-    max-width: 90%;
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
+  margin: 15px auto; /* ระยะห่างจากด้านบน */
+  padding: 20px; /* เพิ่ม Padding ด้านใน */
+  background-color: #ffffff; /* สีพื้นหลัง */
+  border-radius: 10px; /* มุมโค้ง */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+  max-width: 1800px; /* ความกว้างสูงสุด */
+  width: 100%; /* ใช้ 100% ของหน้าจอ */
+  margin-top: 190px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
   }
   
   .title-srq {

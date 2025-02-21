@@ -89,9 +89,6 @@ const UserDashboard = () => {
           <span onClick={() => navigate("/withdrawalHistory")}>
             <FontAwesomeIcon icon={faFileAlt} /> ประวัติการเบิก ยืม-คืน
           </span>
-          <span onClick={() => navigate("/user-dashboard")}>
-            <FontAwesomeIcon icon={faTachometerAlt} /> Dashboard
-          </span>
           <span onClick={handleLogout} className="user-logout">
             <FontAwesomeIcon icon={faSignOutAlt} /> ออกจากระบบ
           </span>

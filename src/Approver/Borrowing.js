@@ -15,6 +15,7 @@ function Borrowing() {
     const [remark, setRemark] = useState("");
     const [showRejectReason, setShowRejectReason] = useState(false);
     const [rejectReason, setRejectReason] = useState("");
+    const [remainingStock, setRemainingStock] = useState("ไม่ทราบ");
 
 
 
@@ -43,12 +44,23 @@ function Borrowing() {
       setCurrentPage(1);
     };
   
-    const handleViewDetails = (request) => {
-        setSelectedRequest(request);
-        setRemark(""); // เคลียร์หมายเหตุเมื่อเปิดหน้าต่างใหม่
-      };
+    const handleViewDetails = async (request) => {
+      try {
+        const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
+        const remainingStock = response.data.remaining;
+    
+        // อัปเดต selectedRequest พร้อมจำนวนคงเหลือ
+        setSelectedRequest({
+          ...request,
+          remaining: remainingStock,
+        });
+      } catch (error) {
+        console.error('ไม่สามารถโหลดจำนวนคงเหลือ:', error);
+        setSelectedRequest({ ...request, remaining: 'ไม่ทราบ' });
+      }
+      setRemark('');
+    };
       
-  
       const handleCloseModal = () => {
         setSelectedRequest(null);
       };
@@ -221,7 +233,7 @@ function Borrowing() {
         </div>
         <div className="loan-request-form-group">
           <label>ประเภท:</label>
-          <input type="text" value={selectedRequest.type} readOnly />
+          <input type="text" value={selectedRequest.category} readOnly />
         </div>
         <div className="loan-request-form-group">
           <label>อุปกรณ์:</label>
@@ -235,6 +247,18 @@ function Borrowing() {
           <label>จำนวน:</label>
           <input type="text" value={selectedRequest.quantity_requested} readOnly />
         </div>
+        <div className="loan-request-form-group">
+  <label>จำนวนคงเหลือ:</label>
+  <input
+    type="text"
+    value={
+      selectedRequest.remaining !== undefined
+        ? selectedRequest.remaining
+        : "ไม่ทราบ"
+    }
+    readOnly
+  />
+</div>
         <div className="loan-request-form-group">
           <label>วันที่ขอยืม:</label>
           <input

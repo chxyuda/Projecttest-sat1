@@ -42,11 +42,23 @@ function Received() {
     fetchRequests();
   }, []);
   
-  const handleViewDetails = (request) => {
-    setSelectedRequest(request);
-    setRemark("");
+  const handleViewDetails = async (request) => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
+      const remainingStock = response.data.remaining;
+  
+      // อัปเดต selectedRequest พร้อมจำนวนคงเหลือ
+      setSelectedRequest({
+        ...request,
+        remaining: remainingStock,
+      });
+    } catch (error) {
+      console.error('ไม่สามารถโหลดจำนวนคงเหลือ:', error);
+      setSelectedRequest({ ...request, remaining: 'ไม่ทราบ' });
+    }
+    setRemark('');
   };
-
+  
   const handleCloseModal = () => {
     setSelectedRequest(null);
   };
@@ -85,16 +97,19 @@ function Received() {
   
   const handleSearchByDate = () => {
     if (!searchDate) {
-      setFilteredRequests(requests);
+      setFilteredRequests(requests.filter((req) => req.status === "Pending"));
       return;
     }
-
-    const filtered = requests.filter((req) =>
-      req.date_requested.startsWith(searchDate)
-    );
+  
+    const filtered = requests.filter((req) => {
+      const requestDate = new Date(req.created_at).toISOString().split("T")[0];
+      return requestDate === searchDate && req.status === "Pending";
+    });
+  
     setFilteredRequests(filtered);
     setCurrentPage(1);
   };
+  
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -126,15 +141,16 @@ function Received() {
         </div>
 
         <div className="received-search-bar">
-          <input
-            type="date"
-            className="received-input"
-            value={searchDate}
-            onChange={(e) => setSearchDate(e.target.value)}
-          />
-          <button className="received-search-button" onClick={handleSearchByDate}>
-            ค้นหา
-          </button>
+        <input
+  type="date"
+  className="received-input"
+  value={searchDate}
+  onChange={(e) => setSearchDate(e.target.value)}
+/>
+<button className="received-search-button" onClick={handleSearchByDate}>
+  ค้นหา
+</button>
+
         </div>
 
         <table className="received-table">
@@ -170,9 +186,10 @@ function Received() {
                         : req.status}
                     </td>
                   <td>
-                    <button className="detail-button" onClick={() => handleViewDetails(req)}>
-                      ดูรายละเอียด
-                    </button>
+                  <button className="detail-button" onClick={() => handleViewDetails(req)}>
+  ดูรายละเอียด
+</button>
+
                   </td>
                 </tr>
               ))
@@ -183,7 +200,6 @@ function Received() {
             )}
           </tbody>
         </table>
-
         <div className="received-pagination">
           {pageNumbers.map((number) => (
             <button key={number} className="received-page-button" onClick={() => paginate(number)}>
@@ -239,44 +255,55 @@ function Received() {
               <input type="text" value={selectedRequest.quantity_requested} readOnly />
             </div>
             <div className="received-form-group">
-    <label>วันที่ขอเบิก:</label>
-    <input
-      type="text"
-      value={
-        selectedRequest.created_at
-          ? new Date(selectedRequest.created_at).toLocaleDateString('th-TH', {
-              day: '2-digit',
-              month: '2-digit',
-              year: '2-digit',
-            }) +
-            ' ' +
-            new Date(selectedRequest.created_at).toLocaleTimeString('th-TH', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })
-          : 'ไม่ระบุ'
-      }
-      readOnly
-    />
-  </div>
-  <form className="received-note-containe">
-  {/* หมายเหตุ */}
-  <div className="received-note-containe">
-    <label>หมายเหตุ:</label>
-    <textarea value={selectedRequest.note || '-'} readOnly />
-  </div>
-
-  {/* หมายเหตุเพิ่มเติม */}
-  <div className="received-note-containe">
-    <label>หมายเหตุเพิ่มเติม (ถ้ามี):</label>
-    <textarea
-      value={remark}
-      onChange={(e) => setRemark(e.target.value)}
-      placeholder="ใส่หมายเหตุหากจำเป็น"
-    />
-  </div>
-</form>
-          </form>
+  <label>จำนวนคงเหลือ:</label>
+  <input
+    type="text"
+    value={
+      selectedRequest && selectedRequest.remaining !== undefined
+        ? selectedRequest.remaining
+        : 'ไม่ทราบ'
+    }
+    readOnly
+  />
+</div>
+            <div className="received-form-group">
+              <label>วันที่ขอเบิก:</label>
+                <input
+                  type="text"
+                  value={
+                    selectedRequest.created_at
+                    ? new Date(selectedRequest.created_at).toLocaleDateString('th-TH', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: '2-digit',
+                    }) +
+                    ' ' +
+                    new Date(selectedRequest.created_at).toLocaleTimeString('th-TH', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                    : 'ไม่ระบุ'
+                  }
+                  readOnly
+                />
+              </div>
+              <form className="received-note-containe">
+                {/* หมายเหตุ */}
+                <div className="received-note-containe">
+                  <label>หมายเหตุ:</label>
+                  <textarea value={selectedRequest.note || '-'} readOnly />
+                </div>
+                {/* หมายเหตุเพิ่มเติม */}
+                <div className="received-note-containe">
+                  <label>หมายเหตุเพิ่มเติม (ถ้ามี):</label>
+                  <textarea
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                    placeholder="ใส่หมายเหตุหากจำเป็น"
+                  />
+                </div>
+              </form>
+            </form>
           <div className="received-modal-buttons">
             <button className="received-approve-button" onClick={() => handleApprove("Approved")}>
               อนุมัติ

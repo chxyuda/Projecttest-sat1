@@ -38,6 +38,7 @@ import BorrowPending from "./Pages/BorrowPending.js";
 import BorrowApproved from "./Pages/BorrowApproved.js";
 import BorrowRejected from "./Pages/BorrowRejected.js";
 import BorrowStatusIT from "./Pages/BorrowStatusIT.js";
+import WelcomeUsers from "./Users/WelcomeUsers.js";
 
 function App() {
   const [currentTime, setCurrentTime] = useState("");
@@ -126,7 +127,7 @@ function App() {
           <Route path="/borrow-approved" element={<BorrowApproved />} />
           <Route path="/borrow-rejected" element={<BorrowRejected />} />
           <Route path="/borrow-statusit" element={<BorrowStatusIT />} />
-
+          <Route path="/welcome-users" element={<WelcomeUsers />} />
         </Routes>
       </div>
     </Router>

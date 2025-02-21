@@ -11,10 +11,24 @@ const ReturningHistory = () => {
     useEffect(() => {
         const fetchBorrowings = async () => {
             try {
-                const userId = localStorage.getItem('user_id'); // ดึง user_id
+                const userData = JSON.parse(localStorage.getItem('user'));
+                const userId = userData ? userData.id : null;
+    
+                if (!userId) {
+                    console.error('userId is null');
+                    return;
+                }
+    
                 const response = await axios.get(`http://localhost:5001/api/borrow-requests/user/${userId}`);
-                setBorrowings(response.data);
-                setFilteredBorrowings(response.data);
+                console.log('Response:', response.data); // ตรวจสอบข้อมูลที่ได้จาก API
+    
+                // กรองเฉพาะสถานะ "รับของแล้ว" และ "คืนของแล้ว"
+                const filteredData = response.data.filter(
+                    (item) => item.status === 'Received' || item.status === 'Returned'
+                );
+    
+                setBorrowings(filteredData);
+                setFilteredBorrowings(filteredData);
             } catch (error) {
                 console.error('เกิดข้อผิดพลาดในการดึงข้อมูลการยืม - คืน:', error);
             }
@@ -22,6 +36,15 @@ const ReturningHistory = () => {
     
         fetchBorrowings();
     }, []);
+
+    const handleSearch = () => {
+        const filtered = borrowings.filter(
+            (item) =>
+                item.request_date &&
+                item.request_date.startsWith(searchDate)
+        );
+        setFilteredBorrowings(filtered);
+    };
     
 
     const formatDate = (dateString) => {
@@ -35,23 +58,17 @@ const ReturningHistory = () => {
             case 'Approved':
                 return <span className="status-approved">อนุมัติ</span>;
             case 'Received':
-                return <span className="status-received">รับของแล้ว</span>;
+                return <span className="status-received">รับของแล้ว</span>; // เปลี่ยนตรงนี้
             case 'Returned':
-                return <span className="status-returned">คืนแล้ว</span>;
+                return <span className="status-returned">คืนของแล้ว</span>; // เปลี่ยนตรงนี้
             case 'Rejected':
                 return <span className="status-rejected">ไม่อนุมัติ</span>;
             default:
                 return <span>{status || '-'}</span>;
         }
     };
-
-    const handleSearch = () => {
-        const filtered = borrowings.filter((item) =>
-            item.request_date && item.request_date.startsWith(searchDate)
-        );
-        setFilteredBorrowings(filtered);
-    };
-
+    
+    
     return (
         <>
             <UserDashboard />

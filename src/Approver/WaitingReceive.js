@@ -13,6 +13,10 @@ function WaitingReceive() {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
+  const [remainingStock, setRemainingStock] = useState("ไม่ทราบ");
+  const [remark, setRemark] = useState('');
+
+
 
   const navigate = useNavigate();
 
@@ -48,10 +52,23 @@ function WaitingReceive() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleViewDetails = (request) => {
-    setSelectedRequest(request);
+  const handleViewDetails = async (request) => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
+      const remainingStock = response.data.remaining;
+  
+      // อัปเดต selectedRequest พร้อมจำนวนคงเหลือ
+      setSelectedRequest({
+        ...request,
+        remaining: remainingStock,
+      });
+    } catch (error) {
+      console.error('ไม่สามารถโหลดจำนวนคงเหลือ:', error);
+      setSelectedRequest({ ...request, remaining: 'ไม่ทราบ' });
+    }
+    setRemark('');
   };
-
+  
   const handleCloseModal = () => {
     setSelectedRequest(null);
   };
@@ -194,6 +211,19 @@ function WaitingReceive() {
                   <label>จำนวน:</label>
                   <input type="text" value={selectedRequest.quantity_requested} readOnly />
                 </div>
+                <div className="waiting-receive-form-group">
+                <label>จำนวนคงเหลือ:</label>
+  <input
+    type="text"
+    value={
+      selectedRequest && selectedRequest.remaining !== undefined
+        ? selectedRequest.remaining
+        : 'ไม่ทราบ'
+    }
+    readOnly
+  />
+</div>
+
                 <div className="waiting-receive-form-group">
                   <label>หมายเหตุ:</label>
                   <textarea value={selectedRequest.note || "-"} readOnly />

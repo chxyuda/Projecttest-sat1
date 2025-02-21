@@ -429,6 +429,41 @@ app.get('/api/products', (req, res) => {
   });  
 });
 
+router.get('/products/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'SELECT * FROM products WHERE id = ?';
+
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ success: false, message: 'ไม่พบสินค้า' });
+    }
+    res.json(result[0]);
+  });
+});
+
+router.get('/products/model/:model', (req, res) => {
+  const { model } = req.params;
+  const sql = `
+    SELECT model, remaining
+    FROM products
+    WHERE model = ?
+  `;
+
+  db.query(sql, [model], (err, result) => {
+    if (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ success: false, message: 'ไม่พบสินค้า' });
+    }
+    res.json(result[0]);
+  });
+});
+
+
 //เพิ่มข้อมูลใหม่
 app.post("/api/products", (req, res) => {
   console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body);
@@ -597,8 +632,6 @@ app.delete("/api/products", (req, res) => {
       res.status(200).json({ success: true, message: `✅ ลบข้อมูลสำเร็จ ${results.affectedRows} รายการ` });
   });
 });
-
-
 
 // ดึงรายการ categories
 app.get('/api/categories', (req, res) => {
@@ -1087,14 +1120,15 @@ router.post('/requests', (req, res) => {
   const findUserSql = `SELECT id FROM users WHERE fullName = ?`;
   const checkStockSql = `SELECT remaining FROM products WHERE model = ?`;
   const insertSql = `
-    INSERT INTO requests (user_id, borrower_name, department, phone, email, material, type, equipment, brand, quantity_requested, note, date_requested)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+  INSERT INTO requests (user_id, borrower_name, department, phone, email, material, type, equipment, brand, quantity_requested, note, date_requested)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
   const updateProductSql = `
-    UPDATE products 
-    SET remaining = remaining - ? 
-    WHERE model = ? AND remaining >= ?
-  `;
+  UPDATE products 
+  SET remaining = remaining - ? 
+  WHERE model = ? AND remaining >= ?
+`;
+
 
   db.query(findUserSql, [borrowerName], (err, userResult) => {
     if (err) {
@@ -1267,7 +1301,7 @@ router.post('/borrow-requests', (req, res) => {
     phone,
     email,
     material,
-    category,
+    category, // ใช้ category
     equipment,
     brand,
     quantity_requested,
@@ -1275,12 +1309,11 @@ router.post('/borrow-requests', (req, res) => {
     request_date,
     return_date,
   } = req.body;
-  
-  const type = category; // <<< เพิ่มบรรทัดนี้
+
   const checkStockSql = `SELECT remaining FROM products WHERE model = ?`;
   const insertRequestSql = `
     INSERT INTO borrow_requests (
-      user_id, borrower_name, department, phone, email, material, type, equipment, brand, quantity_requested, note, request_date, return_date, status
+      user_id, borrower_name, department, phone, email, material, category, equipment, brand, quantity_requested, note, request_date, return_date, status
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
   `;
@@ -1303,7 +1336,7 @@ router.post('/borrow-requests', (req, res) => {
 
     db.query(
       insertRequestSql,
-      [user_id, borrower_name, department, phone, email, material, type, equipment, brand, quantity_requested, note, request_date, return_date],
+      [user_id, borrower_name, department, phone, email, material, category, equipment, brand, quantity_requested, note, request_date, return_date],
       (err, result) => {
         if (err) {
           console.error('INSERT BORROW REQUEST FAILED:', err);
@@ -1321,6 +1354,7 @@ router.post('/borrow-requests', (req, res) => {
     );
   });
 });
+
 
 
 // ✅ ดึงคำขอทั้งหมด

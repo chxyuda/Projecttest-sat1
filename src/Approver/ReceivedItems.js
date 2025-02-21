@@ -14,6 +14,8 @@ function ReceivedItems() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
   const navigate = useNavigate();
+  const [remainingStock, setRemainingStock] = useState("ไม่ทราบ");
+    const [remark, setRemark] = useState('');
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -47,8 +49,21 @@ function ReceivedItems() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleViewDetails = (request) => {
-    setSelectedRequest(request);
+  const handleViewDetails = async (request) => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
+      const remainingStock = response.data.remaining;
+  
+      // อัปเดต selectedRequest พร้อมจำนวนคงเหลือ
+      setSelectedRequest({
+        ...request,
+        remaining: remainingStock,
+      });
+    } catch (error) {
+      console.error('ไม่สามารถโหลดจำนวนคงเหลือ:', error);
+      setSelectedRequest({ ...request, remaining: 'ไม่ทราบ' });
+    }
+    setRemark('');
   };
 
   const handleCloseModal = () => {
@@ -170,6 +185,7 @@ function ReceivedItems() {
               <p>อุปกรณ์: {selectedRequest.equipment}</p>
               <p>ยี่ห้อ: {selectedRequest.brand}</p>
               <p>จำนวน: {selectedRequest.quantity_requested}</p>
+              <p>จำนวนคงเหลือ: {selectedRequest.remaining !== undefined ? selectedRequest.remaining : "ไม่ทราบ"}</p>
               <p>สถานะ: รับของแล้ว</p>
               <button onClick={handleCloseModal}>ปิด</button>
             </div>

@@ -51,50 +51,41 @@ const Inventory = () => {
   }, []);
   
   const handleFilter = () => {
-  console.log("Original Data:", data);
-  console.log("Filters:", { category, device, brand });
-
-  // ตรวจสอบว่า data มีข้อมูลหรือไม่
-  if (data.length === 0) {
-    console.warn("No data available.");
-    return;
-  }
-
-  const filters = [
-    { key: "category", value: category },
-    { key: "equipment", value: device },
-    { key: "brand", value: brand },
-  ];
-
-  // กรองข้อมูล
-  const filtered = filters.reduce((acc, filter) => {
-    if (filter.value !== "all") {
-      const temp = acc.filter((item) => item[filter.key] && item[filter.key] === filter.value);
-      console.log(`Filtering by ${filter.key} (${filter.value}):`, temp);
-      return temp;
+    console.log("Original Data:", data);
+    console.log("Filters:", { category, device, brand });
+  
+    if (data.length === 0) {
+      console.warn("No data available.");
+      return;
     }
-    return acc;
-  }, data);
-
-  console.log("Filtered Data:", filtered);
-
-  // แสดงข้อความเมื่อไม่มีข้อมูลที่ตรงกับการกรอง
-  if (filtered.length === 0) {
-    console.warn("No data matched the filters.");
-  }
-
-  setFilteredData(filtered);
-  setCurrentPage(1);
-
-  // เพิ่มประวัติการค้นหา
-  const newSearch = {
-    category: category !== "all" ? category : "ประเภททั้งหมด",
-    device: device !== "all" ? device : "อุปกรณ์ทั้งหมด",
-    brand: brand !== "all" ? brand : "ยี่ห้อทั้งหมด",
-    timestamp: new Date().toLocaleString("th-TH"),
+  
+    const filtered = data.filter((item) => {
+      const matchCategory = category === "all" || item.category === category;
+      const matchDevice = device === "all" || item.equipment === device;
+      const matchBrand =
+        brand === "all" || item.brand.toLowerCase() === brand.toLowerCase();
+  
+      return matchCategory && matchDevice && matchBrand;
+    });
+  
+    console.log("Filtered Data:", filtered);
+  
+    if (filtered.length === 0) {
+      console.warn("No data matched the filters.");
+    }
+  
+    setFilteredData(filtered);
+    setCurrentPage(1);
+  
+    // เพิ่มประวัติการค้นหา
+    const newSearch = {
+      category: category !== "all" ? category : "ประเภททั้งหมด",
+      device: device !== "all" ? device : "อุปกรณ์ทั้งหมด",
+      brand: brand !== "all" ? brand : "ยี่ห้อทั้งหมด",
+      timestamp: new Date().toLocaleString("th-TH"),
+    };
+    setSearchHistory((prevHistory) => [newSearch, ...prevHistory]);
   };
-  setSearchHistory((prevHistory) => [newSearch, ...prevHistory]);
-};
 
   
   const paginate = (pageNumber) => {
@@ -128,9 +119,15 @@ const Inventory = () => {
     }
   };
 
-  const handleShowDetails = (item) => {
-    setSelectedItem(item);
-    setShowDetails(true);
+  const handleShowDetails = async (item) => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/products/${item.id}`); // ดึงข้อมูลล่าสุดของสินค้านี้จากฐานข้อมูล
+      setSelectedItem(response.data); // เซ็ตข้อมูลใหม่ที่ได้จากฐานข้อมูล
+      setShowDetails(true);
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      alert('ไม่สามารถโหลดข้อมูลล่าสุดได้');
+    }
   };
 
   const handleCloseDetails = () => {

@@ -114,52 +114,42 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   }, []);
   
   const handleFilter = () => {
-  console.log("Original Data:", data);
-  console.log("Filters:", { category, device, brand });
-
-  // ตรวจสอบว่า data มีข้อมูลหรือไม่
-  if (data.length === 0) {
-    console.warn("No data available.");
-    return;
-  }
-
-  const filters = [
-    { key: "category", value: category },
-    { key: "equipment", value: device },
-    { key: "brand", value: brand },
-  ];
-
-  // กรองข้อมูล
-  const filtered = filters.reduce((acc, filter) => {
-    if (filter.value !== "all") {
-      const temp = acc.filter((item) => item[filter.key] && item[filter.key] === filter.value);
-      console.log(`Filtering by ${filter.key} (${filter.value}):`, temp);
-      return temp;
+    console.log("Original Data:", data);
+    console.log("Filters:", { category, device, brand });
+  
+    if (data.length === 0) {
+      console.warn("No data available.");
+      return;
     }
-    return acc;
-  }, data);
-
-  console.log("Filtered Data:", filtered);
-
-  // แสดงข้อความเมื่อไม่มีข้อมูลที่ตรงกับการกรอง
-  if (filtered.length === 0) {
-    console.warn("No data matched the filters.");
-  }
-
-  setFilteredData(filtered);
-  setCurrentPage(1);
-
-  // เพิ่มประวัติการค้นหา
-  const newSearch = {
-    category: category !== "all" ? category : "ประเภททั้งหมด",
-    device: device !== "all" ? device : "อุปกรณ์ทั้งหมด",
-    brand: brand !== "all" ? brand : "ยี่ห้อทั้งหมด",
-    timestamp: new Date().toLocaleString("th-TH"),
+  
+    const filtered = data.filter((item) => {
+      const matchCategory = category === "all" || item.category === category;
+      const matchDevice = device === "all" || item.equipment === device;
+      const matchBrand =
+        brand === "all" || item.brand.toLowerCase() === brand.toLowerCase();
+  
+      return matchCategory && matchDevice && matchBrand;
+    });
+  
+    console.log("Filtered Data:", filtered);
+  
+    if (filtered.length === 0) {
+      console.warn("No data matched the filters.");
+    }
+  
+    setFilteredData(filtered);
+    setCurrentPage(1);
+  
+    // เพิ่มประวัติการค้นหา
+    const newSearch = {
+      category: category !== "all" ? category : "ประเภททั้งหมด",
+      device: device !== "all" ? device : "อุปกรณ์ทั้งหมด",
+      brand: brand !== "all" ? brand : "ยี่ห้อทั้งหมด",
+      timestamp: new Date().toLocaleString("th-TH"),
+    };
+    setSearchHistory((prevHistory) => [newSearch, ...prevHistory]);
   };
-  setSearchHistory((prevHistory) => [newSearch, ...prevHistory]);
-};
-
-
+  
   const handleShowHistory = () => {
     setShowHistory(true);
   };
@@ -175,11 +165,17 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   
 
 
-  const handleShowDetails = (item) => {
-    setSelectedItem(item);
-    setShowDetails(true);
+  const handleShowDetails = async (item) => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/products/${item.id}`); // ดึงข้อมูลล่าสุดของสินค้านี้จากฐานข้อมูล
+      setSelectedItem(response.data); // เซ็ตข้อมูลใหม่ที่ได้จากฐานข้อมูล
+      setShowDetails(true);
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      alert('ไม่สามารถโหลดข้อมูลล่าสุดได้');
+    }
   };
-
+  
   const handleCloseDetails = () => {
     setShowDetails(false);
     setSelectedItem(null);
@@ -207,54 +203,68 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 }, []);
 
   
-const handleShowBorrowForm = (row) => {
+const handleShowBorrowForm = async (row) => {
+  try {
+    // ดึงข้อมูลจำนวนคงเหลือล่าสุดจากฐานข้อมูล โดยใช้ id ของวัสดุ (row.id)
+    const response = await axios.get(`http://localhost:5001/api/products/${row.id}`);
+
+    const updatedRemaining = response.data.remaining; // ได้จำนวนคงเหลือล่าสุด
+
     setBorrowFormData({
       borrowerName: userData.fullName,
       department: userData.department_name,
-      phoneExt: userData.phone, // เปลี่ยนจาก phone เป็น phoneExt
+      phoneExt: userData.phone,
       email: userData.email,
       material: row.material,
       category: row.category,
       equipment: row.equipment,
       brand: row.brand,
-      remaining: row.remaining,
+      remaining: updatedRemaining, // ใช้ค่าล่าสุด
       quantity: '',
       note: '',
-      requestDate: new Date().toISOString().split('T')[0], // แสดงวันที่ปัจจุบัน
+      requestDate: new Date().toISOString().split('T')[0],
     });
+
     setShowBorrowForm(true);
+  } catch (error) {
+    console.error('โหลดข้อมูลจำนวนคงเหลือล่าสุดล้มเหลว:', error);
+    alert('ไม่สามารถโหลดข้อมูลจำนวนคงเหลือล่าสุดได้');
+  }
+};
+
+const handleSubmitBorrow = async (e) => {
+  e.preventDefault();
+
+  const dataToSend = {
+    borrowerName: borrowFormData.borrowerName,
+    department: borrowFormData.department,
+    phone: borrowFormData.phoneExt || '',
+    email: borrowFormData.email,
+    material: borrowFormData.material,
+    category: borrowFormData.category,
+    equipment: borrowFormData.equipment,
+    brand: borrowFormData.brand,
+    quantity: parseInt(borrowFormData.quantity, 10) || 0,
+    note: borrowFormData.note || '',
+    requestDate: borrowFormData.requestDate,
   };
-  
-  const handleSubmitBorrow = async (e) => {
-    e.preventDefault();
-  
-    const dataToSend = {
-      borrowerName: borrowFormData.borrowerName,
-      department: borrowFormData.department,
-      phone: borrowFormData.phoneExt || '', // ป้องกัน phone เป็น null
-      email: borrowFormData.email,
-      material: borrowFormData.material,
-      category: borrowFormData.category,
-      equipment: borrowFormData.equipment,
-      brand: borrowFormData.brand,
-      quantity: parseInt(borrowFormData.quantity, 10) || 0, // แปลง quantity ให้เป็นตัวเลข
-      note: borrowFormData.note || '',
-      requestDate: borrowFormData.requestDate,
-    };
-  
-    console.log('ส่งข้อมูลไป API:', dataToSend);
-  
-    try {
-      const response = await axios.post('http://localhost:5001/api/requests', dataToSend);
-      alert('บันทึกคำขอสำเร็จ');
-      setShowBorrowForm(false);
-    } catch (error) {
-      console.error('เกิดข้อผิดพลาด:', error.response ? error.response.data : error.message);
-      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.error || 'ไม่ทราบสาเหตุ'));
-    }
-  };
-  
-  
+
+  try {
+    await axios.post('http://localhost:5001/api/requests', dataToSend);
+    alert('บันทึกคำขอสำเร็จ');
+    setShowBorrowForm(false);
+
+    // หลังจากบันทึกคำขอสำเร็จ ให้ดึงข้อมูลสินค้าล่าสุดมาอัปเดตตาราง
+    const productResponse = await axios.get(`http://localhost:5001/api/products`);
+    setData(productResponse.data.data || []);
+    setFilteredData(productResponse.data.data || []);
+  } catch (error) {
+    console.error('เกิดข้อผิดพลาด:', error.response ? error.response.data : error.message);
+    alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.error || 'ไม่ทราบสาเหตุ'));
+  }
+};
+
+    
   const handleCloseBorrowForm = () => {
     setShowBorrowForm(false); // หรือฟังก์ชันที่คุณใช้ซ่อนฟอร์ม
   };
@@ -272,23 +282,34 @@ const handleShowBorrowForm = (row) => {
     fetchRequests();
   }, []);
   
-  const handleShowLoanForm = (row) => {
-    setLoanFormData({
-      borrowerName: userData.fullName,
-      department: userData.department_name,
-      phone: userData.phone,
-      email: userData.email,
-      material: row.material,
-      type: row.category, // ตรงนี้ต้องเป็น "type"
-      equipment: row.equipment,
-      brand: row.brand,
-      remaining: row.remaining,
-      quantity_requested: '',
-      note: '',
-      requestDate: new Date().toISOString().split('T')[0],
-      returnDate: '',
-    });
-    setShowLoanForm(true);
+  const handleShowLoanForm = async (row) => {
+    try {
+      // ดึงข้อมูลจำนวนคงเหลือล่าสุดจากฐานข้อมูล โดยใช้ id ของวัสดุ (row.id)
+      const response = await axios.get(`http://localhost:5001/api/products/${row.id}`);
+  
+      const updatedRemaining = response.data.remaining; // จำนวนคงเหลือล่าสุด
+  
+      setLoanFormData({
+        borrowerName: userData.fullName,
+        department: userData.department_name,
+        phone: userData.phone,
+        email: userData.email,
+        material: row.material,
+        category: row.category, // ประเภท (type)
+        equipment: row.equipment,
+        brand: row.brand,
+        remaining: updatedRemaining, // อัปเดตจำนวนคงเหลือล่าสุด
+        quantity_requested: '',
+        note: '',
+        requestDate: new Date().toISOString().split('T')[0],
+        returnDate: '',
+      });
+  
+      setShowLoanForm(true);
+    } catch (error) {
+      console.error('โหลดข้อมูลจำนวนคงเหลือล่าสุดล้มเหลว:', error);
+      alert('ไม่สามารถโหลดข้อมูลจำนวนคงเหลือล่าสุดได้');
+    }
   };
   
   const handleSubmitLoan = async (e) => {
@@ -302,7 +323,7 @@ const handleShowBorrowForm = (row) => {
       phone: loanFormData.phone || '',
       email: loanFormData.email,
       material: loanFormData.material,
-      type: loanFormData.type, // ตรงนี้เปลี่ยนจาก category เป็น type
+      category: loanFormData.category, // ✅ เปลี่ยนตรงนี้ จาก type → category
       equipment: loanFormData.equipment,
       brand: loanFormData.brand,
       quantity_requested: parseInt(loanFormData.quantity_requested, 10) || 0,
@@ -311,17 +332,21 @@ const handleShowBorrowForm = (row) => {
       return_date: loanFormData.returnDate,
     };
   
-    console.log('ส่งข้อมูลยืมไป API:', dataToSend);
-  
     try {
       await axios.post('http://localhost:5001/api/borrow-requests', dataToSend);
       alert('บันทึกคำขอยืมสำเร็จ');
       setShowLoanForm(false);
+  
+      // อัปเดตข้อมูลสินค้าใหม่ทั้งตารางหลังทำรายการยืม
+      const productResponse = await axios.get(`http://localhost:5001/api/products`);
+      setData(productResponse.data.data || []);
+      setFilteredData(productResponse.data.data || []);
     } catch (error) {
       console.error('เกิดข้อผิดพลาด:', error.response ? error.response.data : error.message);
       alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.error || 'ไม่ทราบสาเหตุ'));
     }
   };
+  
   
   const handleCloseLoanForm = () => {
     setShowLoanForm(false);

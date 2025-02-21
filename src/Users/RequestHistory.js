@@ -9,32 +9,57 @@ const RequestHistory = () => {
   const [filteredRequests, setFilteredRequests] = useState([]);
   const navigate = useNavigate();
 
+  const handleSearch = () => {
+    if (searchDate) {
+      const filtered = requests.filter(
+        (request) =>
+          request.date_requested.startsWith(searchDate) &&
+          request.status === 'Received' // กรองเฉพาะสถานะ 'Received'
+      );
+      setFilteredRequests(filtered);
+    } else {
+      // แสดงเฉพาะ "Received" เมื่อไม่ได้กรองวันที่
+      const filtered = requests.filter((request) => request.status === 'Received');
+      setFilteredRequests(filtered);
+    }
+  };
+  
   useEffect(() => {
     const fetchRequests = async () => {
       try {
         const userData = JSON.parse(localStorage.getItem('user'));
         const response = await fetch(`http://localhost:5001/api/requests/user/${userData.id}`);
         const data = await response.json();
-        setRequests(data);
-        setFilteredRequests(data);
+  
+        // กรองเฉพาะสถานะ 'Received' ตั้งแต่ดึงข้อมูลครั้งแรก
+        const receivedData = data.filter((request) => request.status === 'Received');
+  
+        setRequests(receivedData);
+        setFilteredRequests(receivedData);
       } catch (error) {
         console.error('Error fetching requests:', error);
       }
     };
-
+  
     fetchRequests();
   }, []);
+  
 
-  const handleSearch = () => {
-    if (searchDate) {
-      const filtered = requests.filter((request) =>
-        request.date_requested.startsWith(searchDate)
-      );
-      setFilteredRequests(filtered);
-    } else {
-      setFilteredRequests(requests);
+  const getStatusInThai = (status) => {
+    switch (status) {
+      case 'Pending':
+        return 'รออนุมัติ';
+      case 'Approved':
+        return 'อนุมัติแล้ว';
+      case 'Rejected':
+        return 'ไม่อนุมัติ';
+      case 'Received':
+        return 'รับของแล้ว';
+      default:
+        return 'ไม่ทราบสถานะ';
     }
   };
+  
 
   return (
     <>
@@ -70,7 +95,7 @@ const RequestHistory = () => {
                     <td>{request.department}</td>
                     <td>{request.material}</td>
                     <td>{new Date(request.date_requested).toLocaleDateString('th-TH')}</td>
-                    <td>{request.status || 'รอดำเนินการ'}</td>
+                    <td>{getStatusInThai(request.status)}</td>
                   </tr>
                 ))
               ) : (
@@ -80,10 +105,10 @@ const RequestHistory = () => {
               )}
             </tbody>
           </table>
-        </div>
-        <button className="back-button" onClick={() => navigate(-1)}>
+          <button className="back-button" onClick={() => navigate(-1)}>
           ย้อนกลับ
         </button>
+        </div>
       </div>
     </>
   );
