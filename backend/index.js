@@ -580,25 +580,24 @@ app.put('/api/products/:id', (req, res) => {
 });
 
 
-app.get('/api/options', (req, res) => {
-  const query = `
-    SELECT DISTINCT category_name AS category FROM products;
-    SELECT DISTINCT name AS equipment FROM products;
-    SELECT DISTINCT brand_name AS brand FROM products;
-  `;
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ success: false, error: 'Server error' });
-    }
+app.get('/api/options', async (req, res) => {
+  try {
+    const [categories] = await db.promise().query("SELECT DISTINCT category_name AS category FROM products");
+    const [equipments] = await db.promise().query("SELECT DISTINCT name AS equipment FROM products");
+    const [brands] = await db.promise().query("SELECT DISTINCT brand_name AS brand FROM products");
+
     res.status(200).json({
       success: true,
-      categories: results[0],
-      equipments: results[1],
-      brands: results[2],
+      categories: categories,
+      equipments: equipments,
+      brands: brands,
     });
-  });
+  } catch (error) {
+    console.error("❌ Database error:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
 });
+
 // ดึงข้อมูลตัวเลือก
 app.get('/api/filters', (req, res) => {
   const queries = {

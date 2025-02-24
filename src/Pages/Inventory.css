@@ -183,8 +183,6 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-
-
 /* Pagination */
 .pagination {
   display: flex;
@@ -366,3 +364,30 @@ body {
     opacity: 1;
   }
 }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  margin: 0 5px;
+  border: 1px solid #007bff;
+  background-color: white;
+  color: #007bff;
+  cursor: pointer;
+}
+
+.pagination button.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.pagination button:disabled {
+  color: gray;
+  border-color: gray;
+  cursor: not-allowed;
+}
+

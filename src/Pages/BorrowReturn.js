@@ -1,9 +1,9 @@
-import React, { useEffect, useState, } from "react";
+import React, { useEffect, useState } from "react";
 import ITDashboard from "./ITDashboard";
 import "./BorrowReturn.css";
+import AddBorrowRequest from "./AddBorrowRequest";
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
 import {
   faClock,
   faCheck,
@@ -11,8 +11,6 @@ import {
   faPlus,
   faSyncAlt,
   faTimesCircle,
-  faSearch,
-  faEye,
 } from "@fortawesome/free-solid-svg-icons";
 
 const BorrowReturn = () => {
@@ -21,8 +19,6 @@ const BorrowReturn = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [searchDate, setSearchDate] = useState(""); // สร้าง state เก็บวันที่ที่เลือก
-
   
 
   // สำหรับแบ่งหน้า
@@ -31,21 +27,22 @@ const BorrowReturn = () => {
   const navigate = useNavigate();
 
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("http://localhost:5001/api/borrow-requests"); // เปลี่ยนพอร์ตให้ตรง
-        const data = await response.json();
-        setBorrowRequests(data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching borrow requests:", error);
-        setLoading(false);
-      }
-    };
+  const fetchData = async () => {
+    try {
+      const response = await fetch("http://localhost:5001/api/borrow-requests"); // เปลี่ยน URL ให้ตรงกับ API จริง
+      const data = await response.json();
+      setBorrowRequests(data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching borrow requests:", error);
+      setLoading(false);
+    }
+  };
   
+  useEffect(() => {
     fetchData();
   }, []);
+  
   
 
   const handleFilterChange = (filter) => {
@@ -119,15 +116,35 @@ console.log("Filtered Data:", filteredRequests);
   const currentItems = filteredRequests.slice(indexOfFirstItem, indexOfLastItem);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const handleSearch = () => {
-    // ฟิลเตอร์ข้อมูลตามวันที่
-    const filteredData = borrowRequests.filter((req) => {
-      return new Date(req.request_date).toLocaleDateString("th-TH") === new Date(searchDate).toLocaleDateString("th-TH");
-    });
+  const handleAddRequest = async (newRequest) => {
+    try {
+      const response = await fetch("http://localhost:5001/api/borrow-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          borrower_name: newRequest.borrower_name,
+          department: newRequest.department,
+          equipment: newRequest.equipment,
+          request_date: newRequest.request_date,
+          quantity_requested: newRequest.quantity,
+          status: "Pending",
+        }),
+      });
   
-    setBorrowRequests(filteredData); // อัปเดตรายการที่แสดงผล
+      if (response.ok) {
+        alert("เพิ่มรายการสำเร็จ");
+        fetchData(); // ✅ โหลดข้อมูลใหม่
+        setShowAddModal(false); // ✅ ปิด Modal
+      } else {
+        alert("เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
+      }
+    } catch (error) {
+      console.error("Error adding borrow request:", error);
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+    }
   };
   
+
   return (
     <div>
       <ITDashboard />
@@ -161,16 +178,7 @@ console.log("Filtered Data:", filteredRequests);
             </button>
           </div>
         </div>
-        <div className="borrw-search-container">
-                  <input
-                    type="date"
-                    value={searchDate}
-                    onChange={(e) => setSearchDate(e.target.value)}
-                  />
-                  <button onClick={handleSearch}>
-                    <FontAwesomeIcon icon={faSearch} /> ค้นหา
-                  </button>
-                </div>
+
         <div className="borrow-return-list">
           {loading ? (
             <p>กำลังโหลดข้อมูล...</p>
@@ -200,10 +208,7 @@ console.log("Filtered Data:", filteredRequests);
                       <td>{req.quantity_requested}</td>
                       <td>{req.status === "Pending" ? "รอดำเนินการ" : req.status === "Approved" ? "อนุมัติแล้ว" : req.status === "Rejected" ? "ไม่อนุมัติ" : req.status === "Received" ? "รับของแล้ว" : req.status === "Returned" ? "คืนของแล้ว" : req.status}</td>
                       <td>
-                        <button className="detail-button" 
-                          onClick={() => handleViewDetails(req)} // เพิ่มการเรียกฟังก์ชัน
-                        >
-                          <FontAwesomeIcon icon={faEye} /> ดูรายละเอียด</button>
+                        <button className="detail-button" onClick={() => handleViewDetails(req)}>ดูรายละเอียด</button>
                       </td>
                     </tr>
                   ))
@@ -328,19 +333,13 @@ console.log("Filtered Data:", filteredRequests);
     </div>
   </div>
 )}
-        {showAddModal && <AddBorrowModal onClose={closeAddModal} />}
-      </div>
-    </div>
-  );
-};
+{showAddModal && (
+  <AddBorrowRequest onClose={closeAddModal} onSubmit={handleAddRequest} />
+)}
 
-const AddBorrowModal = ({ onClose }) => (
-  <div className="modal-overlay">
-    <div className="modal-content">
-      <h2>เพิ่มรายการใหม่ (ยังไม่ได้ทำ)</h2>
-      <button onClick={onClose}>ปิด</button>
     </div>
   </div>
 );
+};
 
 export default BorrowReturn;

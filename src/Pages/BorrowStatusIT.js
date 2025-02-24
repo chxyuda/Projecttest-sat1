@@ -11,6 +11,9 @@ const BorrowStatusIT = () => {
   const navigate = useNavigate();
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [searchDate, setSearchDate] = useState("");
+  const [filteredRequests, setFilteredRequests] = useState([]);
+
+  
   
 
 
@@ -41,9 +44,14 @@ const BorrowStatusIT = () => {
     }
   };
 
-  const filteredRequests = borrowRequests.filter(
-    (req) => req.status === "Received" || req.status === "Returned"
-  );
+  useEffect(() => {
+    setFilteredRequests(
+      borrowRequests.filter(
+        (req) => req.status === "Received" || req.status === "Returned"
+      )
+    );
+  }, [borrowRequests]);
+  
 
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
@@ -111,10 +119,21 @@ const handleReturnItem = async () => {
 };
 
 const handleSearch = () => {
-  const filteredData = borrowRequests.filter((req) => {
-    return new Date(req.request_date).toLocaleDateString("th-TH") === new Date(searchDate).toLocaleDateString("th-TH");
-  });
-  setBorrowRequests(filteredData);
+  if (!searchDate) {
+    setFilteredRequests(
+      borrowRequests.filter(
+        (req) => req.status === "Received" || req.status === "Returned"
+      )
+    );
+  } else {
+    const filteredData = borrowRequests.filter((req) => {
+      return (
+        (req.status === "Received" || req.status === "Returned") &&
+        new Date(req.request_date).toLocaleDateString("th-TH") === new Date(searchDate).toLocaleDateString("th-TH")
+      );
+    });
+    setFilteredRequests(filteredData);
+  }
 };
 
   return (
@@ -153,35 +172,31 @@ const handleSearch = () => {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="9">กำลังโหลดข้อมูล...</td>
-                </tr>
-              ) : borrowRequests.length === 0 ? (
-                <tr>
-                  <td colSpan="9">ไม่มีรายการ</td>
-                </tr>
-              ) : (
-                borrowRequests.map((req, index) => (
-                  <tr key={req.id}>
-                    <td>{index + 1}</td>
-                    <td>{req.borrower_name}</td>
-                    <td>{req.department}</td>
-                    <td>{req.equipment}</td>
-                    <td>{req.quantity_requested}</td>
-                    <td>{req.status}</td>
-                    <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
-                    <td>{req.return_date ? new Date(req.return_date).toLocaleDateString("th-TH") : "-"}</td>
-                    <td>
-                      <button className="borrow-statusit-detail-button"
-                        onClick={() => handleViewDetails(req)} >
-                        <FontAwesomeIcon icon={faEye} /> ดูรายละเอียด
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
+  {filteredRequests.length > 0 ? (
+    filteredRequests.map((req, index) => (
+      <tr key={req.id}>
+        <td>{index + 1}</td>
+        <td>{req.borrower_name}</td>
+        <td>{req.department}</td>
+        <td>{req.equipment}</td>
+        <td>{req.quantity_requested}</td>
+        <td>{getStatusInThai(req.status)}</td>
+        <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
+        <td>{req.return_date ? new Date(req.return_date).toLocaleDateString("th-TH") : "-"}</td>
+        <td>
+          <button className="borrow-statusit-detail-button"
+            onClick={() => handleViewDetails(req)} >
+            <FontAwesomeIcon icon={faEye} /> ดูรายละเอียด
+          </button>
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="9">ไม่มีรายการ</td>
+    </tr>
+  )}
+</tbody>
           </table>
         </div>
   <div className="borrow-statusit-footer">

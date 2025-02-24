@@ -22,6 +22,7 @@ const Inventory = () => {
   const [selectedItem, setSelectedItem] = useState(null); // สำหรับเก็บข้อมูลอุปกรณ์ที่เลือก
   
   
+  
 
   // Fetch data from the backend
   useEffect(() => {
@@ -216,6 +217,32 @@ const Inventory = () => {
               )}
            </tbody>
           </table>
+          <div className="pagination">
+  <button 
+    onClick={() => setCurrentPage(currentPage - 1)} 
+    disabled={currentPage === 1}
+  >
+    {"<"} ก่อนหน้า
+  </button>
+
+  {Array.from({ length: Math.ceil(filteredData.length / itemsPerPage) }, (_, i) => (
+    <button 
+      key={i} 
+      onClick={() => setCurrentPage(i + 1)} 
+      className={currentPage === i + 1 ? "active" : ""}
+    >
+      {i + 1}
+    </button>
+  ))}
+
+  <button 
+    onClick={() => setCurrentPage(currentPage + 1)} 
+    disabled={currentPage === Math.ceil(filteredData.length / itemsPerPage)}
+  >
+    ถัดไป {">"}
+  </button>
+</div>
+
           {showHistory && (
             <div className="modal-overlay">
               <div className="modal-content">

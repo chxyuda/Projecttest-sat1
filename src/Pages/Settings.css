@@ -1,16 +1,13 @@
-/* โครงสร้างทั่วไป */
+/* 🎨 ตั้งค่าพื้นฐาน */
 body {
   font-family: 'Arial', sans-serif;
   background-color: #f4f6f9;
   margin: 0;
   padding: 0;
+  
 }
 
-body.modal-open {
-  overflow: hidden;
-}
-
-
+/* 🏠 กล่องการตั้งค่า */
 .settings-container {
   margin: 200px auto; /* ระยะห่างจากด้านบน */
   padding: 30px;
@@ -21,19 +18,7 @@ body.modal-open {
   width: 90%;
 }
 
-.settings-actions {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-h1 {
-  margin-bottom: 20px;
-  font-size: 28px;
-  color: #333;
-}
-
-/* ตาราง */
+/* 🛠️ ปรับตาราง */
 .settings-table {
   width: 100%;
   border-collapse: collapse;
@@ -49,24 +34,16 @@ h1 {
 .settings-table th {
   background-color: #007bff;
   color: white;
-  font-weight: bold;
 }
 
-.settings-table td input {
-  width: 90%;
-  padding: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-/* ปุ่ม */
+/* 🎨 ปรับปุ่ม */
 button {
-  padding: 10px 15px; /* เพิ่มพื้นที่ในปุ่ม */
-  font-size: 14px; /* ขนาดตัวอักษร */
-  border-radius: 5px; /* ขอบโค้งมน */
+  padding: 10px 15px;
+  font-size: 14px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
   transition: all 0.3s ease-in-out;
-  display: flex; /* สำหรับไอคอนกับข้อความ */
-  align-items: center;
 }
 
 button:hover {
@@ -78,17 +55,9 @@ button:hover {
   color: white;
 }
 
-.custom-btn:hover {
-  background-color: #0056b3;
-}
-
 .add-btn {
   background-color: #28a745;
   color: white;
-}
-
-.add-btn:hover {
-  background-color: #218838;
 }
 
 .delete-selected-btn {
@@ -96,235 +65,319 @@ button:hover {
   color: white;
 }
 
-.delete-selected-btn:hover {
-  background-color: #c82333;
+/* ปิด Scroll เมื่อ Modal เปิด */
+body.modal-open {
+  overflow: hidden;
 }
 
-/* Modal */
-.modal {
+/* ฉากหลังของ Modal */
+/* ✅ ปรับ Modal */
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex !important; /* ✅ บังคับให้ Modal แสดง */
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
 }
 
-
-.modal-content {
+.modal {
   background: white;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
-  position: relative;
-}
-
-.modal-content, .modal-wide {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  width: 500px; /* หรือขยายเป็น 600px ถ้าข้อมูลเยอะ */
-  max-height: 90vh; /* ให้ Modal สูงสุดได้ 90% ของหน้าจอ */
-  overflow-y: auto; /* เลื่อนเฉพาะข้างใน Modal ถ้าข้อมูลเยอะ */
-  position: relative;
-}
-
-.modal-wide {
-  width: 70%;
-  max-width: 60%;
-  max-height: 90vh; /* ใส่ max-height ด้วย */
-  overflow-y: auto; /* ใส่เผื่อเลื่อน */
-}
-
-
-
-.modal-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20px;
-}
-
-.modal-input-group {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 20px;
-  gap: 10px;
-}
-
-.modal-input {
-  flex: 1;
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.modal-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-.modal-table th,
-.modal-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: center;
-}
-
-.modal-table th {
-  background-color: #007bff;
-  color: white;
-  font-weight: bold;
-}
-
-.modal-table td input {
   width: 90%;
-  padding: 5px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  max-width: 700px;
+  max-height: 80vh;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
 }
 
-.modal-table td button {
-  display: block;
+/* ปุ่มปิด */
+/* ✅ ปรับปุ่มปิดเป็นวงกลม */
+.showModal-close-btn {
+  position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ff0000;
+    color: white;
+    font-size: 18px;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.showModal-close-btn:hover {
+  transform: scale(1.2);
+    background-color: #cc0000;
+}
+
+
+/* ✅ ทำให้ modal-content เลื่อนได้โดยไม่ทำให้ Modal ใหญ่เกินไป */
+.modal-content {
+  width: 100%;
+  max-height: 65vh;
+  overflow-y: auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+/* ปุ่มบันทึก / ลบ */
+.save-btn {
+  background-color: #28a745;
+  color: white;
   padding: 5px 10px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: 0.3s;
-  margin-bottom: 10px;
 }
 
-.modal-table td button.save-btn {
-  background-color: #28a745;
-  color: white;
-}
-
-.modal-table td button.save-btn:hover {
-  background-color: #218838;
-}
-
-.modal-table td button.delete-btn {
+.delete-btn {
   background-color: #dc3545;
   color: white;
-}
-
-.modal-table td button.delete-btn:hover {
-  background-color: #c82333;
-}
-
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: transparent;
+  padding: 5px 10px;
   border: none;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #555;
-  cursor: pointer;
-}
-
-.close-btn:hover {
-  color: #f03535;
-}
-
-/* ปุ่มภายในตาราง */
-.settings-table td button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 5px 15px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.settings-table td button:hover {
-  background-color: #0056b3;
-  transform: scale(1.05);
+
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal {
+    width: 90%;
+  }
 }
 
-.settings-table td button.delete-btn {
-  background-color: #dc3545;
+/* ✅ ปรับตารางภายใน Modal ให้พอดี */
+.modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* ป้องกันไม่ให้ตารางล้น */
+  max-height: 60vh; /* จำกัดความสูงของตาราง */
+  overflow-y: auto;
+  display: block; /* ให้เลื่อนได้แน่นอน */
 }
 
-.settings-table td button.delete-btn:hover {
-  background-color: #c82333;
-}
-
-input[type="checkbox"] {
-  appearance: checkbox; /* ตรวจสอบว่าไม่ได้ซ่อน checkbox */
-  margin: 0;
-  padding: 0;
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.form-row {
+/* ✅ ขยายขนาด Modal */
+.modal.modal-large {
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh; /* ให้ Modal เต็มหน้าจอแต่ไม่เกินขนาด */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-label {
-  margin-bottom: 5px;
-  font-weight: bold;
+/* ✅ จัดตำแหน่งช่องป้อนข้อมูล + ปุ่ม "เพิ่ม" ให้อยู่บรรทัดเดียวกัน */
+.modal-input-group {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 20px;
 }
 
-input,
-select,
-textarea {
-  width: 100%;
+.modal-input-group input {
+  flex: 1; /* ให้ input ขยายเต็มพื้นที่ */
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+/* ✅ ปรับขนาดปุ่มให้สวยงามและเข้ากับ input */
+.modal-add-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
   font-size: 14px;
+  transition: 0.3s;
 }
 
-textarea {
-  resize: none;
-  height: 80px;
+.modal-add-btn:hover {
+  background-color: #218838;
 }
 
+/* ✅ ปรับ Modal ให้ขยายเต็มพื้นที่ */
+.edit-modal {
+  background: white;
+  padding: 20px;
+  width: 90%;
+  max-width: 500px; /* ขยายให้กว้างขึ้น */
+  max-height: 90vh; /* ให้ Modal ใช้พื้นที่ได้เต็มที่ */
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden; /* ไม่ให้ฟอร์มล้น */
+}
+
+/* ✅ ให้ฟอร์มด้านในสามารถเลื่อนได้ */
+.edit-modal .form-grid {
+  width: 100%;
+  max-height: 70vh; /* จำกัดขนาดให้ไม่เล็กเกินไป */
+  overflow-y: auto; /* เพิ่มการเลื่อนเฉพาะเนื้อหา */
+  padding-right: 10px; /* เพิ่มช่องว่างให้ Scrollbar ไม่ทับ */
+}
+
+/* ✅ ปรับขนาด Input, Select และ Textarea ให้เต็ม Modal */
+.form-row input,
+.form-row select,
+.form-row textarea {
+  width: 100%; /* ใช้พื้นที่เต็ม */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* ✅ ปุ่มปิด Modal */
+.edit-modal-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background-color: #ff0000;
+  color: white;
+  font-size: 20px;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border: none;
+}
+
+.edit-modal-close-btn:hover {
+  transform: scale(1.2);
+  background: #cc0000;
+}
+
+/* ✅ ปรับปุ่มบันทึก & ยกเลิก */
 .form-actions {
   display: flex;
   justify-content: space-between;
+  width: 100%;
   margin-top: 20px;
 }
 
 .save-btn {
   background-color: #007bff;
   color: white;
+  padding: 12px 20px;
   border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 48%;
+}
+
+.cancel-btn {
+  background-color: #dc3545;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 48%;
+}
+
+/* ✅ Responsive */
+@media (max-width: 768px) {
+  .edit-modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .edit-modal .form-grid {
+    max-height: 75vh;
+  }
+}
+
+/* ✅ ปรับขนาด Modal ให้กว้างขึ้น */
+.add-product-modal {
+  background: white;
+  padding: 20px;
+  width: 80%; /* ขยายให้กว้างขึ้น */
+  max-width: 500px; /* ปรับขนาดกว้างสุด */
+  max-height: 85vh; /* ป้องกัน Modal สูงเกินไป */
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden; /* ป้องกันการล้น */
+}
+
+/* ✅ ปรับ Scroll ให้อยู่เฉพาะเนื้อหา */
+.add-product-modal .modal-content {
+  width: 100%;
+  max-height: 70vh;
+  overflow-y: auto; /* ให้เนื้อหาเลื่อนได้ */
+  padding-right: 10px;
+}
+
+/* ✅ ใช้ Grid Layout 2 คอลัมน์ */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* แบ่งเป็น 2 คอลัมน์ */
+  gap: 15px;
+  width: 100%;
+  max-height: 65vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* ✅ ปรับ Label */
+.form-row label {
+  font-weight: bold;
+  text-align: left;
+  padding-right: 10px;
+}
+
+/* ✅ ปรับ Input */
+.form-row input,
+.form-row select,
+.form-row textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* ✅ ปรับปุ่ม */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.save-btn {
+  background-color: #28a745;
+  color: white;
   padding: 10px 20px;
+  border: none;
   border-radius: 5px;
   cursor: pointer;
 }
@@ -332,83 +385,844 @@ textarea {
 .cancel-btn {
   background-color: #dc3545;
   color: white;
-  border: none;
   padding: 10px 20px;
+  border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
-.save-btn:hover,
-.cancel-btn:hover {
-  opacity: 0.9;
-}
-
-.close-btn {
+/* ✅ ปรับปุ่มปิดให้เป็นวงกลม */
+.add-product-close-btn {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-}
-.settings-container h1 {
-  margin-bottom: 20px; /* เพิ่มระยะห่างระหว่างหัวข้อและปุ่ม */
-}
-
-.actions-container {
-  display: flex; /* ใช้ Flexbox */
-  gap: 15px; /* ระยะห่างระหว่างปุ่ม */
-  flex-wrap: wrap; /* ทำให้ปุ่มสามารถขึ้นบรรทัดใหม่ได้ถ้าพื้นที่ไม่พอ */
-  align-items: center; /* จัดให้อยู่ในแนวเดียวกัน */
-  justify-content: flex-start; /* ชิดซ้าย */
-  margin-bottom: 20px; /* ระยะห่างจากส่วนถัดไป */
-}
-
-.custom-btn,
-.btn-info,
-.delete-selected-btn {
-  padding: 10px 15px; /* เพิ่มพื้นที่ภายในปุ่ม */
-  font-size: 14px; /* ขนาดตัวอักษร */
-  border-radius: 5px; /* มุมโค้งมน */
-  display: flex; /* จัดข้อความและไอคอนในปุ่มให้อยู่ในแนวเดียวกัน */
-  align-items: center; /* จัดให้อยู่ตรงกลาง */
-}
-
-.custom-btn-icon {
-  margin-right: 5px; /* ระยะห่างระหว่างไอคอนและข้อความ */
-}
-
-.material-icons {
-  font-size: 18px; /* ขนาดไอคอน */
-}
-.add-product-btn {
-  background-color: #28a745; /* สีเขียว */
+  background-color: #ff0000;
   color: white;
-  font-size: 14px; /* ขนาดตัวอักษรเหมือนปุ่มอื่น */
-  padding: 10px 15px; /* เพิ่ม padding */
-  border-radius: 5px; /* ขอบโค้งมน */
-  display: flex; /* จัดข้อความและไอคอนในปุ่มให้อยู่ในแนวเดียวกัน */
-  align-items: center; /* จัดให้อยู่ตรงกลาง */
-  gap: 5px; /* ระยะห่างระหว่างไอคอนและข้อความ */
-  border: none;
-  transition: all 0.3s ease-in-out;
+  font-size: 18px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
-.add-product-btn:hover {
-  background-color: #218838;
+.add-product-close-btn:hover {
+  transform: scale(1.2);
+  background-color: #cc0000;
 }
 
-/* ไอคอนในปุ่ม */
-.material-icons {
-  margin-right: 8px; /* ระยะห่างระหว่างไอคอนและข้อความ */
-  font-size: 18px; /* ขนาดไอคอน */
-}
-
-/* เพิ่มระยะห่างของปุ่มในพื้นที่แคบ */
+/* ✅ Responsive */
 @media (max-width: 768px) {
-  .actions-container {
-    flex-direction: column; /* จัดเรียงปุ่มในแนวตั้ง */
-    gap: 10px; /* ลดระยะห่าง */
+  .add-product-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  .form-grid {
+    grid-template-columns: 1fr; /* ถ้าจอเล็กให้เป็นคอลัมน์เดียว */
   }
 }
+
+/* ✅ ปรับขนาด Modal ให้ใหญ่ขึ้น */
+.category-modal {
+  background: white;
+  padding: 20px;
+  width: 90%; /* ขยายให้กว้างขึ้น */
+  max-width: 700px; /* เพิ่มความกว้างสูงสุด */
+  max-height: 85vh; /* ป้องกัน Modal สูงเกินไป */
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* ✅ ปรับตารางให้เต็ม Modal */
+.category-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* ป้องกันตารางล้น */
+  max-height: 60vh; /* จำกัดความสูง */
+  overflow-y: auto;
+  display: block;
+}
+
+/* ✅ ปรับหัวตาราง */
+.category-modal-table th {
+  background-color: #28a745;
+  color: white;
+  text-align: center;
+  padding: 12px;
+  font-size: 16px;
+}
+
+/* ✅ ปรับขนาดเซลล์ของตาราง */
+.category-modal-table th,
+.category-modal-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* ✅ ขยายคอลัมน์ให้พอดี */
+.category-modal-table td:first-child, /* ลำดับ */
+.category-modal-table td:last-child { /* จัดการ */
+  width: 20%;
+}
+
+/* ✅ ปรับปุ่มให้ขนาดเล็กลง */
+.category-modal-table .edit-btn,
+.category-modal-table .save-btn,
+.category-modal-table .cancel-btn,
+.category-modal-table .delete-btn {
+  padding: 6px 10px;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* ✅ ปิด Scroll เมื่อ Modal เปิด */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ✅ ฉากหลังโปร่งแสงของ Modal */
+.category-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* ✅ กล่อง Modal */
+.category-modal {
+  background: white;
+  padding: 20px;
+  width: 85%; /* ปรับขนาดให้ไม่ใหญ่เกินไป */
+  max-width: 700px;
+  max-height: 80vh;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* ✅ หัวข้อ Modal */
+.category-modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* ✅ ปุ่มปิด Modal */
+.category-modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ff0000;
+  color: white;
+  font-size: 18px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border: none;
+}
+
+.category-modal-close-btn:hover {
+  transform: scale(1.2);
+  background-color: #cc0000;
+}
+
+/* ✅ ช่องค้นหา + ปุ่มเพิ่ม อยู่บรรทัดเดียวกัน */
+.category-modal-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.category-modal-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* ✅ ปุ่ม "เพิ่ม" */
+.category-modal-add-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.category-modal-add-btn:hover {
+  background-color: #0056b3;
+}
+
+/* ✅ ปรับตารางให้เต็ม Modal */
+.category-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  max-height: 60vh;
+  overflow-y: auto;
+  display: block;
+}
+
+/* ✅ ปรับหัวตาราง */
+.category-modal-table th {
+  background-color: #28a745;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-size: 16px;
+}
+
+/* ✅ ปรับขนาดเซลล์ของตาราง */
+.category-modal-table th,
+.category-modal-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* ✅ ปรับคอลัมน์ให้พอดี */
+.category-modal-table td:first-child { /* ลำดับ */
+  width: 10%;
+}
+.category-modal-table td:nth-child(2) { /* ชื่อประเภท */
+  width: 50%;
+}
+.category-modal-table td:last-child { /* จัดการ */
+  width: 30%;
+}
+
+/* ✅ ปรับให้ปุ่มอยู่ในแนวนอน */
+.category-modal-table .action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+/* ✅ ปรับขนาดปุ่ม */
+.category-modal-table .edit-btn,
+.category-modal-table .save-btn,
+.category-modal-table .cancel-btn,
+.category-modal-table .delete-btn {
+  padding: 4px 8px;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 50px;
+  border: none;
+  margin: 10px; /* เพิ่มระยะห่างระหว่างปุ่ม */
+}
+
+/* ✅ ปุ่ม "บันทึก" (สีเขียวเข้ม) */
+.category-modal-save-btn {
+  background-color: #3baf1e8e;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.category-modal-save-btn:hover {
+  background-color: #10a810;
+}
+
+/* ✅ ปุ่ม "ยกเลิก" (สีเทา) */
+.category-modal-cancel-btn {
+  background-color: #fa0707;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.category-modal-cancel-btn:hover {
+  background-color: #5a6268;
+}
+
+/* ✅ ปุ่ม "แก้ไข" (สีน้ำเงิน) */
+.category-modal-edit-btn {
+  background-color: #0d6efd;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.category-modal-edit-btn:hover {
+  background-color: #0b5ed7;
+}
+
+.category-modal-edit-input {
+  width: 100%; /* ขยายเต็มความกว้างของเซลล์ */
+  padding: 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box; /* ให้ขอบ input อยู่ในขอบเขต */
+}
+
+/* ✅ ปุ่ม "ลบ" (สีแดง) */
+.category-modal-delete-btn {
+  background-color: #dc3545;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.category-modal-delete-btn:hover {
+  background-color: #bb2d3b;
+}
+
+/* ✅ Responsive Design */
+@media (max-width: 768px) {
+  .category-modal {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .category-modal-table {
+    font-size: 14px;
+  }
+
+  .category-modal-table .edit-btn,
+  .category-modal-table .save-btn,
+  .category-modal-table .cancel-btn,
+  .category-modal-table .delete-btn {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+}
+
+/* ✅ ปรับฉากหลังโปร่งแสง */
+.equipments-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* ✅ ปรับขนาด Modal */
+.equipments-modal {
+  background: white;
+  padding: 20px;
+  width: 90%;
+  max-width: 750px; /* ปรับขนาดให้ไม่ใหญ่เกินไป */
+  max-height: 85vh; /* ให้ Modal ไม่สูงเกินไป */
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+
+/* ✅ ปุ่มปิด Modal */
+.equipments-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ff0000;
+  color: white;
+  font-size: 18px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border: none;
+}
+
+.equipments-close-btn:hover {
+  transform: scale(1.2);
+  background-color: #cc0000;
+}
+
+/* ✅ ปรับให้ช่องป้อนข้อมูลและปุ่มเพิ่มอยู่ในบรรทัดเดียวกัน */
+.equipments-modal-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.equipments-modal-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* ✅ ปุ่มเพิ่ม */
+.equipments-modal-add-btn {
+  background-color: #007bff; /* สีน้ำเงิน */
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.equipments-modal-add-btn:hover {
+  background-color: #0056b3;
+}
+
+
+/* ✅ ปรับตารางให้เต็ม Modal */
+.equipments-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  max-height: 60vh;
+  overflow-y: auto;
+  display: block;
+}
+
+/* ✅ ปรับหัวตาราง */
+.equipments-modal-table th {
+  background-color: #28a745;
+  color: white;
+  text-align: center;
+  padding: 12px;
+  font-size: 16px;
+}
+
+/* ✅ ปรับขนาดเซลล์ของตาราง */
+.equipments-modal-table th,
+.equipments-modal-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  vertical-align: middle; /* จัดให้อยู่ตรงกลางของ cell */
+}
+
+/* ✅ ปรับขนาดคอลัมน์ให้พอดี */
+.equipments-modal-table td:first-child { /* ลำดับ */
+  width: 10%;
+}
+.equipments-modal-table td:nth-child(2) { /* ชื่ออุปกรณ์ */
+  width: 50%;
+}
+.equipments-modal-table td:last-child { /* จัดการ */
+  width: 30%;
+}
+
+
+/* ✅ ปรับให้ปุ่มอยู่ในแนวนอน และเพิ่มระยะห่าง */
+/* ✅ ปรับให้ปุ่มอยู่ตรงกลางของช่อง */
+.equipments-modal-table .action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px; /* เพิ่มระยะห่างระหว่างปุ่ม */
+}
+
+/* ✅ ปรับขนาดปุ่มให้ดูดีขึ้น */
+.equipments-modal-save-btn,
+.equipments-modal-cancel-btn,
+.equipments-modal-edit-btn,
+.equipments-modal-delete-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 75px; /* ปรับขนาดให้เหมาะสม */
+  text-align: center;
+}
+
+/* ✅ ปุ่ม "บันทึก" (สีเขียวเข้ม) */
+.equipments-modal-save-btn {
+  background-color: #198754; /* เขียวเข้ม */
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.equipments-modal-save-btn:hover {
+  background-color: #146c43; /* เขียวเข้มขึ้น */
+}
+
+/* ✅ ปุ่ม "ยกเลิก" (สีเทา) */
+.equipments-modal-cancel-btn {
+  background-color: #6c757d; /* เทาเข้ม */
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.equipments-modal-cancel-btn:hover {
+  background-color: #5a6268; /* เทาเข้มขึ้น */
+}
+
+/* ✅ ปุ่ม "แก้ไข" (สีน้ำเงิน) */
+.equipments-modal-edit-btn {
+  background-color: #0d6efd; /* น้ำเงิน */
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+/* ปรับ input ให้พอดีกับขนาดของช่องตาราง */
+.equipments-modal-edit-input {
+  width: 100%;
+  padding: 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box; /* ป้องกันการล้น */
+  text-align: center;
+}
+
+
+
+.equipments-modal-edit-btn:hover {
+  background-color: #0b5ed7; /* น้ำเงินเข้มขึ้น */
+}
+
+/* ✅ ปุ่ม "ลบ" (สีแดง) */
+.equipments-modal-delete-btn {
+  background-color: #dc3545; /* แดง */
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.equipments-modal-delete-btn:hover {
+  background-color: #bb2d3b; /* แดงเข้มขึ้น */
+}
+
+/* ✅ Responsive Design */
+@media (max-width: 768px) {
+  .equipments-modal {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .equipments-modal-table {
+    font-size: 14px;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .equipments-modal-table .equipments-modal-edit-btn,
+  .equipments-modal-table .equipments-modal-save-btn,
+  .equipments-modal-table .equipments-modal-cancel-btn,
+  .equipments-modal-table .equipments-modal-delete-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+.brand-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.brand-modal {
+  background: white;
+  padding: 20px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 85vh;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.brand-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ff0000;
+  color: white;
+  font-size: 18px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border: none;
+}
+
+.brand-close-btn:hover {
+  transform: scale(1.2);
+  background-color: #cc0000;
+}
+
+.brand-modal-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.brand-modal-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* ✅ ปุ่มเพิ่ม */
+.brand-modal-add-btn {
+  background-color: #007bff; /* สีน้ำเงิน */
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.brand-modal-add-btn:hover {
+  background-color: #0056b3;
+}
+
+.brand-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  max-height: 60vh;
+  overflow-y: auto;
+  display: block;
+}
+
+/* ✅ ปรับหัวตาราง */
+.brand-modal-table th {
+  background-color: #28a745;
+  color: white;
+  text-align: center;
+  padding: 12px;
+  font-size: 16px;
+}
+
+/* ✅ ปรับขนาดเซลล์ของตาราง */
+.brand-modal-table th,
+.brand-modal-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  vertical-align: middle; /* จัดให้อยู่ตรงกลางของ cell */
+}
+
+/* ✅ ปรับขนาดคอลัมน์ให้พอดี */
+.brand-modal-table td:first-child { /* ลำดับ */
+  width: 10%;
+}
+.brand-modal-table td:nth-child(2) { /* ชื่อยี่ห้อ */
+  width: 50%;
+}
+.brand-modal-table td:last-child { /* จัดการ */
+  width: 30%;
+}
+/* ✅ ปรับให้ปุ่มอยู่ตรงกลางของช่อง */
+.brand-modal-table .action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px; /* เพิ่มระยะห่างระหว่างปุ่ม */
+}
+
+/* ✅ ปรับขนาดปุ่มให้ดูดีขึ้น */
+.brand-modal-save-btn,
+.brand-modal-cancel-btn,
+.brand-modal-edit-btn,
+.brand-modal-delete-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 75px; /* ปรับขนาดให้เหมาะสม */
+  text-align: center;
+}
+
+/* ปรับ input ให้พอดีกับขนาดของช่องตาราง */
+.brand-modal-edit-input {
+  width: 100%;
+  padding: 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box; /* ป้องกันการล้น */
+  text-align: center;
+}
+
+/* ✅ ปุ่ม "บันทึก" (สีเขียวเข้ม) */
+.brand-modal-save-btn {
+  background-color: #198754; /* เขียวเข้ม */
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.brand-modal-save-btn:hover {
+  background-color: #146c43; /* เขียวเข้มขึ้น */
+}
+
+/* ✅ ปุ่ม "ยกเลิก" (สีเทา) */
+.brand-modal-cancel-btn {
+  background-color: #6c757d; /* เทาเข้ม */
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.brand-modal-cancel-btn:hover {
+  background-color: #5a6268; /* เทาเข้มขึ้น */
+}
+
+/* ✅ ปุ่ม "แก้ไข" (สีน้ำเงิน) */
+.brand-modal-edit-btn {
+  background-color: #0d6efd; /* น้ำเงิน */
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.brand-modal-edit-btn:hover {
+  background-color: #0b5ed7; /* น้ำเงินเข้มขึ้น */
+}
+
+/* ✅ ปุ่ม "ลบ" (สีแดง) */
+.brand-modal-delete-btn {
+  background-color: #dc3545; /* แดง */
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.brand-modal-delete-btn:hover {
+  background-color: #bb2d3b; /* แดงเข้มขึ้น */
+}
+
+@media (max-width: 768px) {
+  .brand-modal {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .brand-modal-table {
+    font-size: 14px;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .brand-modal-table .brand-modal-edit-btn,
+  .brand-modal-table .brand-modal-save-btn,
+  .brand-modal-table .brand-modal-cancel-btn,
+  .brand-modal-table .brand-modal-delete-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+
+
+

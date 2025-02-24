@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import ITDashboard from "./ITDashboard";
 import "./BorrowApproved.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSyncAlt, faEye, faTimesCircle, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faSyncAlt, faPrint, faEye, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
+import { jsPDF } from "jspdf";
 
 const BorrowApproved = () => {
   const [borrowRequests, setBorrowRequests] = useState([]);
@@ -12,6 +13,8 @@ const BorrowApproved = () => {
   const [loading, setLoading] = useState(true);
   const [searchDate, setSearchDate] = useState("");
   const navigate = useNavigate();
+  const [filteredRequests, setFilteredRequests] = useState([]);
+
 
   useEffect(() => {
     fetchData();
@@ -82,6 +85,35 @@ const BorrowApproved = () => {
     setBorrowRequests(filteredData);
   };
 
+  const handlePrint = (request) => {
+    const doc = new jsPDF();
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("ใบคำขอยืมอุปกรณ์", 70, 20);
+    doc.setFontSize(12);
+    doc.setFont("Helvetica", "normal");
+
+    let y = 40;
+    const lineHeight = 10;
+
+    const addText = (label, value) => {
+        doc.text(`${label} ${value}`, 20, y);
+        y += lineHeight;
+    };
+
+    addText("ชื่อผู้ขอ:", request.borrower_name);
+    addText("ฝ่าย/สำนัก:", request.department);
+    addText("อุปกรณ์:", request.equipment);
+    addText("วันที่ขอ:", new Date(request.request_date).toLocaleDateString("th-TH"));
+    addText("จำนวน:", request.quantity_requested);
+
+    doc.text("__________________________", 50, y + 20);
+    doc.text("ลงชื่อผู้รับของ", 70, y + 30);
+
+    doc.save(`Borrow_Request_${request.borrower_name}.pdf`);
+};
+
+
   return (
     <div>
       <ITDashboard />
@@ -100,45 +132,45 @@ const BorrowApproved = () => {
           </button>
         </div>
         <div className="borrow-approved-list">
-          <table className="borrow-approved-table">
-            <thead>
-              <tr>
-                <th>ลำดับ</th>
-                <th>ชื่อผู้ยืม</th>
-                <th>ฝ่าย/สำนัก</th>
-                <th>อุปกรณ์</th>
-                <th>วันที่ยืม</th>
-                <th>จำนวน</th>
-                <th>ดูรายละเอียด</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="7">กำลังโหลดข้อมูล...</td>
-                </tr>
-              ) : approvedRequests.length === 0 ? (
-                <tr>
-                  <td colSpan="7">ไม่มีรายการที่อนุมัติแล้ว</td>
-                </tr>
-              ) : (
-                approvedRequests.map((req, index) => (
-                  <tr key={req.id}>
-                    <td>{index + 1}</td>
-                    <td>{req.borrower_name}</td>
-                    <td>{req.department}</td>
-                    <td>{req.equipment}</td>
-                    <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
-                    <td>{req.quantity_requested}</td>
-                    <td>
-                      <button className="borrow-approved-detail-button" onClick={() => handleViewDetails(req)}>ดูรายละเอียด</button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    {loading ? (
+                        <p>กำลังโหลดข้อมูล...</p>
+                    ) : (
+                        <table className="borrow-approved-table">
+                            <thead>
+                                <tr>
+                                    <th>ลำดับ</th>
+                                    <th>ชื่อผู้ยืม</th>
+                                    <th>ฝ่าย/สำนัก</th>
+                                    <th>อุปกรณ์</th>
+                                    <th>วันที่ยืม</th>
+                                    <th>จำนวน</th>
+                                    <th>ดูรายละเอียด</th>
+                                    <th>พิมพ์</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredRequests.length > 0 ? (
+                                    filteredRequests.map((req, index) => (
+                                        <tr key={req.id}>
+                                            <td>{index + 1}</td>
+                                            <td>{req.borrower_name}</td>
+                                            <td>{req.department}</td>
+                                            <td>{req.equipment}</td>
+                                            <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
+                                            <td>{req.quantity_requested}</td>
+                                            <td><button onClick={() => handleViewDetails(req)}><FontAwesomeIcon icon={faEye} /> ดูรายละเอียด</button></td>
+                                            <td><button onClick={() => handlePrint(req)}><FontAwesomeIcon icon={faPrint} /> พิมพ์</button></td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="8">ไม่มีข้อมูล</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
         <div className="borrow-approved-footer">
           <button className="borrow-approved-back-button" onClick={() => navigate(-1)}>
             ย้อนกลับ
