@@ -134,65 +134,78 @@
   }
   
   /* Modal Overlay */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1100;
-  }
-  
-  /* Modal */
-  .modal {
-    background-color: white;
-    padding: 20px;
-    width: 500px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    position: relative;
-  }
-  
-  .modal h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 20px;
-    text-align: center;
-  }
-  
-  .modal p {
-    margin: 5px 0;
-  }
-  
-  /* Close Button */
-  .modal-close-icon {
-    position: absolute;
-    top: -18px;
-    right: -18px;
-    font-size: 28px;
-    color: red;
-    cursor: pointer;
-    background-color: white;
-    border-radius: 50%;
-    padding: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-  
-  .modal button {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-  
-  .modal button:hover {
-    background-color: #5a6268;
-  }
+  /* ✅ Modal Overlay */
+.received-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+}
+
+/* ✅ Modal Container */
+/* ✅ ปรับขนาด Modal ให้ใหญ่ขึ้น */
+.received-modal {
+  background-color: white;
+  padding: 20px;
+  width: 600px;  /* ✅ ขยายขนาด */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+/* ✅ จัดโครงสร้าง 2 คอลัมน์ */
+.received-form-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 12px;
+}
+
+.received-form-group {
+  flex: 1;  /* ✅ ทำให้ขนาดแต่ละช่องสมดุลกัน */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ Label สวยงาม */
+.received-form-group label {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+/* ✅ Input ที่อ่านอย่างเดียว */
+.received-form-group input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+  text-align: center;
+}
+
+/* ✅ ปุ่มปิด Modal */
+.received-modal-close-btn {
+  width: 100%;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 15px;
+  text-align: center;
+}
+
+.received-modal-close-btn:hover {
+  background-color: #5a6268;
+}
+
+
   

@@ -45,19 +45,28 @@ function Received() {
   const handleViewDetails = async (request) => {
     try {
       const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
-      const remainingStock = response.data.remaining;
+      
+      const { remaining, equipment_number, serial_number } = response.data;
   
-      // อัปเดต selectedRequest พร้อมจำนวนคงเหลือ
+      // ✅ อัปเดต selectedRequest พร้อมจำนวนคงเหลือ และข้อมูลหมายเลขครุภัณฑ์/Serial Number
       setSelectedRequest({
         ...request,
-        remaining: remainingStock,
+        remaining: remaining !== undefined ? remaining : "ไม่ทราบ",
+        equipment_number: equipment_number || "-",
+        serial_number: serial_number || "-",
       });
     } catch (error) {
-      console.error('ไม่สามารถโหลดจำนวนคงเหลือ:', error);
-      setSelectedRequest({ ...request, remaining: 'ไม่ทราบ' });
+      console.error("ไม่สามารถโหลดข้อมูลอุปกรณ์:", error);
+      setSelectedRequest({
+        ...request,
+        remaining: "ไม่ทราบ",
+        equipment_number: "-",
+        serial_number: "-",
+      });
     }
     setRemark('');
   };
+  
   
   const handleCloseModal = () => {
     setSelectedRequest(null);
@@ -141,18 +150,16 @@ function Received() {
         </div>
 
         <div className="received-search-bar">
-        <input
-  type="date"
-  className="received-input"
-  value={searchDate}
-  onChange={(e) => setSearchDate(e.target.value)}
-/>
-<button className="received-search-button" onClick={handleSearchByDate}>
-  ค้นหา
-</button>
-
+          <input
+            type="date"
+            className="received-input"
+            value={searchDate}
+            onChange={(e) => setSearchDate(e.target.value)}
+          />
+          <button className="received-search-button" onClick={handleSearchByDate}>
+            ค้นหา
+          </button> 
         </div>
-
         <table className="received-table">
           <thead>
             <tr>
@@ -187,9 +194,8 @@ function Received() {
                     </td>
                   <td>
                   <button className="detail-button" onClick={() => handleViewDetails(req)}>
-  ดูรายละเอียด
-</button>
-
+                    ดูรายละเอียด
+                  </button>
                   </td>
                 </tr>
               ))
@@ -249,6 +255,14 @@ function Received() {
             <div className="received-form-group">
               <label>ยี่ห้อ:</label>
               <input type="text" value={selectedRequest.brand} readOnly />
+            </div>
+            <div className="received-form-group">
+              <label>หมายเลขครุภัณฑ์:</label>
+              <input type="text" value={selectedRequest.equipment_number} readOnly />
+            </div>
+            <div className="received-form-group">
+              <label>Serial Number:</label>
+              <input type="text" value={selectedRequest.serial_number} readOnly />
             </div>
             <div className="received-form-group">
               <label>จำนวน:</label>

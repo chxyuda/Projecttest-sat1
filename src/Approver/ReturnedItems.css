@@ -138,45 +138,105 @@
   }
   
   /* Modal */
-  .returned-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1100;
-  }
-  
-  .returned-modal {
-    background-color: white;
-    padding: 20px;
-    width: 600px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    position: relative;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  
-  .returned-modal-close-icon {
-    position: absolute;
-    top: -15px;
-    right: -15px;
-    font-size: 28px;
-    color: red;
-    cursor: pointer;
-    background-color: white;
-    border-radius: 50%;
-    padding: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  }
-  
-  .returned-modal h3 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
+  /* ====== Overlay ปิด Modal ====== */
+.returned-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+}
+
+/* ====== กล่อง Modal ====== */
+.returned-modal {
+  background-color: white;
+  padding: 25px;
+  width: 600px; /* ปรับขนาด */
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+/* ====== หัวข้อ Modal ====== */
+.returned-modal h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* ====== ปุ่มปิด Modal (Icon X) ====== */
+.returned-modal-close-icon {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  font-size: 26px;
+  color: red;
+  cursor: pointer;
+  background-color: white;
+  border-radius: 50%;
+  padding: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* ====== ฟอร์มแสดงข้อมูล ====== */
+.returned-modal-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* จัดเป็น 2 คอลัมน์ */
+  gap: 12px;
+}
+
+/* ====== กล่องของแต่ละฟิลด์ ====== */
+.returned-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* ====== Label (ชื่อหัวข้อแต่ละช่อง) ====== */
+.returned-form-group label {
+  font-weight: bold;
+  font-size: 14px;
+  color: #333;
+}
+
+/* ====== ช่อง Input และ Textarea ====== */
+.returned-form-group input,
+.returned-form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  font-size: 14px;
+  resize: none;
+}
+
+/* ====== ปรับ Textarea ====== */
+.returned-form-group textarea {
+  height: 50px;
+}
+
+/* ====== ปุ่ม Modal ====== */
+.returned-modal button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.returned-modal button:hover {
+  background-color: #5a6268;
+}
+
   

@@ -28,9 +28,30 @@ function ReturnedItems() {
     }
   };
 
-  const handleViewDetails = (request) => {
-    setSelectedRequest(request);
+  const handleViewDetails = async (request) => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
+      
+      const { remaining, equipment_number, serial_number } = response.data;
+  
+      // ✅ อัปเดต selectedRequest พร้อมจำนวนคงเหลือ และข้อมูลหมายเลขครุภัณฑ์/Serial Number
+      setSelectedRequest({
+        ...request,
+        remaining: remaining !== undefined ? remaining : "ไม่ทราบ",
+        equipment_number: equipment_number || "-",
+        serial_number: serial_number || "-",
+      });
+    } catch (error) {
+      console.error("ไม่สามารถโหลดข้อมูลอุปกรณ์:", error);
+      setSelectedRequest({
+        ...request,
+        remaining: "ไม่ทราบ",
+        equipment_number: "-",
+        serial_number: "-",
+      });
+    }
   };
+  
 
   const handleCloseModal = () => {
     setSelectedRequest(null);
@@ -122,32 +143,92 @@ function ReturnedItems() {
   </div>
 
   {selectedRequest && (
-    <div className="returned-modal-overlay">
-      <div className="returned-modal">
-        <FontAwesomeIcon
-          icon={faTimesCircle}
-          className="returned-modal-close-icon"
-          onClick={handleCloseModal}
-        />
-        <h3>รายละเอียดการขอยืมวัสดุ</h3>
-        <p>ชื่อผู้ยืม: {selectedRequest.borrower_name}</p>
-        <p>ฝ่าย/สำนัก: {selectedRequest.department}</p>
-        <p>อุปกรณ์: {selectedRequest.equipment}</p>
-        <p>จำนวน: {selectedRequest.quantity_requested}</p>
-        <p>
-          วันที่ยืม:{" "}
-          {new Date(selectedRequest.request_date).toLocaleDateString("th-TH")}
-        </p>
-        <p>
-          วันที่คืน:{" "}
-          {new Date(selectedRequest.return_date).toLocaleDateString("th-TH")}
-        </p>
-        <p>หมายเหตุ: {selectedRequest.note || "-"}</p>
-        <p>หมายเหตุสภาพอุปกรณ์ตอนคืน: {selectedRequest.return_condition || "-"}</p>
-        <p>สถานะ: คืนของแล้ว</p>
-      </div>
+  <div className="returned-modal-overlay">
+    <div className="returned-modal">
+      <FontAwesomeIcon
+        icon={faTimesCircle}
+        className="returned-modal-close-icon"
+        onClick={handleCloseModal}
+      />
+      <h3>รายละเอียดการขอยืมวัสดุ</h3>
+      <form className="returned-modal-form">
+        <div className="returned-form-group">
+          <label>ชื่อผู้ยืม:</label>
+          <input type="text" value={selectedRequest.borrower_name} readOnly />
+        </div>
+        <div className="returned-form-group">
+          <label>ฝ่าย/สำนัก:</label>
+          <input type="text" value={selectedRequest.department} readOnly />
+        </div>
+        <div className="returned-form-group">
+          <label>อุปกรณ์:</label>
+          <input type="text" value={selectedRequest.equipment} readOnly />
+        </div>
+        <div className="returned-form-group">
+          <label>ยี่ห้อ:</label>
+          <input type="text" value={selectedRequest.brand} readOnly />
+        </div>
+        <div className="returned-form-group">
+          <label>หมายเลขครุภัณฑ์:</label>
+          <input type="text" value={selectedRequest.equipment_number || "-"} readOnly />
+        </div>
+        <div className="returned-form-group">
+          <label>Serial Number:</label>
+          <input type="text" value={selectedRequest.serial_number || "-"} readOnly />
+        </div>
+        <div className="returned-form-group">
+          <label>จำนวน:</label>
+          <input type="text" value={selectedRequest.quantity_requested} readOnly />
+        </div>
+        <div className="returned-form-group">
+          <label>วันที่ยืม:</label>
+          <input
+            type="text"
+            value={
+              selectedRequest.request_date
+                ? new Date(selectedRequest.request_date).toLocaleDateString("th-TH", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "-"
+            }
+            readOnly
+          />
+        </div>
+        <div className="returned-form-group">
+          <label>วันที่คืน:</label>
+          <input
+            type="text"
+            value={
+              selectedRequest.return_date
+                ? new Date(selectedRequest.return_date).toLocaleDateString("th-TH", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "-"
+            }
+            readOnly
+          />
+        </div>
+        <div className="returned-form-group">
+          <label>หมายเหตุ:</label>
+          <textarea value={selectedRequest.note || "-"} readOnly />
+        </div>
+        <div className="returned-form-group">
+          <label>หมายเหตุสภาพอุปกรณ์ตอนคืน:</label>
+          <textarea value={selectedRequest.return_condition || "-"} readOnly />
+        </div>
+        <div className="returned-form-group">
+          <label>สถานะ:</label>
+          <input type="text" value="คืนของแล้ว" readOnly />
+        </div>
+      </form>
     </div>
-  )}
+  </div>
+)}
+
 </div>
 
       </div>

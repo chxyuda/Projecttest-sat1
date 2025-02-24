@@ -381,6 +381,14 @@ const handleCloseReturnModal = () => {
           <input type="text" value={selectedBorrowRequest.brand} readOnly />
         </div>
         <div className="req-borrow-history-form-group">
+          <label>หมายเลขครุภัณฑ์:</label>
+          <input type="text" value={selectedBorrowRequest.equipment_number || '-'} readOnly />
+        </div>
+        <div className="req-borrow-history-form-group">
+          <label>Serial Number:</label>
+          <input type="text" value={selectedBorrowRequest.serial_number || '-'} readOnly />
+        </div>
+        <div className="req-borrow-history-form-group">
           <label>จำนวน:</label>
           <input type="text" value={selectedBorrowRequest.quantity_requested || '-'} readOnly />
         </div>
@@ -507,6 +515,15 @@ const handleCloseReturnModal = () => {
   <label>ยี่ห้อ:</label>
   <input type="text" value={selectedReturnRequest.brand || '-'} readOnly />
 </div>
+<div className="req-borrow-history-form-group">
+  <label>หมายเลขครุภัณฑ์:</label>
+  <input type="text" value={selectedReturnRequest.equipment_number || '-'} readOnly />
+</div>
+<div className="req-borrow-history-form-group">
+  <label>Serial Number:</label>
+  <input type="text" value={selectedReturnRequest.serial_number || '-'} readOnly />
+</div>
+
         <div className="req-borrow-history-form-group">
           <label>จำนวน:</label>
           <input type="text" value={selectedReturnRequest.quantity_requested || '-'} readOnly />

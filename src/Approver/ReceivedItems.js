@@ -171,26 +171,76 @@ function ReceivedItems() {
         </div>
 
         {selectedRequest && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <FontAwesomeIcon
-                icon={faTimesCircle}
-                className="modal-close-icon"
-                onClick={handleCloseModal}
-              />
-              <h3>รายละเอียดการเบิกวัสดุ</h3>
-              <p>ชื่อผู้เบิก: {selectedRequest.borrower_name}</p>
-              <p>ฝ่าย/สำนัก: {selectedRequest.department}</p>
-              <p>วัสดุ: {selectedRequest.material}</p>
-              <p>อุปกรณ์: {selectedRequest.equipment}</p>
-              <p>ยี่ห้อ: {selectedRequest.brand}</p>
-              <p>จำนวน: {selectedRequest.quantity_requested}</p>
-              <p>จำนวนคงเหลือ: {selectedRequest.remaining !== undefined ? selectedRequest.remaining : "ไม่ทราบ"}</p>
-              <p>สถานะ: รับของแล้ว</p>
-              <button onClick={handleCloseModal}>ปิด</button>
-            </div>
+  <div className="received-modal-overlay">
+    <div className="received-modal">
+      <FontAwesomeIcon
+        icon={faTimesCircle}
+        className="received-modal-close-icon"
+        onClick={handleCloseModal}
+      />
+      <h3 className="received-modal-title">รายละเอียดการเบิกวัสดุ</h3>
+
+      <div className="received-detail-form">
+        {/* ✅ 2 คอลัมน์ */}
+        <div className="received-form-row">
+          <div className="received-form-group">
+            <label>ชื่อผู้เบิก:</label>
+            <input type="text" value={selectedRequest.borrower_name} readOnly />
           </div>
-        )}
+          <div className="received-form-group">
+            <label>ฝ่าย/สำนัก:</label>
+            <input type="text" value={selectedRequest.department} readOnly />
+          </div>
+        </div>
+
+        <div className="received-form-row">
+          <div className="received-form-group">
+            <label>วัสดุ:</label>
+            <input type="text" value={selectedRequest.material} readOnly />
+          </div>
+          <div className="received-form-group">
+            <label>อุปกรณ์:</label>
+            <input type="text" value={selectedRequest.equipment} readOnly />
+          </div>
+        </div>
+
+        <div className="received-form-row">
+          <div className="received-form-group">
+            <label>ยี่ห้อ:</label>
+            <input type="text" value={selectedRequest.brand} readOnly />
+          </div>
+          <div className="received-form-group">
+            <label>หมายเลขครุภัณฑ์:</label>
+            <input type="text" value={selectedRequest.equipment_number} readOnly />
+          </div>
+        </div>
+
+        <div className="received-form-row">
+          <div className="received-form-group">
+            <label>Serial Number:</label>
+            <input type="text" value={selectedRequest.serial_number} readOnly />
+          </div>
+          <div className="received-form-group">
+            <label>จำนวน:</label>
+            <input type="text" value={selectedRequest.quantity_requested} readOnly />
+          </div>
+        </div>
+
+        <div className="received-form-row">
+          <div className="received-form-group">
+            <label>จำนวนคงเหลือ:</label>
+            <input type="text" value={selectedRequest.remaining} readOnly />
+          </div>
+          <div className="received-form-group">
+            <label>สถานะ:</label>
+            <input type="text" value="รับของแล้ว" readOnly />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );

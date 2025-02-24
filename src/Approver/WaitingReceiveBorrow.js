@@ -53,20 +53,28 @@ function WaitingReceiveBorrow() {
   const handleViewDetails = async (request) => {
     try {
       const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
-      const remainingStock = response.data.remaining;
+      
+      const { remaining, equipment_number, serial_number } = response.data;
   
-      // อัปเดต selectedRequest พร้อมจำนวนคงเหลือ
+      // ✅ อัปเดต selectedRequest พร้อมจำนวนคงเหลือ และข้อมูลหมายเลขครุภัณฑ์/Serial Number
       setSelectedRequest({
         ...request,
-        remaining: remainingStock,
+        remaining: remaining !== undefined ? remaining : "ไม่ทราบ",
+        equipment_number: equipment_number || "-",
+        serial_number: serial_number || "-",
       });
     } catch (error) {
-      console.error('ไม่สามารถโหลดจำนวนคงเหลือ:', error);
-      setSelectedRequest({ ...request, remaining: 'ไม่ทราบ' });
+      console.error("ไม่สามารถโหลดข้อมูลอุปกรณ์:", error);
+      setSelectedRequest({
+        ...request,
+        remaining: "ไม่ทราบ",
+        equipment_number: "-",
+        serial_number: "-",
+      });
     }
     setRemark('');
   };
-
+  
   const handleCloseModal = () => {
     setSelectedRequest(null);
   };
@@ -206,24 +214,32 @@ function WaitingReceiveBorrow() {
           <input type="text" value={selectedRequest.brand} readOnly />
         </div>
         <div className="form-group-borrow">
+          <label>หมายเลขครุภัณฑ์:</label>
+          <input type="text" value={selectedRequest.equipment_number} readOnly />
+        </div>
+        <div className="form-group-borrow">
+          <label>Serial Number:</label>
+          <input type="text" value={selectedRequest.serial_number} readOnly />
+        </div>
+        <div className="form-group-borrow">
           <label>จำนวน:</label>
           <input type="text" value={selectedRequest.quantity_requested} readOnly />
         </div>
         <div className="form-group-borrow">
-  <label>จำนวนคงเหลือ:</label>
-  <input
-    type="text"
-    value={
-      selectedRequest && selectedRequest.remaining !== undefined
-        ? selectedRequest.remaining
-        : 'ไม่ทราบ'
-    }
-    readOnly
-  />
-</div>
-        <div className="form-group-borrow">
-          <label>วันที่ขอยืม:</label>
-          <input
+          <label>จำนวนคงเหลือ:</label>
+            <input
+              type="text"
+              value={
+                selectedRequest && selectedRequest.remaining !== undefined
+                ? selectedRequest.remaining
+                : 'ไม่ทราบ'
+              }
+              readOnly
+            />
+          </div>
+          <div className="form-group-borrow">
+            <label>วันที่ขอยืม:</label>
+            <input
             type="text"
             value={
               selectedRequest.request_date
