@@ -108,11 +108,12 @@ button:hover {
   width: 100vw;
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
+  display: flex !important; /* ✅ บังคับให้ Modal แสดง */
   align-items: center;
   justify-content: center;
   z-index: 9999;
 }
+
 
 .modal-content {
   background: white;

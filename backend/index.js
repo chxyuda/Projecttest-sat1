@@ -1240,7 +1240,12 @@ router.get('/requests/user/:userId', (req, res) => {
 // ✅ 3. ดึงคำขอตาม ID
 router.get('/requests/:id', (req, res) => {
   const { id } = req.params;
-  const sql = 'SELECT * FROM requests WHERE id = ?';
+  const sql = `
+    SELECT r.*, p.remaining 
+    FROM requests r 
+    LEFT JOIN products p ON r.material = p.model 
+    WHERE r.id = ?`;
+
   db.query(sql, [id], (err, results) => {
     if (err) {
       return res.status(500).json({ error: err.message });
@@ -1248,11 +1253,11 @@ router.get('/requests/:id', (req, res) => {
     if (results.length === 0) {
       return res.status(404).json({ message: 'ไม่พบคำขอ' });
     }
-    res.json(results[0]);
+    res.json(results[0]);  // ✅ ต้องมี `remaining` กลับไปด้วย
   });
 });
 
-// ✅ ดึงคำขอตามชื่อผู้เบิก (เช่น fullName)
+
 // ✅ ดึงคำขอตามชื่อผู้เบิก (เช่น fullName)
 router.get('/requests/user/:username', (req, res) => {
   const { username } = req.params;
@@ -1292,19 +1297,33 @@ router.put('/requests/:id/receive', (req, res) => {
   const { id } = req.params;
   const { received_by, date_received } = req.body;
 
+  console.log("🔹 API HIT: PUT /requests/:id/receive", { id, received_by, date_received });
+
+  // ✅ ตรวจสอบว่ามีค่าถูกส่งมาหรือไม่
+  if (!received_by || !date_received) {
+    return res.status(400).json({ error: "กรุณาส่งค่าผู้รับของและวันที่รับของ" });
+  }
+
   const sql = `
     UPDATE requests 
     SET status = 'Received', received_by = ?, date_received = ?
     WHERE id = ?
   `;
 
-  db.query(sql, [received_by, date_received, id], (err) => {
+  db.query(sql, [received_by, date_received, id], (err, result) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      console.error("🔥 UPDATE ERROR:", err);
+      return res.status(500).json({ error: "เกิดข้อผิดพลาดในการอัปเดตสถานะ" });
     }
-    res.json({ message: 'อัปเดตสถานะเป็น รับของแล้ว สำเร็จ' });
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "ไม่พบคำขอที่ต้องการอัปเดต" });
+    }
+
+    res.json({ message: "อัปเดตสถานะเป็น 'รับของแล้ว' สำเร็จ" });
   });
 });
+
 
 // ✅ 6. อัปเดตสถานะการแจ้งเตือน (เมื่อผู้ใช้กดดูแจ้งเตือน)
 router.put('/requests/:id/notification', (req, res) => {

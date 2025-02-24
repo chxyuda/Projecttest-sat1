@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import ITDashboard from "./ITDashboard";
 import "./BorrowRejected.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimesCircle, faEye } from "@fortawesome/free-solid-svg-icons";
+import { faTimesCircle, faEye, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
 const BorrowRejected = () => {
   const [borrowRequests, setBorrowRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchDate, setSearchDate] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,8 +54,15 @@ const BorrowRejected = () => {
         return '-';
     }
   };
-  
 
+  const handleSearch = () => {
+    const filteredData = borrowRequests.filter((req) => {
+      return new Date(req.request_date).toLocaleDateString("th-TH") === new Date(searchDate).toLocaleDateString("th-TH");
+    });
+    setBorrowRequests(filteredData);
+  };
+
+  
   return (
     <div>
       <ITDashboard />
@@ -62,49 +70,62 @@ const BorrowRejected = () => {
         <h1 className="borrow-rejected-title">
           <FontAwesomeIcon icon={faTimesCircle} /> ไม่อนุมัติ
         </h1>
-
-        <div className="borrow-rejected-list">
-          {loading ? (
-            <p>กำลังโหลดข้อมูล...</p>
-          ) : rejectedRequests.length === 0 ? (
-            <p>ไม่มีรายการไม่อนุมัติ</p>
-          ) : (
-            <table className="borrow-rejected-table">
-  <thead>
-    <tr>
-      <th>ลำดับ</th>
-      <th>ชื่อผู้ยืม</th>
-      <th>ฝ่าย/สำนัก</th>
-      <th>อุปกรณ์</th>
-      <th>วันที่ยืม</th>
-      <th>จำนวน</th>
-      <th>สถานะ</th>
-      <th>ดูรายละเอียด</th>
-    </tr>
-  </thead>
-  <tbody>
-    {rejectedRequests.map((req, index) => (
-      <tr key={req.id}>
-        <td>{index + 1}</td>
-        <td>{req.borrower_name}</td>
-        <td>{req.department}</td>
-        <td>{req.equipment}</td>
-        <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
-        <td>{req.quantity_requested}</td>
-        <td>{getStatusInThai(req.status)}</td>
-        <td>
-          <button
-            className="borrow-rejected-detail-button"
-            onClick={() => handleViewDetails(req)}
-          >
-            <FontAwesomeIcon icon={faEye} /> ดูรายละเอียด
+        <div className="borrw-search-container">
+          <input 
+            type="date" 
+            value={searchDate} 
+            onChange={(e) => setSearchDate(e.target.value)} 
+          />
+          <button onClick={handleSearch}>
+            <FontAwesomeIcon icon={faSearch} /> ค้นหา
           </button>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-          )}
+        </div>
+        <div className="borrow-rejected-list">
+          <table className="borrow-rejected-table">
+            <thead>
+              <tr>
+                <th>ลำดับ</th>
+                <th>ชื่อผู้ยืม</th>
+                <th>ฝ่าย/สำนัก</th>
+                <th>อุปกรณ์</th>
+                <th>วันที่ยืม</th>
+                <th>จำนวน</th>
+                <th>สถานะ</th>
+                <th>ดูรายละเอียด</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="8">กำลังโหลดข้อมูล...</td>
+                </tr>
+              ) : rejectedRequests.length === 0 ? (
+                <tr>
+                  <td colSpan="8">ไม่มีรายการไม่อนุมัติ</td>
+                </tr>
+              ) : (
+                rejectedRequests.map((req, index) => (
+                  <tr key={req.id}>
+                    <td>{index + 1}</td>
+                    <td>{req.borrower_name}</td>
+                    <td>{req.department}</td>
+                    <td>{req.equipment}</td>
+                    <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
+                    <td>{req.quantity_requested}</td>
+                    <td>ไม่อนุมัติ</td>
+                    <td>
+                      <button 
+                        className="borrow-rejected-detail-button"
+                        onClick={() => handleViewDetails(req)} // เพิ่มการเรียกฟังก์ชัน
+                      >
+                        <FontAwesomeIcon icon={faEye} /> ดูรายละเอียด
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
         {selectedRequest && (

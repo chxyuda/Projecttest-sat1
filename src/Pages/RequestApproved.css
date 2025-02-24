@@ -1,0 +1,165 @@
+.request-approved-container {
+    margin: 200px auto; /* ระยะห่างจากด้านบน */
+    padding: 20px; /* เพิ่ม Padding ด้านใน */
+    background-color: #ffffff; /* สีพื้นหลัง */
+    border-radius: 10px; /* มุมโค้ง */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+    max-width: 1800px; /* ความกว้างสูงสุด */
+    width: 100%; /* ใช้ 100% ของหน้าจอ */
+    margin-top: 200px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .request-approved-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .request-approved-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .request-approved-table th,
+  .request-approved-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+  }
+  
+  .request-approved-table th {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .request-approved-detail-button {
+    background-color: #ffc107;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+  
+  .request-approved-footer {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .request-approved-back-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+  }
+  /* ปรับ Modal ให้อยู่บนสุดของหน้าจอ */
+.request-approved-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* ให้สูงกว่าตาราง */
+}
+
+/* ปรับกล่อง Modal ให้อยู่กึ่งกลาง */
+.request-approved-modal-content {
+    background: white;
+    width: 50%;
+    max-width: 700px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 10000; /* ให้แน่ใจว่าลอยอยู่ด้านบนสุด */
+}
+
+/* ปุ่มปิด Modal */
+.request-approved-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ff0000;
+    color: white;
+    font-size: 18px;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.request-approved-modal-close:hover {
+    transform: scale(1.2);
+    background-color: #cc0000;
+}
+
+/* ปรับ Modal Form เป็น 2 คอลัมน์ */
+.request-approved-modal-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* แบ่งเป็น 2 คอลัมน์ */
+    gap: 30px; /* ระยะห่างระหว่างคอลัมน์ */
+}
+
+/* ปรับให้ฟอร์มแสดงเป็น 2 คอลัมน์ */
+.request-approved-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* แบ่งเป็น 2 คอลัมน์ */
+    gap: 20px; /* ระยะห่างระหว่างคอลัมน์ */
+}
+
+/* ปรับขนาด Label และ Input ให้ดูสมดุล */
+.request-approved-form-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.request-approved-form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.request-approved-form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f5f5f5;
+    font-size: 14px;
+}
+
+
+/* ปรับขนาด Input */
+.request-approved-form-group input,
+.request-approved-form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f5f5f5;
+    font-size: 14px;
+}
+.request-approved-receive-button {
+    background-color: green;
+    color: white;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 5px;
+}
+
+.request-approved-receive-button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+}

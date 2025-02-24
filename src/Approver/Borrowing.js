@@ -66,11 +66,37 @@ function Borrowing() {
       };
       
   
+      const [isProcessing, setIsProcessing] = useState(false);
+
       const handleApprove = async (status) => {
+        if (isProcessing) return; // ป้องกันการกดซ้ำ
+        setIsProcessing(true);
+      
         try {
+          if (!selectedRequest || !selectedRequest.id) {
+            alert("ไม่พบข้อมูลคำขอยืม กรุณาลองใหม่");
+            setIsProcessing(false);
+            return;
+          }
+      
+          // ตรวจสอบว่ามีจำนวนสินค้าพอสำหรับการยืม
+          if (status === "Approved" && selectedRequest.remaining < selectedRequest.quantity_requested) {
+            alert(`ไม่สามารถอนุมัติได้ เนื่องจากสินค้าคงเหลือไม่พอ (มี ${selectedRequest.remaining} ต้องการ ${selectedRequest.quantity_requested})`);
+            setIsProcessing(false);
+            return;
+          }
+      
           const note = status === "Rejected" ? rejectReason : remark;
           const finalStatus = status === "Approved" ? "WaitingReceive" : "Rejected";
       
+          console.log("กำลังอัปเดตสถานะ:", {
+            status: finalStatus,
+            approved_by: "ชื่อผู้อนุมัติ",
+            date_approved: new Date().toISOString().slice(0, 10),
+            note,
+          });
+      
+          // 1️⃣ อัปเดตสถานะคำขอในฐานข้อมูล
           await axios.put(
             `http://localhost:5001/api/borrow-requests/${selectedRequest.id}/approve`,
             {
@@ -80,6 +106,19 @@ function Borrowing() {
               note,
             }
           );
+      
+          // 2️⃣ หากอนุมัติแล้ว อัปเดตจำนวนคงเหลือของอุปกรณ์
+          if (status === "Approved") {
+            const newRemainingStock = selectedRequest.remaining - selectedRequest.quantity_requested;
+      
+            await axios.put(
+              `http://localhost:5001/api/products/update-stock/${selectedRequest.material}`,
+              { remaining: newRemainingStock }
+            );
+      
+            console.log(`อัปเดตจำนวนคงเหลือ: จาก ${selectedRequest.remaining} เป็น ${newRemainingStock}`);
+          }
+      
           alert(`ทำการ${status === "Approved" ? "อนุมัติ" : "ไม่อนุมัติ"}สำเร็จ`);
           setSelectedRequest(null);
           setShowRejectReason(false);
@@ -87,11 +126,13 @@ function Borrowing() {
           window.location.reload();
         } catch (error) {
           console.error("Error updating status:", error);
-          alert("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+          alert("เกิดข้อผิดพลาดในการอัปเดตสถานะ: " + (error.response?.data?.message || error.message));
+        } finally {
+          setIsProcessing(false);
         }
       };
       
-    
+      
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredRequests.slice(indexOfFirstItem, indexOfLastItem);

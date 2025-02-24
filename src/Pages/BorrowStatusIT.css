@@ -1,12 +1,14 @@
 .borrow-statusit-container {
-  margin: 15px auto; /* ระยะห่างจากด้านบน */
+  margin: 200px auto; /* ระยะห่างจากด้านบน */
   padding: 20px; /* เพิ่ม Padding ด้านใน */
   background-color: #ffffff; /* สีพื้นหลัง */
   border-radius: 10px; /* มุมโค้ง */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
   max-width: 1800px; /* ความกว้างสูงสุด */
   width: 100%; /* ใช้ 100% ของหน้าจอ */
-  margin-top: 170px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+  margin-top: 200px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+  display: flex;
+  flex-direction: column;
   }
   
   .borrow-statusit-title {
@@ -176,8 +178,7 @@
     grid-column: span 2;
   }
   
-  
-  
+
   .statusit-modal-title {
   margin: 0;
   font-size: 20px;
@@ -204,5 +205,34 @@
 .statusit-modal-return-button:hover {
   background-color: #218838;
 }
+.borrow-statusit-detail-button {
+  background-color: #ffcc00; /* สีพื้นหลังเหลือง */
+  color: #000; /* สีตัวอักษรดำ */
+  border: none;
+  padding: 8px 12px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.borrow-statusit-detail-button:hover {
+  background-color: #e6b800; /* สีเหลืองเข้มขึ้นเมื่อ hover */
+  transform: scale(1.05);
+}
+
+.borrow-statusit-detail-button:active {
+  background-color: #cc9900; /* สีเหลืองเข้มขึ้นอีกเมื่อกด */
+  transform: scale(0.95);
+}
+
+.borrow-statusit-detail-button svg {
+  font-size: 18px;
+}
+
 
   

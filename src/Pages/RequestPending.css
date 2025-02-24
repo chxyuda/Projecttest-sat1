@@ -1,0 +1,159 @@
+/* ปรับขนาดและระยะห่างของคอนเทนต์ */
+.request-pending-container {
+    margin: 200px auto; /* ระยะห่างจากด้านบน */
+    padding: 20px; /* เพิ่ม Padding ด้านใน */
+    background-color: #ffffff; /* สีพื้นหลัง */
+    border-radius: 10px; /* มุมโค้ง */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+    max-width: 1800px; /* ความกว้างสูงสุด */
+    width: 100%; /* ใช้ 100% ของหน้าจอ */
+    margin-top: 200px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* หัวข้อ */
+  .request-pending-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #1b1b1c;
+  }
+  
+  /* ตาราง */
+  .request-pending-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  
+  .request-pending-table th,
+  .request-pending-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+  }
+  
+  .request-pending-table th {
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+  }
+  
+  .request-pending-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  /* ปุ่มดูรายละเอียด */
+  .request-pending-detail-button {
+    background-color: #ffc107;
+    color: rgb(248, 248, 244);
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+  
+  .request-pending-detail-button:hover {
+    background-color: #e0a800;
+  }
+  
+  /* โมดอล (รายละเอียดคำขอ) */
+  .request-pending-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .request-pending-modal-content {
+    background: white;
+    width: 50%;
+    max-width: 700px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  /* ปิดโมดอล */
+  .request-pending-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ff0000;
+    color: white;
+    font-size: 18px;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  
+  .request-pending-modal-close:hover {
+    transform: scale(1.2);
+    background-color: #cc0000;
+  }
+  
+  /* ฟอร์มแสดงข้อมูล */
+  .request-pending-modal-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+  
+  .request-pending-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .request-pending-form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .request-pending-form-group input,
+  .request-pending-form-group textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f5f5f5;
+    font-size: 14px;
+    pointer-events: none;
+  }
+  
+  /* ปุ่มย้อนกลับ */
+  .request-pending-footer {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .request-pending-back-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .request-pending-back-button:hover {
+    background-color: #0056b3;
+  }
+
+  

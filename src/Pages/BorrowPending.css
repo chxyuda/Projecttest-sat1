@@ -1,12 +1,14 @@
 .borrow-pending-container {
-    margin: 15px auto; /* ระยะห่างจากด้านบน */
-    padding: 20px; /* เพิ่ม Padding ด้านใน */
-    background-color: #ffffff; /* สีพื้นหลัง */
-    border-radius: 10px; /* มุมโค้ง */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
-    max-width: 1800px; /* ความกว้างสูงสุด */
-    width: 100%; /* ใช้ 100% ของหน้าจอ */
-    margin-top: 170px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+  margin: 200px auto; /* ระยะห่างจากด้านบน */
+  padding: 20px; /* เพิ่ม Padding ด้านใน */
+  background-color: #ffffff; /* สีพื้นหลัง */
+  border-radius: 10px; /* มุมโค้ง */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+  max-width: 1800px; /* ความกว้างสูงสุด */
+  width: 100%; /* ใช้ 100% ของหน้าจอ */
+  margin-top: 200px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+  display: flex;
+  flex-direction: column;
   }
   
   .borrow-pending-title {

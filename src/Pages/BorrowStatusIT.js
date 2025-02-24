@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ITDashboard from "./ITDashboard";
 import "./BorrowStatusIT.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faClipboardList } from "@fortawesome/free-solid-svg-icons";
+import { faClipboardList, faSearch, faEye } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from 'react-router-dom';
 
 const BorrowStatusIT = () => {
@@ -10,6 +10,7 @@ const BorrowStatusIT = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [searchDate, setSearchDate] = useState("");
   
 
 
@@ -109,7 +110,13 @@ const handleReturnItem = async () => {
   }
 };
 
-  
+const handleSearch = () => {
+  const filteredData = borrowRequests.filter((req) => {
+    return new Date(req.request_date).toLocaleDateString("th-TH") === new Date(searchDate).toLocaleDateString("th-TH");
+  });
+  setBorrowRequests(filteredData);
+};
+
   return (
     <div>
       <ITDashboard />
@@ -119,45 +126,64 @@ const handleReturnItem = async () => {
   สถานะยืม-คืน
 </h1>
 
-  <table className="borrow-statusit-table">
-    <thead>
-      <tr>
-        <th>ลำดับ</th>
-        <th>ชื่อผู้ยืม</th>
-        <th>ฝ่าย/สำนัก</th>
-        <th>อุปกรณ์</th>
-        <th>จำนวน</th>
-        <th>สถานะ</th>
-        <th>วันที่ยืม</th>
-        <th>วันที่คืน</th>
-        <th>รายละเอียด</th>
-      </tr>
-    </thead>
-    <tbody>
-      {filteredRequests.length > 0 ? (
-        filteredRequests.map((req, index) => (
-          <tr key={req.id}>
-            <td>{index + 1}</td>
-            <td>{req.borrower_name}</td>
-            <td>{req.department}</td>
-            <td>{req.equipment}</td>
-            <td>{req.quantity_requested}</td>
-            <td>{req.status === "Received" ? "รับของแล้ว" : "คืนของแล้ว"}</td>
-            <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
-            <td>{new Date(req.return_date).toLocaleDateString("th-TH")}</td>
-            <td><button className="status-detail-button" onClick={() => handleViewDetails(req)}>
-                  ดูรายละเอียด
-                </button>
-              </td>
-          </tr>
-        ))
-      ) : (
-        <tr>
-          <td colSpan="8" style={{ textAlign: "center" }}>ไม่มีรายการ</td>
-        </tr>
-      )}
-    </tbody>
-  </table>
+<div className="borrw-search-container">
+          <input 
+            type="date" 
+            value={searchDate} 
+            onChange={(e) => setSearchDate(e.target.value)} 
+          />
+          <button onClick={handleSearch}>
+            <FontAwesomeIcon icon={faSearch} /> ค้นหา
+          </button>
+        </div>
+
+        <div className="borrow-statusit-list">
+          <table className="borrow-statusit-table">
+            <thead>
+              <tr>
+                <th>ลำดับ</th>
+                <th>ชื่อผู้ยืม</th>
+                <th>ฝ่าย/สำนัก</th>
+                <th>อุปกรณ์</th>
+                <th>จำนวน</th>
+                <th>สถานะ</th>
+                <th>วันที่ยืม</th>
+                <th>วันที่คืน</th>
+                <th>รายละเอียด</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="9">กำลังโหลดข้อมูล...</td>
+                </tr>
+              ) : borrowRequests.length === 0 ? (
+                <tr>
+                  <td colSpan="9">ไม่มีรายการ</td>
+                </tr>
+              ) : (
+                borrowRequests.map((req, index) => (
+                  <tr key={req.id}>
+                    <td>{index + 1}</td>
+                    <td>{req.borrower_name}</td>
+                    <td>{req.department}</td>
+                    <td>{req.equipment}</td>
+                    <td>{req.quantity_requested}</td>
+                    <td>{req.status}</td>
+                    <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
+                    <td>{req.return_date ? new Date(req.return_date).toLocaleDateString("th-TH") : "-"}</td>
+                    <td>
+                      <button className="borrow-statusit-detail-button"
+                        onClick={() => handleViewDetails(req)} >
+                        <FontAwesomeIcon icon={faEye} /> ดูรายละเอียด
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
   <div className="borrow-statusit-footer">
         <button className="borrow-statusit-back-button" onClick={() => navigate(-1)}>
           ย้อนกลับ

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, } from "react";
 import ITDashboard from "./ITDashboard";
 import "./BorrowReturn.css";
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,8 @@ import {
   faPlus,
   faSyncAlt,
   faTimesCircle,
+  faSearch,
+  faEye,
 } from "@fortawesome/free-solid-svg-icons";
 
 const BorrowReturn = () => {
@@ -19,6 +21,8 @@ const BorrowReturn = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchDate, setSearchDate] = useState(""); // สร้าง state เก็บวันที่ที่เลือก
+
   
 
   // สำหรับแบ่งหน้า
@@ -115,6 +119,15 @@ console.log("Filtered Data:", filteredRequests);
   const currentItems = filteredRequests.slice(indexOfFirstItem, indexOfLastItem);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  const handleSearch = () => {
+    // ฟิลเตอร์ข้อมูลตามวันที่
+    const filteredData = borrowRequests.filter((req) => {
+      return new Date(req.request_date).toLocaleDateString("th-TH") === new Date(searchDate).toLocaleDateString("th-TH");
+    });
+  
+    setBorrowRequests(filteredData); // อัปเดตรายการที่แสดงผล
+  };
+  
   return (
     <div>
       <ITDashboard />
@@ -142,13 +155,22 @@ console.log("Filtered Data:", filteredRequests);
               onClick={() => navigate("/borrow-statusit")}
             >
               <FontAwesomeIcon icon={faClipboardList} /> สถานะยืม-คืน
-            </button>;
+            </button>
             <button className="add-btn" onClick={openAddModal}>
               <FontAwesomeIcon icon={faPlus} /> เพิ่ม
             </button>
           </div>
         </div>
-
+        <div className="borrw-search-container">
+                  <input
+                    type="date"
+                    value={searchDate}
+                    onChange={(e) => setSearchDate(e.target.value)}
+                  />
+                  <button onClick={handleSearch}>
+                    <FontAwesomeIcon icon={faSearch} /> ค้นหา
+                  </button>
+                </div>
         <div className="borrow-return-list">
           {loading ? (
             <p>กำลังโหลดข้อมูล...</p>
@@ -178,7 +200,10 @@ console.log("Filtered Data:", filteredRequests);
                       <td>{req.quantity_requested}</td>
                       <td>{req.status === "Pending" ? "รอดำเนินการ" : req.status === "Approved" ? "อนุมัติแล้ว" : req.status === "Rejected" ? "ไม่อนุมัติ" : req.status === "Received" ? "รับของแล้ว" : req.status === "Returned" ? "คืนของแล้ว" : req.status}</td>
                       <td>
-                        <button className="detail-button" onClick={() => handleViewDetails(req)}>ดูรายละเอียด</button>
+                        <button className="detail-button" 
+                          onClick={() => handleViewDetails(req)} // เพิ่มการเรียกฟังก์ชัน
+                        >
+                          <FontAwesomeIcon icon={faEye} /> ดูรายละเอียด</button>
                       </td>
                     </tr>
                   ))

@@ -138,7 +138,6 @@
     "chardet": "^0.7.0",
     "chart.js": "^4.4.7",
     "chokidar": "^3.6.0",
-    "chokidar2": "^2.0.0",
     "chownr": "^2.0.0",
     "chrome-trace-event": "^1.0.4",
     "ci-info": "^2.0.0",
@@ -418,6 +417,7 @@
     "html-escaper": "^2.0.2",
     "html-minifier-terser": "^5.1.1",
     "html-webpack-plugin": "^4.0.0-beta.11",
+    "html2canvas": "^1.4.1",
     "htmlparser2": "^6.1.0",
     "http-deceiver": "^1.2.7",
     "http-errors": "^2.0.0",
@@ -558,6 +558,7 @@
     "json5": "^2.2.3",
     "jsonfile": "^4.0.0",
     "jsonify": "^0.0.1",
+    "jspdf": "^3.0.0",
     "jsprim": "^1.4.2",
     "jsx-ast-utils": "^2.4.1",
     "killable": "^1.0.1",
@@ -1053,9 +1054,7 @@
     "wbuf": "^1.7.3",
     "web-vitals": "^4.2.4",
     "webidl-conversions": "^4.0.2",
-    "webpack": "^4.42.0",
     "webpack-dev-middleware": "^3.7.3",
-    "webpack-dev-server": "^3.11.0",
     "webpack-log": "^2.0.0",
     "webpack-manifest-plugin": "^2.2.0",
     "webpack-sources": "^1.4.3",
@@ -1126,5 +1125,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "webpack": "^4.42.0",
+    "webpack-dev-server": "^3.11.0"
   }
 }

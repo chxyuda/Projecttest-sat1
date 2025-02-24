@@ -255,17 +255,17 @@ function Received() {
               <input type="text" value={selectedRequest.quantity_requested} readOnly />
             </div>
             <div className="received-form-group">
-  <label>จำนวนคงเหลือ:</label>
-  <input
-    type="text"
-    value={
-      selectedRequest && selectedRequest.remaining !== undefined
-        ? selectedRequest.remaining
-        : 'ไม่ทราบ'
-    }
-    readOnly
-  />
-</div>
+              <label>จำนวนคงเหลือ:</label>
+              <input
+                type="text"
+                value={
+                  selectedRequest && selectedRequest.remaining !== undefined
+                  ? selectedRequest.remaining
+                  : 'ไม่ทราบ'
+                }
+                readOnly
+              />
+            </div>
             <div className="received-form-group">
               <label>วันที่ขอเบิก:</label>
                 <input

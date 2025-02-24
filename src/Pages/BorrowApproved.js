@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ITDashboard from "./ITDashboard";
 import "./BorrowApproved.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSyncAlt, faEye, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { faSyncAlt, faEye, faTimesCircle, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
 const BorrowApproved = () => {
@@ -10,6 +10,7 @@ const BorrowApproved = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [receiverName, setReceiverName] = useState("");
   const [loading, setLoading] = useState(true);
+  const [searchDate, setSearchDate] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,8 +28,6 @@ const BorrowApproved = () => {
       setLoading(false);
     }
   };
-
-  
 
   const approvedRequests = borrowRequests.filter(
     (request) => request.status === "Approved"
@@ -76,6 +75,13 @@ const BorrowApproved = () => {
     }
   };
   
+  const handleSearch = () => {
+    const filteredData = borrowRequests.filter((req) => {
+      return new Date(req.request_date).toLocaleDateString("th-TH") === new Date(searchDate).toLocaleDateString("th-TH");
+    });
+    setBorrowRequests(filteredData);
+  };
+
   return (
     <div>
       <ITDashboard />
@@ -83,52 +89,61 @@ const BorrowApproved = () => {
   <h1 className="borrow-approved-title">
     <FontAwesomeIcon icon={faSyncAlt} /> อนุมัติแล้ว
   </h1>
-
-  <div className="borrow-approved-list">
-    {loading ? (
-      <p>กำลังโหลดข้อมูล...</p>
-    ) : (
-      <table className="borrow-approved-table">
-        <thead>
-          <tr>
-            <th>ลำดับ</th>
-            <th>ชื่อผู้ยืม</th>
-            <th>ฝ่าย/สำนัก</th>
-            <th>อุปกรณ์</th>
-            <th>วันที่ยืม</th>
-            <th>จำนวน</th>
-            <th>ดูรายละเอียด</th>
-          </tr>
-        </thead>
-        <tbody>
-          {approvedRequests.length === 0 ? (
-            <tr>
-              <td colSpan="7" style={{ textAlign: "center" }}>ไม่มีรายการที่อนุมัติแล้ว</td>
-            </tr>
-          ) : (
-            approvedRequests.map((req, index) => (
-              <tr key={req.id}>
-                <td>{index + 1}</td>
-                <td>{req.borrower_name}</td>
-                <td>{req.department}</td>
-                <td>{req.equipment}</td>
-                <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
-                <td>{req.quantity_requested}</td>
-                <td>
-                  <button
-                    className="borrow-approved-detail-button"
-                    onClick={() => handleViewDetails(req)}
-                  >
-                    <FontAwesomeIcon icon={faEye} /> ดูรายละเอียด
-                  </button>
-                </td>
+  <div className="borrw-search-container">
+          <input 
+            type="date" 
+            value={searchDate} 
+            onChange={(e) => setSearchDate(e.target.value)} 
+          />
+          <button onClick={handleSearch}>
+            <FontAwesomeIcon icon={faSearch} /> ค้นหา
+          </button>
+        </div>
+        <div className="borrow-approved-list">
+          <table className="borrow-approved-table">
+            <thead>
+              <tr>
+                <th>ลำดับ</th>
+                <th>ชื่อผู้ยืม</th>
+                <th>ฝ่าย/สำนัก</th>
+                <th>อุปกรณ์</th>
+                <th>วันที่ยืม</th>
+                <th>จำนวน</th>
+                <th>ดูรายละเอียด</th>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    )}
-  </div>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="7">กำลังโหลดข้อมูล...</td>
+                </tr>
+              ) : approvedRequests.length === 0 ? (
+                <tr>
+                  <td colSpan="7">ไม่มีรายการที่อนุมัติแล้ว</td>
+                </tr>
+              ) : (
+                approvedRequests.map((req, index) => (
+                  <tr key={req.id}>
+                    <td>{index + 1}</td>
+                    <td>{req.borrower_name}</td>
+                    <td>{req.department}</td>
+                    <td>{req.equipment}</td>
+                    <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
+                    <td>{req.quantity_requested}</td>
+                    <td>
+                      <button className="borrow-approved-detail-button" onClick={() => handleViewDetails(req)}>ดูรายละเอียด</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className="borrow-approved-footer">
+          <button className="borrow-approved-back-button" onClick={() => navigate(-1)}>
+            ย้อนกลับ
+          </button>
+        </div>
 </div>
         {selectedRequest && (
   <div className="borrow-approved-modal-overlay">
@@ -216,11 +231,6 @@ const BorrowApproved = () => {
     </div>
   </div>
 )}
-        <div className="borrow-approved-footer">
-          <button className="borrow-approved-back-button" onClick={() => navigate(-1)}>
-            ย้อนกลับ
-          </button>
-        </div>
       </div>
   );
 };

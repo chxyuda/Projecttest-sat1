@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import ITDashboard from "./ITDashboard";
 import "./BorrowPending.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSyncAlt, faEye } from "@fortawesome/free-solid-svg-icons";
+import { faSyncAlt, faEye, faSearch} from "@fortawesome/free-solid-svg-icons";
 
 const BorrowPending = () => {
   const [borrowRequests, setBorrowRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [searchDate, setSearchDate] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,6 +44,13 @@ const BorrowPending = () => {
     navigate(-1); 
   };
 
+  const handleSearch = () => {
+    const filteredData = borrowRequests.filter((req) => {
+      return new Date(req.request_date).toLocaleDateString("th-TH") === new Date(searchDate).toLocaleDateString("th-TH");
+    });
+    setBorrowRequests(filteredData);
+  };
+
   return (
     <div>
       <ITDashboard />
@@ -50,50 +58,56 @@ const BorrowPending = () => {
         <h1 className="borrow-pending-title">
           <FontAwesomeIcon icon={faSyncAlt} /> รออนุมัติ
         </h1>
-
-        <div className="borrow-pending-list">
-          {loading ? (
-            <p>กำลังโหลดข้อมูล...</p>
-          ) : pendingRequests.length === 0 ? (
-            <p>ไม่มีรายการรออนุมัติ</p>
-          ) : (
-            <table className="borrow-pending-table">
-              <thead>
-                <tr>
-                  <th>ลำดับ</th>
-                  <th>ชื่อผู้ยืม</th>
-                  <th>ฝ่าย/สำนัก</th>
-                  <th>อุปกรณ์</th>
-                  <th>วันที่ยืม</th>
-                  <th>จำนวน</th>
-                  <th>ดูรายละเอียด</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingRequests.map((req, index) => (
-                  <tr key={req.id}>
-                    <td>{index + 1}</td>
-                    <td>{req.borrower_name}</td>
-                    <td>{req.department}</td>
-                    <td>{req.equipment}</td>
-                    <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
-                    <td>{req.quantity_requested}</td>
-                    <td>
-                      <button
-                        className="borrow-pending-detail-button"
-                        onClick={() => handleViewDetails(req)}
-                      >
-                        <FontAwesomeIcon icon={faEye} /> ดูรายละเอียด
-                      </button>
-                    </td>
-                    
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+        <div className="borrw-search-container">
+          <input 
+            type="date" 
+            value={searchDate} 
+            onChange={(e) => setSearchDate(e.target.value)} 
+          />
+          <button onClick={handleSearch}>
+            <FontAwesomeIcon icon={faSearch} /> ค้นหา
+          </button>
         </div>
-
+        <div className="borrow-pending-list">
+  <table className="borrow-pending-table">
+    <thead>
+      <tr>
+        <th>ลำดับ</th>
+        <th>ชื่อผู้ยืม</th>
+        <th>ฝ่าย/สำนัก</th>
+        <th>อุปกรณ์</th>
+        <th>วันที่ยืม</th>
+        <th>จำนวน</th>
+        <th>ดูรายละเอียด</th>
+      </tr>
+    </thead>
+    <tbody>
+      {loading ? (
+        <tr>
+          <td colSpan="7">กำลังโหลดข้อมูล...</td>
+        </tr>
+      ) : pendingRequests.length === 0 ? (
+        <tr>
+          <td colSpan="7">ไม่มีรายการรออนุมัติ</td>
+        </tr>
+      ) : (
+        pendingRequests.map((req, index) => (
+          <tr key={req.id}>
+            <td>{index + 1}</td>
+            <td>{req.borrower_name}</td>
+            <td>{req.department}</td>
+            <td>{req.equipment}</td>
+            <td>{new Date(req.request_date).toLocaleDateString("th-TH")}</td>
+            <td>{req.quantity_requested}</td>
+            <td>
+            <button className="borrow-pending-detail-button" onClick={() => handleViewDetails(req)}>ดูรายละเอียด</button>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>
         {/* Modal ดูรายละเอียด */}
         {selectedRequest && (
   <div className="borrow-pending-modal-overlay">

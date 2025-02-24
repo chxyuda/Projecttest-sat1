@@ -1,0 +1,142 @@
+.request-rejected-container {
+    margin: 200px auto; /* ระยะห่างจากด้านบน */
+    padding: 20px; /* เพิ่ม Padding ด้านใน */
+    background-color: #ffffff; /* สีพื้นหลัง */
+    border-radius: 10px; /* มุมโค้ง */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+    max-width: 1800px; /* ความกว้างสูงสุด */
+    width: 100%; /* ใช้ 100% ของหน้าจอ */
+    margin-top: 200px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+    display: flex;
+    flex-direction: column;
+}
+
+.request-rejected-title {
+    color: rgb(31, 30, 30);
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.request-rejected-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.request-rejected-table th, 
+.request-rejected-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.request-rejected-table th {
+    background-color: red;
+    color: white;
+}
+
+.request-rejected-detail-button {
+    background-color: rgb(243, 173, 11);
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.request-rejected-back-button {
+    background-color: blue;
+    color: white;
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+/* ✅ Modal Overlay */
+.request-rejected-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* ✅ ปรับตำแหน่ง Modal Content */
+.request-rejected-modal-content {
+    background: white;
+    width: 50%;
+    max-width: 700px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* ✅ ปรับขนาดและระยะห่างของหัวข้อ */
+.modal-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* ✅ ปรับตำแหน่งปุ่มปิดให้ดูดีขึ้น */
+.request-rejected-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ff0000;
+    color: white;
+    font-size: 18px;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.request-rejected-modal-clos:hover {
+    transform: scale(1.2);
+    background-color: #cc0000;
+  }
+
+/* ✅ จัดตำแหน่งฟอร์มให้เรียงกัน */
+.request-rejected-modal-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+/* ✅ ช่องข้อมูล */
+.request-rejected-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.request-rejected-form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.request-rejected-form-group input,
+.request-rejected-form-group textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f5f5f5;
+    font-size: 14px;
+    pointer-events: none;
+}
+
+
+
+

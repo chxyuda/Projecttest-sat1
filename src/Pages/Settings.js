@@ -486,7 +486,16 @@ const handleDeleteConfirm = async () => {
     }
   };
   
-
+  useEffect(() => {
+    if (showModal || showEquipmentsModal || showBrandModal || showAddProductModal || showEditModal) {
+      document.body.classList.add('modal-open');
+      console.log("📌 Modal ถูกเปิด!");
+    } else {
+      document.body.classList.remove('modal-open');
+      console.log("📌 Modal ถูกปิด!");
+    }
+  }, [showModal, showEquipmentsModal, showBrandModal, showAddProductModal, showEditModal]);
+  
   // ฟังก์ชันบันทึกการแก้ไข
   const handleSaveEquipment = async (index) => {
     if (!newEquipment.trim()) {

@@ -12,7 +12,7 @@ import Inventory from "./Pages/Inventory";
 import Settings from "./Pages/Settings";
 import Personnel from "./Pages/Personnel";
 import BorrowReturn from "./Pages/BorrowReturn";
-import Request from "./Pages/Request";
+import RequestPage from "./Pages/RequestPage";
 import Dashboard from "./Pages/Dashboard";
 import UserDashboard from "./Users/UserDashboard.js";
 import StaffProfile from "./Pages/StaffProfile";
@@ -42,6 +42,10 @@ import WelcomeUsers from "./Users/WelcomeUsers.js";
 import DashboardApproverSummary from "./Approver/DashboardApproverSummary.js";
 import Welcome from "./Approver/Welcome.js";
 import WelcomeIT from "./Pages/WelcomeIT.js";
+import RequestPending from "./Pages/RequestPending.js";
+import RequestApproved from "./Pages/RequestApproved.js";
+import RequestRejected from "./Pages/RequestRejected.js";
+import RequestStatusPage from "./Pages/RequestStatusPage.js";
 
 
 function App() {
@@ -105,7 +109,7 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/personnel" element={<Personnel />} />
           <Route path="/borrow-return" element={<BorrowReturn />} />
-          <Route path="/request" element={<Request />} />
+          <Route path="/request" element={<RequestPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/staff-profile" element={<StaffProfile />} />
@@ -135,6 +139,10 @@ function App() {
           <Route path="/dash-app-summary" element={<DashboardApproverSummary />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/welcome-it" element={<WelcomeIT />} />
+          <Route path="/request-pending" element={<RequestPending />} />
+          <Route path="/request-approved" element={<RequestApproved />} />
+          <Route path="/request-rejected" element={<RequestRejected />} /> {/* ✅ เพิ่มเส้นทาง */}
+          <Route path="/request-status" element={<RequestStatusPage />} />
         </Routes>
       </div>
     </Router>
