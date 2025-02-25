@@ -248,42 +248,35 @@ const upload = multer({
     }
 });
 
-router.post("/signup", upload.single("image"), async (req, res) => { 
+router.post("/signup", upload.single("image"), async (req, res) => {  
   console.log("📩 ข้อมูลที่ได้รับจาก Frontend:", req.body);
-  console.log("📸 รูปภาพที่ได้รับ:", req.file ? "มีไฟล์" : "ไม่มีไฟล์");
 
   // ✅ รับค่าจาก req.body
   const { username, password, fullName, email, phone, department_name, section_name, task_name } = req.body;
 
-  // ✅ ตรวจสอบว่ามีไฟล์หรือไม่ ถ้าไม่มีให้ `image` เป็น `NULL`
-  const image = req.file ? req.file.buffer : null; // ใช้ Buffer แทน Base64
+  // ✅ ถ้า section_name และ task_name เป็นค่าว่าง ให้ตั้งเป็น "-"
+  const finalSection = section_name && section_name !== "" ? section_name : "-";
+  const finalTask = task_name && task_name !== "" ? task_name : "-";
 
-  // ✅ Debug ข้อมูลที่รับเข้ามา
-  console.log({
+  console.log("✅ ข้อมูลที่ใช้บันทึก:", {
       username, password, fullName, email, phone,
-      department_name, section_name, task_name, image
+      department_name, finalSection, finalTask
   });
 
-  // ✅ ตรวจสอบข้อมูลว่าครบหรือไม่
-  if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
+  if (!username || !password || !fullName || !email || !phone || !department_name) {
       return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบ" });
   }
 
   try {
-      let query, values;
-
-      // ✅ SQL รองรับ `image` เป็น `NULL`
-      query = `
-          INSERT INTO users (username, password, fullName, email, phone, department_name, section_name, task_name, image, role, status)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')
+      let query = `
+          INSERT INTO users (username, password, fullName, email, phone, department_name, section_name, task_name, role, status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')
       `;
-      values = [username, password, fullName, email, phone, department_name, section_name, task_name, image];
+      let values = [username, password, fullName, email, phone, department_name, finalSection, finalTask];
 
-      // ✅ Debug SQL Query
       console.log("📝 Query:", query);
       console.log("🔢 Values:", values);
 
-      // ✅ รัน SQL
       db.query(query, values, (err, result) => {
           if (err) {
               console.error("❌ SQL Error:", err);
@@ -297,6 +290,7 @@ router.post("/signup", upload.single("image"), async (req, res) => {
       return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาด" });
   }
 });
+
 
 app.put('/api/approve-user/:id', (req, res) => { 
   const userId = req.params.id;
@@ -1299,21 +1293,60 @@ router.get('/requests/user/:username', (req, res) => {
 // ✅ 4. อัปเดตสถานะคำขอ (สำหรับผู้อนุมัติ)
 router.put('/requests/:id/approve', (req, res) => {
   const { id } = req.params;
-  const { status, approved_by, date_approved, note_approver } = req.body;
+  const { status, approved_by, date_approved, note } = req.body;
 
-  const sql = `
-    UPDATE requests 
-    SET status = ?, approved_by = ?, date_approved = ?, note_approver = ?, notification_status = 1
-    WHERE id = ?
-  `;
-
-  db.query(sql, [status, approved_by, date_approved, note_approver, id], (err) => {
+  // ดึงข้อมูลคำขอที่ต้องการอนุมัติ
+  const getRequestSql = `SELECT quantity_requested, material FROM requests WHERE id = ?`;
+  
+  db.query(getRequestSql, [id], (err, requestResult) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      console.error('ERROR FETCHING REQUEST:', err);
+      return res.status(500).json({ error: 'ERROR FETCHING REQUEST: ' + err.message });
     }
-    res.json({ message: '✅ อัปเดตสถานะคำขอสำเร็จ' });
+
+    if (requestResult.length === 0) {
+      return res.status(404).json({ error: 'ไม่พบคำขอที่ต้องการอนุมัติ' });
+    }
+
+    const { quantity_requested, material } = requestResult[0];
+
+    // ดึงข้อมูลจำนวนสินค้าคงเหลือ
+    const getStockSql = `SELECT remaining FROM products WHERE model = ?`;
+
+    db.query(getStockSql, [material], (err, stockResult) => {
+      if (err) {
+        console.error('ERROR CHECKING STOCK:', err);
+        return res.status(500).json({ error: 'ERROR CHECKING STOCK: ' + err.message });
+      }
+
+      if (stockResult.length === 0) {
+        return res.status(404).json({ error: 'ไม่พบสินค้าในระบบ' });
+      }
+
+      const remainingStock = stockResult[0].remaining;
+
+      // ✅ อนุมัติได้แม้ว่าคงเหลือเป็น 0 แต่ต้องไม่ติดลบ
+      if (remainingStock < 0) {
+        return res.status(400).json({ error: 'จำนวนคงเหลือติดลบ ไม่สามารถอนุมัติได้' });
+      }
+
+      // ✅ ดำเนินการอนุมัติคำขอ
+      const updateRequestSql = `
+        UPDATE requests 
+        SET status = ?, approved_by = ?, date_approved = ?, note_approver = ?, notification_status = 1
+        WHERE id = ?
+      `;
+
+      db.query(updateRequestSql, [status, approved_by, date_approved, note, id], (err) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'อัปเดตสถานะคำขอสำเร็จ' });
+      });
+    });
   });
 });
+
 
 // ✅ 5. อัปเดตสถานะเป็น "รับของแล้ว" (สำหรับ IT Staff)
 router.put('/requests/:id/receive', (req, res) => {

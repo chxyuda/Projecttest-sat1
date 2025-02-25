@@ -21,7 +21,6 @@ const BorrowEquipment = () => {
   const [showDetails, setShowDetails] = useState(false); // สำหรับควบคุมการแสดง Modal
   const [selectedItem, setSelectedItem] = useState(null); // สำหรับเก็บข้อมูลอุปกรณ์ที่เลือก
   const [showBorrowForm, setShowBorrowForm] = useState(false);
-  const storedUser = JSON.parse(localStorage.getItem('user'));
   const [requests, setRequests] = useState([]);
   const [borrowFormData, setBorrowFormData] = useState({
     borrowerName: '',
@@ -46,6 +45,24 @@ const BorrowEquipment = () => {
     email: ''
   });
 
+  const storedUser = JSON.parse(localStorage.getItem('user')) || {};
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    console.log("🔍 User from LocalStorage:", user);
+  
+    if (user) {
+      setUserData({
+        borrowerName: user.fullName || "ไม่พบข้อมูล",
+        department: user.department_name || "ไม่พบข้อมูล",
+        phone: user.phone || "",
+        email: user.email || ""
+      });
+    } else {
+      console.warn("⚠️ No user found in localStorage");
+    }
+  }, []);
+  
   const [showLoanForm, setShowLoanForm] = useState(false);
   const [loanFormData, setLoanFormData] = useState({
     borrowerName: '',
@@ -89,29 +106,22 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   // Fetch data from the backend
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const productsResponse = await axios.get("http://localhost:5001/api/products");
-        const categoriesResponse = await axios.get("http://localhost:5001/api/categories");
-        const brandsResponse = await axios.get("http://localhost:5001/api/brands");
-  
-        console.log("Products Response:", productsResponse.data.data);
-        console.log("Categories Response:", categoriesResponse.data.data);
-        console.log("Brands Response:", brandsResponse.data.data);
-  
-        setData(productsResponse.data.data || []);
-        setFilteredData(productsResponse.data.data || []);
-        setCategories(categoriesResponse.data.data || []);
-        setBrands(brandsResponse.data.data || []);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setData([]);
-        setFilteredData([]);
-        setCategories([]);
-        setBrands([]);
-      }
+        try {
+            const [productsRes, categoriesRes, brandsRes] = await Promise.all([
+                axios.get("http://localhost:5001/api/products"),
+                axios.get("http://localhost:5001/api/categories"),
+                axios.get("http://localhost:5001/api/brands"),
+            ]);
+            setData(productsRes.data.data || []);
+            setFilteredData(productsRes.data.data || []);
+            setCategories(categoriesRes.data.data || []);
+            setBrands(brandsRes.data.data || []);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
     };
     fetchData();
-  }, []);
+}, []);
   
   const handleFilter = () => {
     console.log("Original Data:", data);
@@ -205,66 +215,70 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   
 const handleShowBorrowForm = async (row) => {
   try {
-    // ดึงข้อมูลจำนวนคงเหลือล่าสุดจากฐานข้อมูล โดยใช้ id ของวัสดุ (row.id)
     const response = await axios.get(`http://localhost:5001/api/products/${row.id}`);
-
-    const updatedRemaining = response.data.remaining; // ได้จำนวนคงเหลือล่าสุด
+    const updatedRemaining = response.data.remaining || 0;
 
     setBorrowFormData({
-      borrowerName: userData.fullName,
-      department: userData.department_name,
-      phoneExt: userData.phone,
-      email: userData.email,
+      borrowerName: userData.fullName || "ไม่พบข้อมูล",
+      department: userData.department_name || "ไม่พบข้อมูล",
+      phoneExt: userData.phone || storedUser?.phone || "",
+      email: userData.email || storedUser?.email || "",
       material: row.material,
       category: row.category,
       equipment: row.equipment,
       brand: row.brand,
-      remaining: updatedRemaining, // ใช้ค่าล่าสุด
+      equipmentNumber: row.equipment_number || "-",
+      serialNumber: row.serial_number || "-",
+      remaining: updatedRemaining,
       quantity: '',
       note: '',
       requestDate: new Date().toISOString().split('T')[0],
     });
 
+    console.log("📌 Borrow Form Data:", borrowFormData);
     setShowBorrowForm(true);
   } catch (error) {
-    console.error('โหลดข้อมูลจำนวนคงเหลือล่าสุดล้มเหลว:', error);
+    console.error('❌ Failed to load updated stock:', error);
     alert('ไม่สามารถโหลดข้อมูลจำนวนคงเหลือล่าสุดได้');
   }
 };
 
+
 const handleSubmitBorrow = async (e) => {
   e.preventDefault();
 
+  console.log("🔍 Stored User:", storedUser);
+
   const dataToSend = {
-    borrowerName: borrowFormData.borrowerName,
-    department: borrowFormData.department,
-    phone: borrowFormData.phoneExt || '',
-    email: borrowFormData.email,
+    user_id: storedUser?.id,
+    borrowerName: storedUser?.fullName || "",
+    department: storedUser?.department_name || "",
+    phone: storedUser?.phone || "",
+    email: storedUser?.email || "",
     material: borrowFormData.material,
     category: borrowFormData.category,
     equipment: borrowFormData.equipment,
     brand: borrowFormData.brand,
-    quantity: parseInt(borrowFormData.quantity, 10) || 0,
+    equipmentNumber: borrowFormData.equipmentNumber,
+    serialNumber: borrowFormData.serialNumber,
+    quantity_requested: parseInt(borrowFormData.quantity, 10) || 0,
     note: borrowFormData.note || '',
     requestDate: borrowFormData.requestDate,
   };
+
+  console.log("📤 Data Sent to API:", dataToSend);
 
   try {
     await axios.post('http://localhost:5001/api/requests', dataToSend);
     alert('บันทึกคำขอสำเร็จ');
     setShowBorrowForm(false);
-
-    // หลังจากบันทึกคำขอสำเร็จ ให้ดึงข้อมูลสินค้าล่าสุดมาอัปเดตตาราง
-    const productResponse = await axios.get(`http://localhost:5001/api/products`);
-    setData(productResponse.data.data || []);
-    setFilteredData(productResponse.data.data || []);
   } catch (error) {
-    console.error('เกิดข้อผิดพลาด:', error.response ? error.response.data : error.message);
+    console.error('❌ Error:', error.response ? error.response.data : error.message);
     alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.error || 'ไม่ทราบสาเหตุ'));
   }
 };
 
-    
+
   const handleCloseBorrowForm = () => {
     setShowBorrowForm(false); // หรือฟังก์ชันที่คุณใช้ซ่อนฟอร์ม
   };
