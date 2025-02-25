@@ -501,8 +501,6 @@ const brand_name = brand;
 const product_name = equipment; // ✅ name ควรเป็นค่า equipment (หมึกพิมพ์)
 
 
-
-
   // ตรวจสอบว่าข้อมูลครบถ้วน
   if (!model || !category_name || !name || !brand_name || !inventory_number) {
       console.error("❌ ข้อมูลไม่ครบ:", { model, category_name, name, brand_name, inventory_number });
@@ -529,29 +527,31 @@ db.query(
 });
 
 // ดึงข้อมูลจำนวนคงเหลือตามวัสดุ, ประเภท, อุปกรณ์, ยี่ห้อ
-app.get("/api/remaining", (req, res) => {
-  const { model, category, equipment, brand } = req.query;
+app.put("/api/products/:id/remaining", async (req, res) => { 
+  const { remaining } = req.body;
+  const { id } = req.params;
 
-  if (!model || !category || !equipment || !brand) {
-    return res.status(400).json({ success: false, message: "กรุณาระบุข้อมูลให้ครบถ้วน" });
+  console.log("📌 ได้รับค่า:", { id, remaining }); // ✅ Debug ข้อมูลที่ส่งมา
+
+  if (!id || remaining === undefined) {
+      return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบถ้วน" });
   }
 
-  const query = `
-    SELECT remaining FROM products 
-    WHERE model = ? AND category_name = ? AND name = ? AND brand_name = ?`;
+  try {
+      // ใช้ `promise().query()` เพื่อรองรับ async/await
+      const [result] = await db.promise().query("UPDATE products SET remaining = ? WHERE id = ?", [remaining, id]);
 
-  db.query(query, [model, category, equipment, brand], (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
-    }
+      console.log("📌 อัปเดตฐานข้อมูลสำเร็จ:", result);
 
-    if (results.length === 0) {
-      return res.status(404).json({ success: false, message: "ไม่พบข้อมูลจำนวนคงเหลือ" });
-    }
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ success: false, message: "❌ ไม่พบสินค้าในฐานข้อมูล" });
+      }
 
-    res.status(200).json({ success: true, remaining: results[0].remaining });
-  });
+      return res.json({ success: true, message: "✅ อัปเดตจำนวนคงเหลือสำเร็จ" });
+  } catch (error) {
+      console.error("❌ ข้อผิดพลาดในการอัปเดต:", error);
+      return res.status(500).json({ success: false, message: "❌ เกิดข้อผิดพลาดในการอัปเดต" });
+  }
 });
 
 // อัปเดตข้อมูล
@@ -1156,33 +1156,32 @@ router.post('/requests', (req, res) => {
     type,
     equipment,
     brand,
-    equipment_number,   // ✅ เพิ่ม equipment_number
-    serial_number,      // ✅ เพิ่ม serial_number
-    quantity_requested, // ✅ เปลี่ยนจาก quantity เป็น quantity_requested
+    equipment_number,
+    serial_number,
+    quantity_requested,
     note,
     date_requested,
   } = req.body;
 
   const findUserSql = `SELECT id FROM users WHERE fullName = ?`;
-  const checkStockSql = `
+  
+  const checkStockSql = ` 
     SELECT model, (inventory_number - borrowed_number) AS remaining 
     FROM products 
-    WHERE model = ? HAVING remaining >= ?
-`;
+    WHERE model = ? AND (inventory_number - borrowed_number) >= ? 
+  `; // ✅ ใช้ WHERE แทน HAVING
+
   const insertSql = `
     INSERT INTO requests 
     (user_id, borrower_name, department, phone, email, material, type, equipment, brand, equipment_number, serial_number, quantity_requested, note, date_requested)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-  // แทนที่โค้ดอัปเดตเดิมที่ใช้ remaining
-const updateStockSql = `
-UPDATE products 
-SET borrowed_number = borrowed_number + ? 
-WHERE model = ? AND (inventory_number - borrowed_number) >= ?
-`;
-
-
+  const updateStockSql = `
+    UPDATE products 
+    SET borrowed_number = borrowed_number + ? 
+    WHERE model = ? AND (inventory_number - borrowed_number) >= ?
+  `;
 
   db.query(findUserSql, [borrower_name], (err, userResult) => {
     if (err) {
@@ -1195,7 +1194,7 @@ WHERE model = ? AND (inventory_number - borrowed_number) >= ?
 
     const userId = userResult[0].id;
 
-    db.query(checkStockSql, [material], (err, stockResult) => {
+    db.query(checkStockSql, [material, quantity_requested], (err, stockResult) => {
       if (err) {
         return res.status(500).json({ error: 'CHECK STOCK FAILED: ' + err.message });
       }
@@ -1217,7 +1216,7 @@ WHERE model = ? AND (inventory_number - borrowed_number) >= ?
             return res.status(500).json({ error: 'INSERT REQUEST FAILED: ' + err.message });
           }
 
-          db.query(updateProductSql, [quantity_requested, material, quantity_requested], (err, updateResult) => {
+          db.query(updateStockSql, [quantity_requested, material, quantity_requested], (err, updateResult) => {
             if (err) {
               return res.status(500).json({ error: 'บันทึกคำขอได้ แต่ตัดสต็อกไม่สำเร็จ: ' + err.message });
             }

@@ -13,7 +13,6 @@ const SignUp = () => {
     const [image, setImage] = useState(null); // ✅ เพิ่ม state ที่ขาดหายไป
     const [previewImage, setPreviewImage] = useState(null);
     const [dragging, setDragging] = useState(false);
-    const [isSecretary, setIsSecretary] = useState(false);
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -43,32 +42,16 @@ const SignUp = () => {
     
     useEffect(() => {
         if (formData.department_id) {
-            const selectedDepartment = departments.find(d => d.id == formData.department_id);
-            if (selectedDepartment && selectedDepartment.type === "เลขา") {
-                setIsSecretary(true);
-                setFormData(prevState => ({
-                    ...prevState,
-                    section_id: "",
-                    task_id: ""
-                }));
-                setSections([]);
-                setTasks([]);
-            } else {
-                setIsSecretary(false);
-                axios.get(`http://localhost:5001/api/sections/${formData.department_id}`)
-                    .then(response => {
-                        setSections(response.data);
-                        console.log("✅ Sections Loaded:", response.data);
-                    })
-                    .catch(error => console.error('❌ Error loading sections:', error));
-            }
+            axios.get(`http://localhost:5001/api/sections/${formData.department_id}`)
+                .then(response => {
+                    setSections(response.data);
+                    console.log("✅ Sections Loaded:", response.data);
+                })
+                .catch(error => console.error('❌ Error loading sections:', error));
         } else {
             setSections([]);
-            setTasks([]);
         }
-        console.log("🔥 isSecretary:", isSecretary);
     }, [formData.department_id]);
-    
     
     useEffect(() => {
         if (formData.section_id) {
@@ -87,21 +70,24 @@ const SignUp = () => {
         setPasswordMatch(formData.password === formData.confirmPassword);
     }, [formData.password, formData.confirmPassword]);
     
+
+    // ✅ Handle input change
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        
+    
         setFormData(prevState => ({
             ...prevState,
             [name]: value,
-            ...(name === "department_id" && !isSecretary && { section_id: "", task_id: "" }),
+            ...(name === "department_id" && { section_id: "", task_id: "" }),
             ...(name === "section_id" && { task_id: "" })
         }));
-
+    
+        // ✅ ตรวจสอบว่ารหัสผ่านและยืนยันรหัสผ่านตรงกันแบบเรียลไทม์
         if (name === "confirmPassword") {
             setPasswordMatch(value === formData.password);
         }
     };
-
+    
     // ✅ อัปโหลดไฟล์รูปภาพ
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -138,8 +124,7 @@ const SignUp = () => {
     };
     
     const validateForm = () => {
-        if (!formData.username || !formData.password || !formData.confirmPassword || 
-            !formData.fullName || !formData.email || !formData.phone || !formData.department_id) {
+        if (!formData.username || !formData.password || !formData.confirmPassword || !formData.fullName || !formData.email || !formData.phone || !formData.department_id || !formData.section_id || !formData.task_id) {
             alert("❌ กรุณากรอกข้อมูลให้ครบทุกช่อง!");
             return false;
         }
@@ -147,18 +132,9 @@ const SignUp = () => {
             alert("❌ รหัสผ่านไม่ตรงกัน!");
             return false;
         }
-        // ✅ ถ้าเป็นเลขา ให้ตั้งค่า section_id และ task_id เป็น "-"
-        if (isSecretary) {
-            formData.section_id = "-";
-            formData.task_id = "-";
-        } else if (!formData.section_id || !formData.task_id) {
-            alert("❌ กรุณากรอกข้อมูลให้ครบทุกช่อง!");
-            return false;
-        }
         return true;
     };
-    
-    
+        
     
     // ✅ Handle form submit
      // ✅ ส่งข้อมูลไป Backend
@@ -169,11 +145,29 @@ const SignUp = () => {
             return;
         }
     
-        // ✅ Debug ข้อมูลก่อนส่งไป API
-        console.log("🚀 Data before submitting:", formData);
+        const selectedDepartment = departments.find(d => d.id == formData.department_id);
+        const selectedSection = sections.find(s => s.id == formData.section_id);
+        const selectedTask = tasks.find(t => t.id == formData.task_id);
+    
+        const data = new FormData();
+        data.append("username", formData.username);
+        data.append("password", formData.password);
+        data.append("fullName", formData.fullName);
+        data.append("email", formData.email);
+        data.append("phone", formData.phone);
+        data.append("department_name", selectedDepartment ? selectedDepartment.name : "");
+        data.append("section_name", selectedSection ? selectedSection.name : "");
+        data.append("task_name", selectedTask ? selectedTask.name : "");
+    
+        if (image) { 
+            data.append("image", image);
+        }
     
         try {
-            const response = await axios.post('http://localhost:5001/api/signup', formData);
+            const response = await axios.post('http://localhost:5001/api/signup', data, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+    
             if (response.data.success) {
                 alert('✅ สมัครสมาชิกสำเร็จ!');
                 navigate('/');

@@ -70,15 +70,16 @@ const Settings = () => {
   
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/products');
-      if (response.data.success) {
-        setData(response.data.data); // ตั้งค่า State ของข้อมูล
-        console.log("Fetched data:", response.data.data);
-      }
+        const response = await axios.get("http://localhost:5001/api/products");
+        if (response.data.success) {
+            setData(response.data.data); // อัปเดต state ของ data
+            console.log("Fetched data:", response.data.data);
+        }
     } catch (error) {
-      console.error("Error fetching data:", error);
+        console.error("Error fetching data:", error);
     }
-  };
+};
+
   
   const handleRefresh = () => {
     fetchData(); // โหลดข้อมูลใหม่
@@ -171,27 +172,34 @@ const Settings = () => {
   }, []);
   
   
-  const handleEditClick = (item) => {
-    setCurrentEditItem({
-      id: item.id || "", 
-      name: item.material || "",
-      category: item.category || "",
-      equipment: item.equipment || "",
-      brand: item.brand || "",
-      equipment_number: item.equipment_number || "-",
-      serial_number: item.serial_number || "-",
-      inventory_number: item.inventory_number || 0,
-      details: item.details !== "-" ? item.details || "" : "",  // ✅ อนุญาตให้เป็นค่าว่าง
-    });
-    setShowEditModal(true);
-};
+  const handleEditClick = async (item) => {
+    try {
+        const response = await axios.get(`http://localhost:5001/api/products/${item.id}`);
+        console.log("📌 API Response:", response.data); // Debug ตรวจสอบค่าจากฐานข้อมูล
 
+        setCurrentEditItem({
+            id: response.data.id,
+            name: response.data.model,
+            category: response.data.category_name,
+            equipment: response.data.name,
+            brand: response.data.brand_name,
+            equipment_number: response.data.equipment_number || "-",
+            serial_number: response.data.serial_number || "-",
+            inventory_number: response.data.inventory_number || 0,
+            remaining: response.data.remaining || 0, // ✅ ตรวจสอบให้ใช้ค่า remaining
+            details: response.data.details || "-",
+        });
+        setShowEditModal(true);
+    } catch (error) {
+        console.error("❌ Error fetching product details:", error);
+        alert("ไม่สามารถโหลดข้อมูลล่าสุดได้");
+    }
+};
 
   useEffect(() => {
     console.log("Current Edit Item:", currentEditItem);
   }, [currentEditItem]);
   
-
   
   const handleInputChange = (field, value) => {
     setCurrentEditItem((prev) => ({ ...prev, [field]: value }));
@@ -199,38 +207,32 @@ const Settings = () => {
   
   const handleSave = async () => {
     try {
-      const payload = {
-        name: currentEditItem.name || "-",
-        category_name: currentEditItem.category || "-",
-        equipment: currentEditItem.equipment || "-",
-        brand_name: currentEditItem.brand || "-",
-        equipment_number: currentEditItem.equipment_number || "-",
-        serial_number: currentEditItem.serial_number || "-",
-        inventory_number: currentEditItem.inventory_number || 1,
-        remaining: currentEditItem.remaining || 0, // ✅ บันทึกค่าคงเหลือ
-        details: currentEditItem.details.trim() === "-" ? "" : currentEditItem.details.trim(),
-      };
-  
-      console.log("📌 กำลังส่งข้อมูล:", payload);
-  
-      const response = await axios.put(
-        `http://localhost:5001/api/products/${currentEditItem.id}`,
-        payload
-      );
-  
-      if (response.data.success) {
-        alert("✅ บันทึกข้อมูลสำเร็จ");
-        setShowEditModal(false);
-        fetchData();
-      } else {
-        alert("❌ ไม่สามารถบันทึกข้อมูลได้");
-      }
+        const payload = { remaining: currentEditItem.remaining };
+
+        console.log("📌 ส่งค่าไปยัง API:", payload);
+
+        const response = await axios.put(
+            `http://localhost:5001/api/products/${currentEditItem.id}/remaining`,
+            payload
+        );
+
+        console.log("📌 Response จาก API:", response.data);
+
+        if (response.data.success) {
+            alert("✅ อัปเดตจำนวนคงเหลือสำเร็จ!");
+            setShowEditModal(false);
+            
+            // ✅ โหลดข้อมูลใหม่ทันที
+            await fetchData();
+        } else {
+            alert(`❌ ไม่สามารถบันทึกข้อมูลได้: ${response.data.message}`);
+        }
     } catch (error) {
-      console.error("❌ Error updating data:", error);
-      alert("❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล");
+        console.error("❌ Error updating remaining:", error.response?.data || error);
+        alert(`❌ เกิดข้อผิดพลาดในการอัปเดตจำนวนคงเหลือ`);
     }
-  };
-  
+};
+
   const openEditModal = (item) => {
     console.log("Item received:", item);
     setCurrentEditItem({
@@ -449,10 +451,12 @@ const fetchEquipments = async () => {
       console.log("📌 ข้อมูลที่โหลดจาก API:", response.data);
 
       if (response.data.success) {
+          // ✅ กรองค่าอุปกรณ์ที่ซ้ำกัน
           const uniqueEquipments = response.data.data.filter(
               (item, index, self) =>
                   index === self.findIndex((t) => t.equipment === item.equipment)
           );
+
           console.log("📌 อุปกรณ์ที่ถูกกรอง:", uniqueEquipments);
           setEquipments(uniqueEquipments);
       }
@@ -460,6 +464,7 @@ const fetchEquipments = async () => {
       console.error("❌ Error fetching equipments:", error);
   }
 };
+
   // ฟังก์ชันเปิด Modal
   const handleShowEquipmentsModal = () => {
     setShowEquipmentsModal(true);
@@ -471,47 +476,49 @@ const fetchEquipments = async () => {
   };
 
   const handleEditEquipment = (index) => {
-    console.log("📌 แก้ไขอุปกรณ์ที่แถว:", index, "ข้อมูล:", equipments[index]); // Debug
+    console.log("📌 แก้ไขอุปกรณ์ที่แถว:", index, "ข้อมูล:", equipments[index]);
 
-    setEditingEquipmentRow(index); // กำหนดแถวที่กำลังแก้ไข
-    setEditingEquipmentName(equipments[index]?.equipment || ""); // ดึงค่าปัจจุบันมาแก้ไข
+    setEditingEquipmentRow(index); // ✅ กำหนด index ที่กำลังแก้ไข
+    setEditingEquipmentName(equipments[index]?.equipment || ""); // ✅ ตรวจสอบว่าค่ามีอยู่จริง
 };
+
 
   
   // ฟังก์ชันเพิ่มอุปกรณ์ใหม่
   const handleAddEquipment = async () => {
-    console.log("📌 ค่าที่จะส่งไป API:", newEquipment);
-
     if (!newEquipment.trim()) {
-        alert("กรุณากรอกชื่ออุปกรณ์");
+        alert("❌ กรุณากรอกชื่ออุปกรณ์");
         return;
     }
 
     try {
+        console.log("📌 ค่าที่จะส่งไป API:", { equipment: newEquipment });
+
         const response = await axios.post("http://localhost:5001/api/products", {
-            name: newEquipment,
+            equipment: newEquipment, // ✅ ใช้คีย์ให้ตรงกับ API
             brand_name: newBrand || "ทั่วไป",
             equipment_number: newEquipmentNumber || "-",
-            serial_number: newSerial || "ไม่มี",
+            serial_number: newSerial || "-",
             inventory_number: newInventory || 1,
             remaining: newInventory || 1,
-            details: newDetails || "ไม่มีรายละเอียด",
+            details: newDetails || "-",
         });
 
         console.log("📌 คำตอบจาก API:", response.data);
 
         if (response.data.success) {
-            alert("เพิ่มอุปกรณ์สำเร็จ");
+            alert("✅ เพิ่มอุปกรณ์สำเร็จ!");
             fetchEquipments(); // โหลดข้อมูลใหม่
             setNewEquipment(""); // ล้างค่า input
         } else {
-            alert(response.data.message || "เกิดข้อผิดพลาด");
+            alert(`❌ ไม่สามารถเพิ่มอุปกรณ์ได้: ${response.data.message}`);
         }
     } catch (error) {
-        console.error("❌ Error adding equipment:", error);
-        alert("เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์");
+        console.error("❌ Error adding equipment:", error.response?.data || error);
+        alert("❌ เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์");
     }
 };
+
 
 const handleSaveEquipment = async (index) => {
   if (!editingEquipmentName.trim()) {
@@ -520,20 +527,25 @@ const handleSaveEquipment = async (index) => {
   }
 
   console.log("📌 กำลังอัปเดตอุปกรณ์...");
-  console.log("📌 ID:", equipments[index].id);
-  console.log("📌 ค่าที่จะส่งไป API:", { name: editingEquipmentName });
+  console.log("📌 ID:", equipments[index]?.id);
+  console.log("📌 ค่าที่จะส่งไป API:", { equipment: editingEquipmentName });
 
   try {
       const response = await axios.put(
-          `http://localhost:5001/api/products/${equipments[index].id}`,
-          { name: editingEquipmentName } // ✅ ต้องแน่ใจว่าชื่อฟิลด์ถูกต้อง
+          `http://localhost:5001/api/products/${equipments[index]?.id}`,
+          { equipment: editingEquipmentName } // ✅ ตรวจสอบให้ส่งค่าถูกต้อง
       );
 
       console.log("📌 Response จาก API:", response.data);
 
       if (response.data.success) {
           alert("✅ อัปเดตสำเร็จ!");
-          fetchEquipments(); // ✅ โหลดข้อมูลใหม่
+          setEquipments((prevEquipments) =>
+              prevEquipments.map((item, i) =>
+                  i === index ? { ...item, equipment: editingEquipmentName } : item
+              )
+          );
+          setEditingEquipmentRow(null);
       } else {
           alert("❌ ไม่สามารถอัปเดตข้อมูลได้");
       }
@@ -546,25 +558,34 @@ const handleSaveEquipment = async (index) => {
 
   // ฟังก์ชันลบอุปกรณ์
   const handleDeleteEquipment = async (index) => {
-    if (window.confirm("คุณต้องการลบอุปกรณ์นี้หรือไม่?")) {
-      try {
-        const response = await axios.post("http://localhost:5001/api/products/delete", {
-          ids: [equipments[index].id],
-        });
-  
-        if (response.data.success) {
-          const updatedEquipments = equipments.filter((_, i) => i !== index);
-          setEquipments(updatedEquipments); // อัปเดต state
-          alert("ลบข้อมูลอุปกรณ์สำเร็จ");
-        } else {
-          alert("เกิดข้อผิดพลาดในการลบข้อมูลอุปกรณ์");
-        }
-      } catch (error) {
-        console.error("Error deleting equipment:", error);
-        alert("เกิดข้อผิดพลาดในการลบข้อมูลอุปกรณ์");
-      }
+    const equipmentId = equipments[index]?.id;
+    if (!equipmentId) {
+        alert("❌ ไม่พบ ID ของอุปกรณ์ที่ต้องการลบ");
+        return;
     }
-  };
+
+    if (!window.confirm("⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบอุปกรณ์นี้?")) return;
+
+    try {
+        console.log("📌 กำลังส่งคำขอลบ ID:", equipmentId);
+
+        const response = await axios.delete(`http://localhost:5001/api/products/${equipmentId}`);
+
+        console.log("📌 คำตอบจาก API:", response.data);
+
+        if (response.data.success) {
+            alert("✅ ลบข้อมูลอุปกรณ์สำเร็จ!");
+            setEquipments((prevEquipments) => prevEquipments.filter((_, i) => i !== index));
+        } else {
+            alert(`❌ ไม่สามารถลบข้อมูลได้: ${response.data.message}`);
+        }
+    } catch (error) {
+        console.error("❌ Error deleting equipment:", error.response?.data || error);
+        alert("❌ เกิดข้อผิดพลาดในการลบข้อมูลอุปกรณ์");
+    }
+};
+
+
   
   
   const getUniqueEquipments = (data) => {
@@ -992,7 +1013,6 @@ useEffect(() => {
                 <th>หมายเลขครุภัณฑ์</th>
                 <th>serial</th>
                 <th>จำนวน</th>
-                <th>คงเหลือ</th>
                 <th>รายละเอียด</th> 
                 <th>จัดการ</th>
               </tr>
@@ -1014,7 +1034,6 @@ useEffect(() => {
                   <td>{item.equipment_number}</td>
                   <td>{item.serial_number}</td>
                   <td>{item.inventory_number}</td>
-                  <td>{item.remaining}</td> {/* จำนวน */}
                   <td>{item.details || "ไม่มีรายละเอียด"}</td> {/* เพิ่มการแสดงผล */}
                   <td>
                     <button className="edit-btn" onClick={() => handleEditClick(item)}>
@@ -1356,18 +1375,21 @@ useEffect(() => {
             />
           </div>
           <div className="form-row">
-            <label>คงเหลือ:</label>
-            <input
-              type="number"
-              value={currentEditItem.remaining || ""}
-              onChange={(e) =>
-                  setCurrentEditItem({
-                    ...currentEditItem,
-                    remaining: e.target.value, // ✅ อัปเดตค่าใน state
-                  })
-              }
-            />
-          </div>
+  <label>คงเหลือ:</label>
+  <input
+    type="number"
+    min="0"
+    max={currentEditItem.inventory_number} // ✅ ป้องกันไม่ให้เกินจำนวนทั้งหมด
+    value={currentEditItem.remaining || ""}
+    onChange={(e) =>
+      setCurrentEditItem({
+        ...currentEditItem,
+        remaining: e.target.value, // ✅ ให้ผู้ใช้เปลี่ยนแปลงค่าได้
+      })
+    }
+  />
+</div>
+
           <div className="form-row">
             <label>รายละเอียด:</label>
             <textarea

@@ -3,7 +3,7 @@ body {
   }
   
   .BorrowEqui-container {
-    max-height: 400px; /* หรือความสูงที่ต้องการ */
+    max-height: 1200px; /* หรือความสูงที่ต้องการ */
     margin: 15px auto;
     padding: 20px;
     background-color: #ffffff;
@@ -365,9 +365,17 @@ body {
     text-align: center;
   }
   
-  .form-group-rqf {
-    margin-bottom: 15px;
+  .form-grid {
+    display: flex;
+    gap: 20px; /* ระยะห่างระหว่างคอลัมน์ */
   }
+  
+  .form-group-rqf {
+    flex: 1; /* ทำให้แต่ละ input ใช้พื้นที่เท่า ๆ กัน */
+    display: flex;
+    flex-direction: column;
+  }
+  
   
   .form-group-rqf label {
     display: block;
@@ -504,6 +512,20 @@ body {
     position: relative;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   }
+  
+  .BorrowEqui-submit-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px; /* ปรับระยะห่างด้านบน */
+  }
+  
+  .BorrowEqui-submit-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px; /* ปรับระยะห่างด้านบน */
+  } 
   
   
   @keyframes slideIn {

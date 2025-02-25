@@ -1,13 +1,15 @@
 /* ✅ ปรับตำแหน่งตารางให้เหมาะกับดีไซน์ */
 .table-container-srq {
-  margin: 15px auto; /* ระยะห่างจากด้านบน */
+  margin: 200px auto; /* ระยะห่างจากด้านบน */
   padding: 20px; /* เพิ่ม Padding ด้านใน */
   background-color: #ffffff; /* สีพื้นหลัง */
   border-radius: 10px; /* มุมโค้ง */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
   max-width: 1800px; /* ความกว้างสูงสุด */
   width: 100%; /* ใช้ 100% ของหน้าจอ */
-  margin-top: 190px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+  margin-top: 200px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+  display: flex;
+  flex-direction: column;
   }
   
   .title-srq {
@@ -94,4 +96,176 @@
     margin-top: 20px;
     
   }
+
+  /* ✅ สไตล์สำหรับ Modal */
+/* ✅ ปรับ Modal ให้ลอยอยู่บนสุด */
+/* ✅ ทำให้ Modal อยู่กลางจอ และอยู่บนสุด */
+.request-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4); /* ✅ สีเข้มขึ้นเล็กน้อย */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* ✅ ปรับให้ Modal ไม่สูงเกินไป */
+.request-modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 750px;
+  max-height: 90vh; /* ✅ ป้องกันไม่ให้ Modal สูงเกินจอ */
+  overflow-y: auto; /* ✅ ถ้าเนื้อหาเกินให้เลื่อนลง */
+  position: relative;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* ✅ ปรับหัวข้อให้เด่นขึ้น */
+.request-modal-header {
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* ✅ ปรับปุ่มปิดให้ดูดีขึ้น */
+.request-close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.request-close-button:hover {
+  background-color: darkred;
+  transform: scale(1.1);
+}
+
+/* ✅ ปรับฟอร์มให้เป็น 2 คอลัมน์ */
+.request-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  margin-bottom: 15px;
+}
+
+/* ✅ ปรับช่องอินพุตให้ดูเป็นระเบียบ */
+.request-form-field label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #020202;
+}
+
+/* ✅ ปรับช่องอินพุตให้สวยงาม */
+.request-form-field input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f9f9f9;
+  font-size: 16px;
+}
+
+/* ✅ ทำให้ช่องข้อมูลอ่านง่ายขึ้น */
+.request-form-field input[readonly] {
+  background: #e9ecef;
+  color: #555;
+}
+
+/* ✅ ปุ่มใน Modal */
+.request-modal-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.request-modal-footer button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.request-modal-footer button:hover {
+  background: #0056b3;
+}
+
+/* ✅ สไตล์สำหรับฟิลเตอร์ค้นหาด้วยวันที่ */
+.filter-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* ระยะห่างระหว่างช่อง */
+  margin-bottom: 15px;
+}
+
+.filter-container input {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.filter-container button {
+  padding: 8px 16px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.filter-container button:hover {
+  background-color: #0056b3;
+}
+
+
+/* ✅ สไตล์สำหรับปุ่มแบ่งหน้า */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.pagination button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pagination button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+
+
   

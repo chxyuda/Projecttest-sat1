@@ -247,14 +247,16 @@ const handleShowBorrowForm = async (row) => {
 const handleSubmitBorrow = async (e) => {
   e.preventDefault();
 
-  console.log("🔍 Stored User:", storedUser);
+  const user = userData || JSON.parse(localStorage.getItem('user')) || {}; // ✅ โหลดข้อมูลจาก LocalStorage
+
+  console.log("🔍 ผู้ใช้ที่ใช้ในฟอร์มเบิก:", user); // ✅ Debug ตรวจสอบข้อมูล
 
   const dataToSend = {
-    user_id: storedUser?.id,
-    borrowerName: storedUser?.fullName || "",
-    department: storedUser?.department_name || "",
-    phone: storedUser?.phone || "",
-    email: storedUser?.email || "",
+    user_id: user.id || storedUser.id,  // ✅ ใช้ user.id หรือ storedUser.id
+    borrower_name: user.fullName || storedUser.fullName || "", // ✅ ใช้ fullName ที่ตรงกับฐานข้อมูล
+    department: user.department_name || "",
+    phone: user.phone || "",
+    email: user.email || "",
     material: borrowFormData.material,
     category: borrowFormData.category,
     equipment: borrowFormData.equipment,
@@ -309,15 +311,19 @@ const handleSubmitBorrow = async (e) => {
         phone: userData.phone,
         email: userData.email,
         material: row.material,
-        category: row.category, // ประเภท (type)
+        category: row.category,
         equipment: row.equipment,
         brand: row.brand,
-        remaining: updatedRemaining, // อัปเดตจำนวนคงเหลือล่าสุด
+        remaining: updatedRemaining,
         quantity_requested: '',
         note: '',
         requestDate: new Date().toISOString().split('T')[0],
         returnDate: '',
+        equipment_number: row.equipment_number || '', 
+        serial_number: row.serial_number || ''
       });
+      
+     
   
       setShowLoanForm(true);
     } catch (error) {
@@ -330,6 +336,7 @@ const handleSubmitBorrow = async (e) => {
     e.preventDefault();
   
     const userData = JSON.parse(localStorage.getItem('user'));
+
     const dataToSend = {
       user_id: userData.id,
       borrower_name: loanFormData.borrowerName,
@@ -337,15 +344,18 @@ const handleSubmitBorrow = async (e) => {
       phone: loanFormData.phone || '',
       email: loanFormData.email,
       material: loanFormData.material,
-      category: loanFormData.category, // ✅ เปลี่ยนตรงนี้ จาก type → category
+      category: loanFormData.category,
       equipment: loanFormData.equipment,
       brand: loanFormData.brand,
       quantity_requested: parseInt(loanFormData.quantity_requested, 10) || 0,
       note: loanFormData.note || '',
       request_date: loanFormData.requestDate,
       return_date: loanFormData.returnDate,
+      equipment_number: loanFormData.equipment_number,
+      serial_number: loanFormData.serial_number
     };
-  
+    
+
     try {
       await axios.post('http://localhost:5001/api/borrow-requests', dataToSend);
       alert('บันทึกคำขอยืมสำเร็จ');
@@ -545,159 +555,259 @@ const handleSubmitBorrow = async (e) => {
        {showBorrowForm && (
   <div className="BorrowEqui-modal-overlay">
     <div className="BorrowEqui-modal-content">
-      <button className="BorrowEqui-close-btn" onClick={handleCloseBorrowForm}>×</button>
-      <h2>รายละเอียดการเบิกวัสดุ</h2>
+      <button className="BorrowEqui-close-btn" onClick={() => setShowBorrowForm(false)}>×</button>
+      <h2>รายละเอียดการขอเบิก</h2>
+
       <form onSubmit={handleSubmitBorrow}>
-        <div className="form-group-rqf">
-          <label>ชื่อผู้เบิก:</label>
-          <input type="text" value={borrowFormData.borrowerName} readOnly />
+        {/* กลุ่มข้อมูลผู้ขอเบิก */}
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>ชื่อผู้ขอเบิก:</label>
+            <input type="text" value={borrowFormData.borrowerName} readOnly />
+          </div>
+          <div className="form-group-rqf">
+            <label>ฝ่ายสำนัก:</label>
+            <input type="text" value={borrowFormData.department} readOnly />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>ฝ่ายสำนัก:</label>
-          <input type="text" value={borrowFormData.department} readOnly />
+
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>เบอร์โทรภายใน:</label>
+            <input type="text" value={borrowFormData.phoneExt} readOnly />
+          </div>
+          <div className="form-group-rqf">
+            <label>Email:</label>
+            <input type="text" value={borrowFormData.email} readOnly />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>เบอร์โทรภายใน:</label>
-          <input type="text" value={borrowFormData.phoneExt} readOnly />
+
+        {/* กลุ่มข้อมูลวัสดุอุปกรณ์ */}
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>ชื่อวัสดุ:</label>
+            <input type="text" value={borrowFormData.material} readOnly />
+          </div>
+          <div className="form-group-rqf">
+            <label>ประเภท:</label>
+            <input type="text" value={borrowFormData.category} readOnly />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>Email:</label>
-          <input type="text" value={borrowFormData.email} readOnly />
+
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>อุปกรณ์:</label>
+            <input type="text" value={borrowFormData.equipment} readOnly />
+          </div>
+          <div className="form-group-rqf">
+            <label>ยี่ห้อ:</label>
+            <input type="text" value={borrowFormData.brand} readOnly />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>ชื่อวัสดุ:</label>
-          <input type="text" value={borrowFormData.material} readOnly />
+
+        {/* กลุ่มหมายเลขครุภัณฑ์และ Serial Number */}
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>หมายเลขครุภัณฑ์:</label>
+            <input
+              type="text"
+              value={borrowFormData.equipmentNumber}
+              readOnly
+            />
+          </div>
+          <div className="form-group-rqf">
+            <label>Serial Number:</label>
+            <input
+              type="text"
+              value={borrowFormData.serialNumber}
+              readOnly
+            />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>ประเภท:</label>
-          <input type="text" value={borrowFormData.category} readOnly />
+
+        {/* จำนวน & หมายเหตุ */}
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>จำนวนคงเหลือ:</label>
+            <input type="text" value={borrowFormData.remaining} readOnly />
+          </div>
+          <div className="form-group-rqf">
+            <label>จำนวน:</label>
+            <input
+              type="number"
+              min="1"
+              max={borrowFormData.remaining}
+              value={borrowFormData.quantity}
+              onChange={(e) =>
+                setBorrowFormData((prev) => ({ ...prev, quantity: e.target.value }))
+              }
+              required
+            />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>อุปกรณ์:</label>
-          <input type="text" value={borrowFormData.equipment} readOnly />
+
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>หมายเหตุ:</label>
+            <input
+              type="text"
+              value={borrowFormData.note}
+              onChange={(e) => setBorrowFormData((prev) => ({ ...prev, note: e.target.value }))}
+            />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>ยี่ห้อ:</label>
-          <input type="text" value={borrowFormData.brand} readOnly />
+
+        {/* วันที่ขอเบิก */}
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>วันที่ขอเบิก:</label>
+            <input
+              type="date"
+              value={borrowFormData.requestDate}
+              onChange={(e) => setBorrowFormData((prev) => ({ ...prev, requestDate: e.target.value }))}
+              required
+            />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>จำนวนคงเหลือ:</label>
-          <input type="text" value={borrowFormData.remaining} readOnly />
+
+        {/* ปุ่มบันทึก */}
+        <div className="BorrowEqui-submit-container">
+          <button className="BorrowEqui-submit-btn" type="submit">
+            บันทึกคำขอ
+          </button>
         </div>
-        <div className="form-group-rqf">
-          <label>จำนวน:</label>
-          <input
-            type="number"
-            min="1"
-            max={borrowFormData.remaining}
-            value={borrowFormData.quantity}
-            onChange={(e) => setBorrowFormData({ ...borrowFormData, quantity: e.target.value })}
-            required
-          />
-        </div>
-        <div className="form-group-rqf">
-          <label>หมายเหตุ:</label>
-          <input
-            type="text"
-            value={borrowFormData.note}
-            onChange={(e) => setBorrowFormData({ ...borrowFormData, note: e.target.value })}
-          />
-        </div>
-        <div className="form-group-rqf">
-          <label>วันที่เบิก:</label>
-          <input
-            type="date"
-            value={borrowFormData.requestDate}
-            onChange={(e) => setBorrowFormData({ ...borrowFormData, requestDate: e.target.value })}
-            required
-          />
-        </div>
-        <button className="BorrowEqui-submit-btn" type="submit">บันทึกคำขอ</button>
       </form>
     </div>
   </div>
 )}
+
 {showLoanForm && (
   <div className="BorrowEqui-modal-overlay">
     <div className="BorrowEqui-modal-content">
       <button className="BorrowEqui-close-btn" onClick={handleCloseLoanForm}>×</button>
       <h2>รายละเอียดการยืมวัสดุ</h2>
+      
       <form onSubmit={handleSubmitLoan}>
-        <div className="form-group-rqf">
-          <label>ชื่อผู้ยืม:</label>
-          <input type="text" value={loanFormData.borrowerName} readOnly />
+        {/* เริ่มต้นการจัดเป็น 2 คอลัมน์ */}
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>ชื่อผู้ยืม:</label>
+            <input type="text" value={loanFormData.borrowerName} readOnly />
+          </div>
+          <div className="form-group-rqf">
+            <label>ฝ่ายสำนัก:</label>
+            <input type="text" value={loanFormData.department} readOnly />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>ฝ่ายสำนัก:</label>
-          <input type="text" value={loanFormData.department} readOnly />
+
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>เบอร์โทรภายใน:</label>
+            <input type="text" value={loanFormData.phone} readOnly />
+          </div>
+          <div className="form-group-rqf">
+            <label>Email:</label>
+            <input type="text" value={loanFormData.email} readOnly />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>เบอร์โทรภายใน:</label>
-          <input type="text" value={loanFormData.phone} readOnly />
+
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>ชื่อวัสดุ:</label>
+            <input type="text" value={loanFormData.material} readOnly />
+          </div>
+          <div className="form-group-rqf">
+            <label>ประเภท:</label>
+            <input type="text" value={loanFormData.category} readOnly />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>Email:</label>
-          <input type="text" value={loanFormData.email} readOnly />
+
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>อุปกรณ์:</label>
+            <input type="text" value={loanFormData.equipment} readOnly />
+          </div>
+          <div className="form-group-rqf">
+            <label>ยี่ห้อ:</label>
+            <input type="text" value={loanFormData.brand} readOnly />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>ชื่อวัสดุ:</label>
-          <input type="text" value={loanFormData.material} readOnly />
+
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>หมายเลขครุภัณฑ์:</label>
+            <input
+              type="text"
+              value={loanFormData.equipment_number}
+              onChange={(e) =>
+                setLoanFormData((prev) => ({ ...prev, equipment_number: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group-rqf">
+            <label>Serial Number:</label>
+            <input
+              type="text"
+              value={loanFormData.serial_number}
+              onChange={(e) =>
+                setLoanFormData((prev) => ({ ...prev, serial_number: e.target.value }))
+              }
+            />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>ประเภท:</label>
-          <input type="text" value={loanFormData.category} readOnly />
+
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>จำนวนคงเหลือ:</label>
+            <input type="text" value={loanFormData.remaining} readOnly />
+          </div>
+          <div className="form-group-rqf">
+            <label>จำนวน:</label>
+            <input
+              type="number"
+              min="1"
+              max={loanFormData.remaining}
+              value={loanFormData.quantity_requested}
+              onChange={(e) =>
+                setLoanFormData((prev) => ({ ...prev, quantity_requested: e.target.value }))
+              }
+              required
+            />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>อุปกรณ์:</label>
-          <input type="text" value={loanFormData.equipment} readOnly />
+
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>หมายเหตุ:</label>
+            <input
+              type="text"
+              value={loanFormData.note}
+              onChange={(e) => setLoanFormData((prev) => ({ ...prev, note: e.target.value }))}
+            />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>ยี่ห้อ:</label>
-          <input type="text" value={loanFormData.brand} readOnly />
+
+        <div className="form-grid">
+          <div className="form-group-rqf">
+            <label>วันที่ยืม:</label>
+            <input
+              type="date"
+              value={loanFormData.requestDate}
+              onChange={(e) => setLoanFormData((prev) => ({ ...prev, requestDate: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="form-group-rqf">
+            <label>วันที่คืน:</label>
+            <input
+              type="date"
+              value={loanFormData.returnDate}
+              onChange={(e) => setLoanFormData((prev) => ({ ...prev, returnDate: e.target.value }))}
+              required
+            />
+          </div>
         </div>
-        <div className="form-group-rqf">
-          <label>จำนวนคงเหลือ:</label>
-          <input type="text" value={loanFormData.remaining} readOnly />
-        </div>
-        <div className="form-group-rqf">
-          <label>จำนวน:</label>
-          <input
-            type="number"
-            min="1"
-            max={loanFormData.remaining}
-            value={loanFormData.quantity_requested} // ตรงนี้เปลี่ยนเป็น quantity_requested
-            onChange={(e) =>
-              setLoanFormData({ ...loanFormData, quantity_requested: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="form-group-rqf">
-          <label>หมายเหตุ:</label>
-          <input
-            type="text"
-            value={loanFormData.note}
-            onChange={(e) => setLoanFormData({ ...loanFormData, note: e.target.value })}
-          />
-        </div>
-        <div className="form-group-rqf">
-          <label>วันที่ยืม:</label>
-          <input
-            type="date"
-            value={loanFormData.requestDate}
-            onChange={(e) => setLoanFormData({ ...loanFormData, requestDate: e.target.value })}
-            required
-          />
-        </div>
-        <div className="form-group-rqf">
-          <label>วันที่คืน:</label>
-          <input
-            type="date"
-            value={loanFormData.returnDate}
-            onChange={(e) => setLoanFormData({ ...loanFormData, returnDate: e.target.value })}
-            required
-          />
-        </div>
+
         <button className="BorrowEqui-submit-btn" type="submit">
           บันทึกคำขอ
         </button>
