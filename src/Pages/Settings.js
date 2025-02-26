@@ -521,13 +521,13 @@ const fetchEquipments = async () => {
         console.log("📌 ค่าที่จะส่งไป API:", { equipment: newEquipment });
 
         const response = await axios.post("http://localhost:5001/api/products", {
-            equipment: newEquipment, // ✅ ใช้คีย์ให้ตรงกับ API
-            brand_name: newBrand || "ทั่วไป",
-            equipment_number: newEquipmentNumber || "-",
-            serial_number: newSerial || "-",
-            inventory_number: newInventory || 1,
-            remaining: newInventory || 1,
-            details: newDetails || "-",
+            equipment: newEquipment.trim(), // ✅ ตรวจสอบค่าให้แน่ใจว่าไม่มีช่องว่างเกิน
+            brand_name: newBrand.trim() || "ทั่วไป",
+            equipment_number: newEquipmentNumber.trim() || "-",
+            serial_number: newSerial.trim() || "-",
+            inventory_number: Number(newInventory) || 1,
+            remaining: Number(newInventory) || 1,
+            details: newDetails.trim() || "-",
         });
 
         console.log("📌 คำตอบจาก API:", response.data);
@@ -611,9 +611,6 @@ const handleSaveEquipment = async (index) => {
     }
 };
 
-
-  
-  
   const getUniqueEquipments = (data) => {
     const uniqueEquipments = [];
     const seen = new Set();
@@ -923,13 +920,13 @@ const handleCloseAddProductModal = () => {
 
 const [formData, setFormData] = useState({
   model: "",
-  name: "",
-  category: "",
-  brand: "",
+  equipment: "",  // เปลี่ยนจาก name -> equipment
+  category_name: "",  // เปลี่ยนจาก category -> category_name
+  brand_name: "",  // เปลี่ยนจาก brand -> brand_name
   serial_number: "-",
+  equipment_number: "-",
   inventory_number: 1,
-  details: "-",
-  equipment_number: "-"
+  details: "-"
 });
 
 
@@ -943,21 +940,21 @@ const handleChange = (e) => {
 };
 
 
-
 const handleSubmit = async (e) => {
   e.preventDefault();
 
   // ✅ กำหนดค่าตามที่คุณต้องการ
   const updatedFormData = {
-    model: formData.model || formData.name || "-",  // ชื่อสินค้า = model
-    category_name: formData.category || "-", // ประเภท
-    name: formData.equipment || "-",  // อุปกรณ์
-    brand_name: formData.brand || "-",  // ยี่ห้อ
-    serial_number: formData.serial_number || "-",  // Serial
-    equipment_number: formData.equipment_number || "-",  // หมายเลขครุภัณฑ์
-    inventory_number: formData.inventory_number || 1, // จำนวนสินค้า (ค่าเริ่มต้น = 1)
-    details: formData.details || "-", // รายละเอียด
+    model: formData.name?.trim() || "-",  // ✅ ใช้ name เป็น model
+    category_name: formData.category?.trim() || "-", // ✅ ป้องกัน undefined
+    name: formData.equipment?.trim() || "-",  // ✅ ใช้ name ตรงกับ Backend
+    brand_name: formData.brand?.trim() || "-",  // ✅ ใช้ brand_name ตามที่ backend คาดหวัง
+    serial_number: formData.serial_number?.trim() || "-",  // ✅ ป้องกัน undefined
+    equipment_number: formData.equipment_number?.trim() || "-",  // ✅ หมายเลขครุภัณฑ์
+    inventory_number: Number(formData.inventory_number) || 1, // ✅ แปลงเป็นตัวเลข
+    details: formData.details?.trim() || "-", // ✅ ป้องกัน undefined
   };
+  
 
   console.log("📌 formData ที่จะส่งไป API:", updatedFormData); // ✅ Debug ค่า formData
   

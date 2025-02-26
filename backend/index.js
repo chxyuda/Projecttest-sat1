@@ -957,6 +957,8 @@ app.get("/api/users/:id", (req, res) => {
 
 // ✅ API เพิ่มผู้ใช้ใหม่
 app.post("/api/users", async (req, res) => {
+  console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body); // ✅ Debug ค่าที่ได้รับ
+
   const { fullName, department_name, section_name, task_name, phone, email, username, password } = req.body;
 
   if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
@@ -964,7 +966,6 @@ app.post("/api/users", async (req, res) => {
   }
 
   try {
-      // บันทึกรหัสผ่านจริงโดยไม่เข้ารหัส
       const query = `
           INSERT INTO users (fullName, department_name, section_name, task_name, phone, email, username, password, status, role)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'User')
@@ -973,9 +974,9 @@ app.post("/api/users", async (req, res) => {
       db.query(query, [fullName, department_name, section_name, task_name, phone, email, username, password], (err, results) => {
           if (err) {
               console.error("❌ Error adding user:", err);
-              return res.status(500).json({ error: "❌ Failed to add user" });
+              return res.status(500).json({ error: "❌ Failed to add user", details: err });
           }
-          res.status(201).json({ message: "✅ สมัครสมาชิกสำเร็จ! กรุณารอ IT อนุมัติบัญชีของคุณ", userId: results.insertId });
+          res.status(201).json({ message: "✅ สมัครสมาชิกสำเร็จ!", userId: results.insertId });
       });
 
   } catch (error) {
@@ -984,73 +985,126 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
-// ✅ API อัปเดตข้อมูลบุคลากร
-app.put('/api/users/:id', async (req, res) => {
+
+// ✅ อัปเดต API อัปเดตข้อมูล (PUT)
+app.put("/api/users/:id", async (req, res) => {
+  const userId = req.params.id;
+  const { fullName, department_name, section_name, task_name, phone, email, username, password } = req.body;
+
+  if (!fullName || !department_name || !section_name || !task_name || !phone || !email || !username) {
+    return res.status(400).json({ error: "❌ ข้อมูลไม่ครบ กรุณากรอกข้อมูลให้ครบ" });
+  }
+
   try {
-      const { id } = req.params;
-      const { fullName, email, phone, department_name, section_name, task_name } = req.body;
+      const query = `
+          UPDATE users
+          SET fullName = ?, department_name = ?, section_name = ?, task_name = ?, phone = ?, email = ?, username = ?, password = ?
+          WHERE id = ?
+      `;
 
-      console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body); // ✅ Debug
+      db.query(query, [fullName, department_name, section_name, task_name, phone, email, username, password, userId], (err, results) => {
+          if (err) {
+              console.error("❌ Error updating user:", err);
+              return res.status(500).json({ error: "❌ Failed to update user" });
+          }
+          res.status(200).json({ message: "✅ อัปเดตข้อมูลสำเร็จ!" });
+      });
 
-      if (!id) {
-          return res.status(400).json({ success: false, message: "❌ ไม่มี ID ผู้ใช้ที่ต้องการอัปเดต" });
-      }
+  } catch (error) {
+      console.error("❌ Error:", error);
+      res.status(500).json({ error: "❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล" });
+  }
+});
 
-      if (!fullName || !email || !phone || !department_name || !section_name || !task_name) {
-          return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบถ้วน กรุณากรอกข้อมูลให้ครบ" });
-      }
 
-      // ✅ อัปเดต `name` ในตาราง `users`
+
+// ✅ ดึงข้อมูลผู้ใช้ทั้งหมด
+app.get("/api/users", async (req, res) => {
+  try {
+    const query = `SELECT * FROM users`;
+    const [users] = await db.promise().query(query);
+    res.json(users);
+  } catch (error) {
+    console.error("❌ Error fetching users:", error);
+    res.status(500).json({ error: "❌ Failed to fetch users" });
+  }
+});
+
+// ✅ ดึงข้อมูลผู้ใช้รายบุคคล
+app.get("/api/users/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const query = `SELECT * FROM users WHERE id = ?`;
+    const [user] = await db.promise().query(query, [id]);
+    if (user.length === 0) {
+      return res.status(404).json({ error: "❌ ไม่พบผู้ใช้" });
+    }
+    res.json(user[0]);
+  } catch (error) {
+    console.error("❌ Error fetching user details:", error);
+    res.status(500).json({ error: "❌ Failed to fetch user details" });
+  }
+});
+
+// ✅ อัปเดตข้อมูลผู้ใช้
+app.put('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const { fullName, department_name, section_name, task_name, phone, email, username, password } = req.body;
+
+  if (!id) {
+      return res.status(400).json({ success: false, message: "❌ ไม่มี ID ผู้ใช้ที่ต้องการอัปเดต" });
+  }
+
+  if (!fullName || !email || !phone || !department_name || !section_name || !task_name) {
+      return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบ กรุณากรอกข้อมูลให้ครบ" });
+  }
+
+  try {
       const sql = `
           UPDATE users 
           SET fullName = ?, email = ?, phone = ?, 
               department_name = ?, section_name = ?, task_name = ?
           WHERE id = ?
       `;
+
       const values = [fullName, email, phone, department_name, section_name, task_name, id];
 
-      console.log("📌 SQL Query ที่จะใช้:", sql);
-      console.log("📌 ค่า Parameters:", values);
+      db.query(sql, values, (err, result) => {
+          if (err) {
+              console.error("❌ Error updating user:", err);
+              return res.status(500).json({ success: false, message: "❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล" });
+          }
 
-      const [result] = await db.promise().query(sql, values);
+          if (result.affectedRows === 0) {
+              return res.status(404).json({ success: false, message: "❌ ไม่พบผู้ใช้ที่ต้องการอัปเดต" });
+          }
 
-      console.log("📌 ผลลัพธ์จาก SQL Query:", result);
-
-      if (result.affectedRows === 0) {
-          return res.status(404).json({ success: false, message: "❌ ไม่พบผู้ใช้ที่ต้องการอัปเดต" });
-      }
-
-      res.json({ 
-        success: true, 
-        message: "✅ อัปเดตข้อมูลสำเร็จ!", 
-        updatedUser: { fullName, email, phone, department_name, section_name, task_name } 
+          res.json({ success: true, message: "✅ อัปเดตข้อมูลสำเร็จ!" });
       });
 
   } catch (error) {
-      console.error("❌ Error updating user:", error);
+      console.error("❌ Error:", error);
       res.status(500).json({ success: false, message: "❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล" });
   }
 });
 
-// ลบข้อมูลบุคลากร
-app.delete("/api/users", (req, res) => {
-  const { ids } = req.body;
 
-  if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ success: false, message: "❌ กรุณาระบุผู้ใช้ที่ต้องการลบ" });
+// ✅ ลบผู้ใช้
+app.delete("/api/users/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const query = `DELETE FROM users WHERE id = ?`;
+    const [result] = await db.promise().query(query, [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "❌ ไม่พบผู้ใช้ที่ต้องการลบ" });
+    }
+
+    res.json({ success: true, message: "✅ ลบข้อมูลสำเร็จ!" });
+  } catch (error) {
+    console.error("❌ Error deleting user:", error);
+    res.status(500).json({ error: "❌ เกิดข้อผิดพลาดในการลบข้อมูล" });
   }
-
-  const placeholders = ids.map(() => "?").join(",");
-  const query = `DELETE FROM users WHERE id IN (${placeholders})`;
-
-  db.query(query, ids, (err, results) => {
-      if (err) {
-          console.error("❌ Error deleting users:", err);
-          return res.status(500).json({ success: false, message: "❌ เกิดข้อผิดพลาดในการลบข้อมูล" });
-      }
-
-      res.status(200).json({ success: true, message: `✅ ลบข้อมูลสำเร็จ ${results.affectedRows} รายการ` });
-  });
 });
 
 //ดึงข้อมูล

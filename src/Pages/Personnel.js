@@ -218,115 +218,60 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
 
 const handleEditUser = async (user) => {
   try {
-      const response = await axios.get(`http://localhost:5001/api/users/${user.id}`);
-      const userData = response.data;
-
-      console.log("🔍 User Data (ก่อนเซ็ตค่าใน Modal):", userData);
-
-      setSelectedUser(userData);
-
-      // ✅ ใช้ formData แทน selectedUser
-      setFormData({
-          fullName: userData.fullName || "",
-          department_id: userData.department_name || "", 
-          section_id: userData.section_name || "",
-          task_id: userData.task_name || "",
-          phone: userData.phone || "",
-          email: userData.email || "",
-          username: userData.username || "",
-          password: userData.password || "",
-      });
-
-      setShowEditModal(true);
+    const response = await axios.get(`http://localhost:5001/api/users/${user.id}`);
+    setSelectedUser(response.data);
+    setFormData(response.data);
+    setShowEditModal(true);
   } catch (error) {
-      console.error("❌ Error fetching user details:", error);
+    console.error("Error fetching user details:", error);
   }
 };
 
 
 const handleSaveEdit = async () => {
-  if (!selectedUser || !selectedUser.id) {
-    alert("❌ ไม่พบข้อมูลผู้ใช้ที่ต้องการอัปเดต");
-    return;
-  }
-
-  const selectedDepartment = departments.find(d => d.id == formData.department_id);
-  const selectedSection = sections.find(s => s.id == formData.section_id);
-  const selectedTask = tasks.find(t => t.id == formData.task_id);
-
-  const updatedUserData = {
-    fullName: formData.fullName || "",
-    email: formData.email || "",
-    phone: formData.phone || "",
-    department_name: selectedDepartment ? selectedDepartment.name : "", 
-    section_name: selectedSection ? selectedSection.name : "",
-    task_name: selectedTask ? selectedTask.name : ""
-  };
-
-  console.log("📌 ข้อมูลที่ส่งไป Backend:", updatedUserData);
+  console.log("📌 ข้อมูลที่กำลังอัปเดต:", formData);
 
   try {
-    const response = await axios.put(`http://localhost:5001/api/users/${selectedUser.id}`, updatedUserData);
-    console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data);
+      const response = await axios.put(`http://localhost:5001/api/users/${selectedUser.id}`, {
+          fullName: formData.fullName,
+          department_name: formData.department_name, // ✅ ใช้ชื่อแทน ID
+          section_name: formData.section_name,
+          task_name: formData.task_name,
+          phone: formData.phone,
+          email: formData.email,
+          username: formData.username,
+          password: formData.password
+      });
 
-    if (response.data.success) {
       alert("✅ อัปเดตข้อมูลสำเร็จ!");
       setShowEditModal(false);
-      fetchPersonnelData(); // โหลดข้อมูลใหม่หลังอัปเดต
-    } else {
-      alert(`❌ ${response.data.message}`);
-    }
+      fetchPersonnelData(); // ✅ โหลดข้อมูลใหม่หลังจากอัปเดต
   } catch (error) {
-    console.error("❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล:", error.response?.data || error);
-    alert("❌ มีข้อผิดพลาดในการอัปเดตข้อมูล");
+      console.error("❌ Error updating user:", error.response?.data || error);
+      alert("❌ อัปเดตไม่สำเร็จ");
   }
 };
 
 
+const handleInputChange = async (e) => {
+  const { name, value } = e.target;
 
-  const handleInputChange = async (e) => {
-    const { name, value } = e.target;
+  setFormData(prev => ({
+      ...prev,
+      [name]: value,
+      ...(name === "department_id" ? { section_id: "", task_id: "" } : {}),
+      ...(name === "section_id" ? { task_id: "" } : {})
+  }));
 
-    setFormData(prev => ({
-        ...prev,
-        [name]: value,
-        ...(name === "department_id" ? { section_id: "", task_id: "" } : {}),
-        ...(name === "section_id" ? { task_id: "" } : {})
-    }));
+  if (name === "department_id") {
+      fetchSections(value);
+  }
 
-    // ✅ ป้องกันการโหลด API ถ้าไม่มีค่าเลือก
-    if (name === "department_id") {
-        if (value) {
-            setSections([]); // เคลียร์ sections ก่อนโหลดใหม่
-            setTasks([]); // รีเซ็ต tasks
-
-            try {
-                const response = await axios.get(`http://localhost:5001/api/sections/${value}`);
-                setSections(response.data);
-            } catch (error) {
-                console.error("❌ Error fetching sections:", error);
-            }
-        } else {
-            setSections([]);
-            setTasks([]);
-        }
-    }
-
-    if (name === "section_id") {
-        if (value) {
-            setTasks([]); // รีเซ็ต tasks
-
-            try {
-                const response = await axios.get(`http://localhost:5001/api/tasks/${value}`);
-                setTasks(response.data);
-            } catch (error) {
-                console.error("❌ Error fetching tasks:", error);
-            }
-        } else {
-            setTasks([]);
-        }
-    }
+  if (name === "section_id") {
+      fetchTasks(value);
+  }
 };
+
 
   useEffect(() => {
     if (selectedUser?.department) {
@@ -356,11 +301,13 @@ const handleSaveEdit = async () => {
     }));
 
     if (name === "department_id") {
-        fetchSections(value); // โหลด Sections ใหม่
+        fetchSections(value);
     } else if (name === "section_id") {
-        fetchTasks(value); // โหลด Tasks ใหม่
+        fetchTasks(value);
     }
 };
+
+
 
 const handleChange = (e) => {
   const { name, value } = e.target;
@@ -371,50 +318,56 @@ const handleChange = (e) => {
 };
   // จัดการการเพิ่มข้อมูลใหม่
   const handleAddUser = () => {
-    if (!newUser.department_name || !newUser.section_id || !newUser.task_id) {
-      alert("กรุณาเลือกฝ่าย กอง และ งาน ให้ครบถ้วน");
-      return;
+    if (!newUser.fullName || !newUser.department_id || !newUser.section_id || !newUser.task_id ||
+        !newUser.phone || !newUser.email || !newUser.username || !newUser.password) {
+        alert("❌ กรุณากรอกข้อมูลให้ครบทุกช่อง");
+        return;
     }
-  
+
+    // หา department, section, task จาก ID ที่ถูกเลือก
     const department = departments.find(d => d.id.toString() === newUser.department_id);
     const section = sections.find(s => s.id.toString() === newUser.section_id);
     const task = tasks.find(t => t.id.toString() === newUser.task_id);
-  
+
     if (!department || !section || !task) {
-      alert("ฝ่าย กอง หรือ งานที่เลือกไม่ถูกต้อง");
-      return;
+        alert("❌ กรุณาเลือกฝ่าย กอง และ งาน ให้ถูกต้อง");
+        return;
     }
-  
-    axios.post('http://localhost:5001/api/users', {
-      fullName: newUser.fullName,
-      department_id: department.id,
-      department: department.name,
-      section_id: section.id,
-      section_name: section.name,
-      task_id: task.id,
-      task_name: task.name,
-      phone: newUser.phone,
-      email: newUser.email,
-      username: newUser.username,
-      password: newUser.password,
+
+    console.log("📌 ส่งข้อมูลไป API:", {
+        fullName: newUser.fullName,
+        department_name: department.name,
+        section_name: section.name,
+        task_name: task.name,
+        phone: newUser.phone,
+        email: newUser.email,
+        username: newUser.username,
+        password: newUser.password,
+    });
+
+    axios.post("http://localhost:5001/api/users", {
+        fullName: newUser.fullName,
+        department_name: department.name,  // ✅ ส่งเป็นชื่อฝ่ายแทน ID
+        section_name: section.name,
+        task_name: task.name,
+        phone: newUser.phone,
+        email: newUser.email,
+        username: newUser.username,
+        password: newUser.password,
     })
     .then(response => {
-      console.log("✅ เพิ่มข้อมูลสำเร็จ!", response.data);
-      alert('เพิ่มข้อมูลสำเร็จ!');
-      
-      setShowAddModal(false); // ปิด Modal
-      navigate('/personnel'); // กลับไปยังหน้าเดิม
-      
-      // โหลดข้อมูลใหม่
-      axios.get('http://localhost:5001/api/users')
-        .then(response => setPersonnelData(response.data))
-        .catch(error => console.error('❌ โหลดข้อมูลใหม่ล้มเหลว:', error));
+        console.log("✅ เพิ่มข้อมูลสำเร็จ!", response.data);
+        alert("✅ เพิ่มข้อมูลสำเร็จ!");
+        setShowAddModal(false);
+        fetchPersonnelData(); // โหลดข้อมูลใหม่
     })
     .catch(error => {
-      console.error('❌ เกิดข้อผิดพลาดในการเพิ่มข้อมูล:', error.response?.data || error);
-      alert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล!');
+        console.error("❌ Error:", error.response?.data || error);
+        alert("❌ เกิดข้อผิดพลาดในการเพิ่มข้อมูล!");
     });
-  };
+};
+
+
 
   // ✅ ฟังก์ชันเพิ่ม/ลบผู้ใช้จากรายการที่เลือก
 const toggleUserSelection = (userId) => {
@@ -882,39 +835,39 @@ return (
         </div>
         <form>
         <div className="form-group">
-    <label>ฝ่าย/สำนัก</label>
-    <select name="department_id" value={newUser.department_id} onChange={handleAddInputChange}>
-        <option value="">เลือก</option>
-        {departments.map((dept) => (
-            <option key={dept.id} value={dept.id}>
-                {dept.name}
-            </option>
-        ))}
-    </select>
+        <label>ฝ่าย/สำนัก</label>
+<select name="department_id" value={newUser.department_id} onChange={handleAddInputChange}>
+    <option value="">เลือก</option>
+    {departments.map((dept) => (
+        <option key={dept.id} value={dept.id}>
+            {dept.name} {/* ✅ แสดงชื่อ แต่ส่ง ID */}
+        </option>
+    ))}
+</select>
 </div>
 
 <div className="form-group">
-    <label>กอง</label>
-    <select name="section_id" value={newUser.section_id} onChange={handleAddInputChange} disabled={!newUser.department_id}>
-        <option value="">เลือก</option>
-        {sections.map((section) => (
-            <option key={section.id} value={section.id}>
-                {section.name}
-            </option>
-        ))}
-    </select>
+<label>กอง</label>
+<select name="section_id" value={newUser.section_id} onChange={handleAddInputChange} disabled={!newUser.department_id}>
+    <option value="">เลือก</option>
+    {sections.map((section) => (
+        <option key={section.id} value={section.id}>
+            {section.name} {/* ✅ แสดงชื่อ แต่ส่ง ID */}
+        </option>
+    ))}
+</select>
 </div>
 
 <div className="form-group">
-    <label>งาน</label>
-    <select name="task_id" value={newUser.task_id} onChange={handleAddInputChange} disabled={!newUser.section_id}>
-        <option value="">เลือก</option>
-        {tasks.map((task) => (
-            <option key={task.id} value={task.id}>
-                {task.name}
-            </option>
-        ))}
-    </select>
+<label>งาน</label>
+<select name="task_id" value={newUser.task_id} onChange={handleAddInputChange} disabled={!newUser.section_id}>
+    <option value="">เลือก</option>
+    {tasks.map((task) => (
+        <option key={task.id} value={task.id}>
+            {task.name} {/* ✅ แสดงชื่อ แต่ส่ง ID */}
+        </option>
+    ))}
+</select>
 </div>
 
 </form>
