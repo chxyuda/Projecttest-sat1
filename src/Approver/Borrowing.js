@@ -91,41 +91,44 @@ function Borrowing() {
             const newRemainingStock = selectedRequest.remaining - selectedRequest.quantity_requested;
     
             // ✅ แก้ไขเงื่อนไขใหม่
-            if (status === "Approved" && newRemainingStock < 0) {
+            if (status === "Approved" && newRemainingStock == 0) {
                 alert(`❌ ไม่สามารถอนุมัติได้ เนื่องจากสินค้าคงเหลือไม่พอ (มี ${selectedRequest.remaining} ต้องการ ${selectedRequest.quantity_requested})`);
                 setIsProcessing(false);
                 return;
             }
     
             const note = status === "Rejected" ? rejectReason : remark;
-            const finalStatus = status === "Approved" ? "WaitingReceive" : "Rejected";
+            const finalStatus = status === "Approved" ? "Received" : "Rejected";
     
             console.log("🔹 กำลังอัปเดตสถานะ:", {
+                id: selectedRequest.id,
                 status: finalStatus,
-                approved_by: "ชื่อผู้อนุมัติ",
+                approved_by: "Admin", // ให้เปลี่ยนเป็นค่าจริงจาก session หรือ user login
                 date_approved: new Date().toISOString().slice(0, 10),
                 note,
             });
     
             // ✅ 1️⃣ อัปเดตสถานะคำขอ
-            await axios.put(
+            const approveResponse = await axios.put(
                 `http://localhost:5001/api/borrow-requests/${selectedRequest.id}/approve`,
                 {
                     status: finalStatus,
-                    approved_by: "ชื่อผู้อนุมัติ",
+                    approved_by: "Admin",
                     date_approved: new Date().toISOString().slice(0, 10),
                     note,
                 }
             );
     
+            console.log("✅ อัปเดตสถานะสำเร็จ:", approveResponse.data);
+    
             // ✅ 2️⃣ หากอนุมัติแล้ว อัปเดตจำนวนคงเหลือของอุปกรณ์
             if (status === "Approved") {
-                await axios.put(
+                const stockResponse = await axios.put(
                     `http://localhost:5001/api/products/update-stock/${selectedRequest.material}`,
                     { remaining: newRemainingStock }
                 );
     
-                console.log(`✅ อัปเดตจำนวนคงเหลือ: จาก ${selectedRequest.remaining} เป็น ${newRemainingStock}`);
+                console.log("✅ อัปเดตจำนวนคงเหลือสำเร็จ:", stockResponse.data);
             }
     
             alert(`✅ ทำการ${status === "Approved" ? "อนุมัติ" : "ไม่อนุมัติ"}สำเร็จ`);
@@ -140,6 +143,7 @@ function Borrowing() {
             setIsProcessing(false);
         }
     };
+    
     
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;

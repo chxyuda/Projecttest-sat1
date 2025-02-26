@@ -245,41 +245,43 @@ const handleEditUser = async (user) => {
 
 
 const handleSaveEdit = async () => {
-  if (!selectedUser) return;
+  if (!selectedUser || !selectedUser.id) {
+    alert("❌ ไม่พบข้อมูลผู้ใช้ที่ต้องการอัปเดต");
+    return;
+  }
 
-  // ✅ หาค่า department_name, section_name, task_name จาก State ก่อนส่งไป Backend
   const selectedDepartment = departments.find(d => d.id == formData.department_id);
   const selectedSection = sections.find(s => s.id == formData.section_id);
   const selectedTask = tasks.find(t => t.id == formData.task_id);
 
   const updatedUserData = {
-      fullName: formData.fullName || "",
-      email: formData.email || "",
-      phone: formData.phone || "",
-      department_name: selectedDepartment ? selectedDepartment.name : "", 
-      section_name: selectedSection ? selectedSection.name : "",
-      task_name: selectedTask ? selectedTask.name : ""
+    fullName: formData.fullName || "",
+    email: formData.email || "",
+    phone: formData.phone || "",
+    department_name: selectedDepartment ? selectedDepartment.name : "", 
+    section_name: selectedSection ? selectedSection.name : "",
+    task_name: selectedTask ? selectedTask.name : ""
   };
 
   console.log("📌 ข้อมูลที่ส่งไป Backend:", updatedUserData);
 
   try {
-      const response = await axios.put(`http://localhost:5001/api/users/${selectedUser.id}`, updatedUserData);
+    const response = await axios.put(`http://localhost:5001/api/users/${selectedUser.id}`, updatedUserData);
+    console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data);
 
-      console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data);
-
-      if (response.data.success) {
-          alert("✅ อัปเดตข้อมูลสำเร็จ!");
-          setShowEditModal(false);
-          fetchPersonnelData(); // โหลดข้อมูลใหม่หลังอัปเดต
-      } else {
-          alert(`❌ ${response.data.message}`);
-      }
+    if (response.data.success) {
+      alert("✅ อัปเดตข้อมูลสำเร็จ!");
+      setShowEditModal(false);
+      fetchPersonnelData(); // โหลดข้อมูลใหม่หลังอัปเดต
+    } else {
+      alert(`❌ ${response.data.message}`);
+    }
   } catch (error) {
-      console.error("❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล:", error.response?.data || error);
-      alert("❌ มีข้อผิดพลาดในการอัปเดตข้อมูล");
+    console.error("❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล:", error.response?.data || error);
+    alert("❌ มีข้อผิดพลาดในการอัปเดตข้อมูล");
   }
 };
+
 
 
   const handleInputChange = async (e) => {

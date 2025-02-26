@@ -32,61 +32,49 @@ const SignUp = () => {
 
     // ✅ Fetch departments
     useEffect(() => {
-        axios.get('http://localhost:5001/api/departments')
-            .then(response => {
-                setDepartments(response.data);
-                console.log("✅ Departments Loaded:", response.data);
-            })
-            .catch(error => console.error('❌ Error fetching departments:', error));
-    }, []);
+        axios.get("http://localhost:5001/api/departments")
+          .then(response => setDepartments(response.data))
+          .catch(error => console.error("❌ Error fetching departments:", error));
+      }, []);
     
-    useEffect(() => {
+      // ✅ โหลดกอง (Sections) ตามฝ่ายที่เลือก
+      useEffect(() => {
         if (formData.department_id) {
-            axios.get(`http://localhost:5001/api/sections/${formData.department_id}`)
-                .then(response => {
-                    setSections(response.data);
-                    console.log("✅ Sections Loaded:", response.data);
-                })
-                .catch(error => console.error('❌ Error loading sections:', error));
+          axios.get(`http://localhost:5001/api/sections/${formData.department_id}`)
+            .then(response => setSections(response.data))
+            .catch(error => console.error("❌ Error loading sections:", error));
         } else {
-            setSections([]);
+          setSections([]);
         }
-    }, [formData.department_id]);
+        setFormData(prev => ({ ...prev, section_id: "", task_id: "" }));
+      }, [formData.department_id]);
     
-    useEffect(() => {
+      // ✅ โหลดงาน (Tasks) ตามกองที่เลือก
+      useEffect(() => {
         if (formData.section_id) {
-            axios.get(`http://localhost:5001/api/tasks/${formData.section_id}`)
-                .then(response => {
-                    setTasks(response.data);
-                    console.log("✅ Tasks Loaded:", response.data);
-                })
-                .catch(error => console.error('❌ Error loading tasks:', error));
+          axios.get(`http://localhost:5001/api/tasks/${formData.section_id}`)
+            .then(response => setTasks(response.data))
+            .catch(error => console.error("❌ Error loading tasks:", error));
         } else {
-            setTasks([]);
+          setTasks([]);
         }
-    }, [formData.section_id]);
-
-    useEffect(() => {
+        setFormData(prev => ({ ...prev, task_id: "" }));
+      }, [formData.section_id]);
+    
+      useEffect(() => {
         setPasswordMatch(formData.password === formData.confirmPassword);
-    }, [formData.password, formData.confirmPassword]);
+      }, [formData.password, formData.confirmPassword]);
     
-
-    // ✅ Handle input change
-    const handleInputChange = (e) => {
+      // ✅ อัปเดตข้อมูลฟอร์ม
+      const handleInputChange = (e) => {
         const { name, value } = e.target;
-    
         setFormData(prevState => ({
-            ...prevState,
-            [name]: value,
-            ...(name === "department_id" && { section_id: "", task_id: "" }),
-            ...(name === "section_id" && { task_id: "" })
+          ...prevState,
+          [name]: value,
+          ...(name === "department_id" && { section_id: "", task_id: "" }),
+          ...(name === "section_id" && { task_id: "" })
         }));
-    
-        // ✅ ตรวจสอบว่ารหัสผ่านและยืนยันรหัสผ่านตรงกันแบบเรียลไทม์
-        if (name === "confirmPassword") {
-            setPasswordMatch(value === formData.password);
-        }
-    };
+      };
     
     // ✅ อัปโหลดไฟล์รูปภาพ
     const handleImageChange = (e) => {
@@ -124,48 +112,66 @@ const SignUp = () => {
     };
     
     const validateForm = () => {
-        if (!formData.username || !formData.password || !formData.confirmPassword || !formData.fullName || !formData.email || !formData.phone || !formData.department_id || !formData.section_id || !formData.task_id) {
-            alert("❌ กรุณากรอกข้อมูลให้ครบทุกช่อง!");
-            return false;
+        console.log("🔍 formData ที่ validate:", formData); // ✅ Debug
+    
+        if (!formData.username || !formData.password || !formData.confirmPassword || 
+            !formData.fullName || !formData.email || !formData.phone || !formData.department_id) {
+          console.warn("❌ มีข้อมูลที่ยังไม่ได้กรอก:", formData);
+          alert("❌ กรุณากรอกข้อมูลให้ครบทุกช่อง!");
+          return false;
         }
+    
+        if (sections.length > 0 && !formData.section_id) {
+          console.warn("❌ ต้องเลือกกองก่อน:", sections);
+          alert("❌ กรุณาเลือกกองก่อนสมัคร");
+          return false;
+        }
+    
+        if (tasks.length > 0 && !formData.task_id) {
+          console.warn("❌ ต้องเลือกงานก่อน:", tasks);
+          alert("❌ กรุณาเลือกงานก่อนสมัคร");
+          return false;
+        }
+    
         if (!passwordMatch) {
-            alert("❌ รหัสผ่านไม่ตรงกัน!");
-            return false;
+          console.warn("❌ รหัสผ่านไม่ตรงกัน");
+          alert("❌ รหัสผ่านไม่ตรงกัน!");
+          return false;
         }
+    
+        console.log("✅ Validation Passed");
         return true;
-    };
-        
+    };    
     
     // ✅ Handle form submit
      // ✅ ส่งข้อมูลไป Backend
      const handleSubmit = async (e) => {
         e.preventDefault();
     
-        if (!validateForm()) {
-            return;
-        }
+        console.log("📩 formData ก่อนส่งไป backend:", formData);
+    
+        if (!validateForm()) return;
     
         const selectedDepartment = departments.find(d => d.id == formData.department_id);
         const selectedSection = sections.find(s => s.id == formData.section_id);
         const selectedTask = tasks.find(t => t.id == formData.task_id);
     
-        const data = new FormData();
-        data.append("username", formData.username);
-        data.append("password", formData.password);
-        data.append("fullName", formData.fullName);
-        data.append("email", formData.email);
-        data.append("phone", formData.phone);
-        data.append("department_name", selectedDepartment ? selectedDepartment.name : "");
-        data.append("section_name", selectedSection ? selectedSection.name : "");
-        data.append("task_name", selectedTask ? selectedTask.name : "");
+        const data = {
+            username: formData.username,  
+            password: formData.password,  // ✅ ต้องเพิ่ม password
+            fullName: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
+            department_name: selectedDepartment ? selectedDepartment.name : "",
+            section_name: selectedSection ? selectedSection.name : "-",
+            task_name: selectedTask ? selectedTask.name : "-"
+        };
     
-        if (image) { 
-            data.append("image", image);
-        }
+        console.log("📩 ข้อมูลที่กำลังส่งไป Backend:", data);
     
         try {
             const response = await axios.post('http://localhost:5001/api/signup', data, {
-                headers: { "Content-Type": "multipart/form-data" }
+                headers: { "Content-Type": "application/json" } 
             });
     
             if (response.data.success) {
@@ -179,6 +185,8 @@ const SignUp = () => {
             alert(error.response?.data?.message || '❌ เกิดข้อผิดพลาด');
         }
     };
+    
+    
     
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -238,12 +246,26 @@ const SignUp = () => {
     </div>
     <div className="signup-form-group">
       <label>Password</label>
-      <input type="password" name="password" placeholder="กรอกรหัสผ่าน" onChange={handleInputChange} />
+      <input 
+            type="password" 
+            name="password" 
+            placeholder="กรอกรหัสผ่าน" 
+            value={formData.password} 
+            onChange={handleInputChange} 
+            autoComplete="new-password"
+        />
     </div>
   </div>
   <div className="signup-form-group">
     <label>Confirm Password</label>
-    <input type="password" name="confirmPassword" placeholder="ยืนยันรหัสผ่าน" onChange={handleInputChange} />
+    <input 
+        type="password" 
+        name="confirmPassword" 
+        placeholder="ยืนยันรหัสผ่าน" 
+        value={formData.confirmPassword} 
+        onChange={handleInputChange} 
+        autoComplete="new-password"
+    />
     {!passwordMatch && <small style={{ color: 'red' }}>รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน</small>}
   </div>
   <div className="signup-form-group">
@@ -262,26 +284,32 @@ const SignUp = () => {
   </div>
   <div className="signup-row">
     <div className="signup-form-group">
-      <label>ฝ่าย/สำนัก</label>
-      <select name="department_id" value={formData.department_id} onChange={handleInputChange}>
-        <option value="">เลือก</option>
-        {departments.map(dept => <option key={dept.id} value={dept.id}>{dept.name}</option>)}
-      </select>
-    </div>
-    <div className="signup-form-group">
-      <label>กอง</label>
-      <select name="section_id" value={formData.section_id} onChange={handleInputChange} disabled={!formData.department_id}>
-        <option value="">เลือก</option>
-        {sections.map(section => <option key={section.id} value={section.id}>{section.name}</option>)}
-      </select>
-    </div>
-  </div>
-  <div className="signup-form-group">
-    <label>งาน</label>
-    <select name="task_id" value={formData.task_id} onChange={handleInputChange} disabled={!formData.section_id}>
-      <option value="">เลือก</option>
-      {tasks.map(task => <option key={task.id} value={task.id}>{task.name}</option>)}
-    </select>
+    <label>ฝ่าย/สำนัก</label>
+          <select name="department_id" onChange={handleInputChange}>
+            <option value="">เลือก</option>
+            {departments.map(dept => <option key={dept.id} value={dept.id}>{dept.name}</option>)}
+          </select>
+
+          {sections.length > 0 && (
+            <>
+              <label>กอง</label>
+              <select name="section_id" onChange={handleInputChange} required>
+                <option value="">เลือก</option>
+                {sections.map(sec => <option key={sec.id} value={sec.id}>{sec.name}</option>)}
+              </select>
+            </>
+          )}
+
+          {tasks.length > 0 && (
+            <>
+              <label>งาน</label>
+              <select name="task_id" onChange={handleInputChange} required>
+                <option value="">เลือก</option>
+                {tasks.map(task => <option key={task.id} value={task.id}>{task.name}</option>)}
+              </select>
+            </>
+          )}
+          </div>
   </div>
   <div className="button-container">
     <button type="button" className="back-button" onClick={() => navigate('/')}>

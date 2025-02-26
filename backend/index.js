@@ -248,24 +248,23 @@ const upload = multer({
     }
 });
 
-router.post("/signup", upload.single("image"), async (req, res) => {  
+router.post("/signup", async (req, res) => {   
   console.log("📩 ข้อมูลที่ได้รับจาก Frontend:", req.body);
 
-  // ✅ รับค่าจาก req.body
+  if (!req.body || Object.keys(req.body).length === 0) {
+      console.warn("❌ ไม่มีข้อมูลถูกส่งมา!");
+      return res.status(400).json({ success: false, message: "❌ ไม่มีข้อมูลถูกส่งมา!" });
+  }
+
   const { username, password, fullName, email, phone, department_name, section_name, task_name } = req.body;
 
-  // ✅ ถ้า section_name และ task_name เป็นค่าว่าง ให้ตั้งเป็น "-"
-  const finalSection = section_name && section_name !== "" ? section_name : "-";
-  const finalTask = task_name && task_name !== "" ? task_name : "-";
-
-  console.log("✅ ข้อมูลที่ใช้บันทึก:", {
-      username, password, fullName, email, phone,
-      department_name, finalSection, finalTask
-  });
-
   if (!username || !password || !fullName || !email || !phone || !department_name) {
+      console.warn("❌ ข้อมูลไม่ครบ:", { username, password, fullName, email, phone, department_name });
       return res.status(400).json({ success: false, message: "❌ ข้อมูลไม่ครบ" });
   }
+
+  const finalSection = section_name && section_name !== "" ? section_name : "-";
+  const finalTask = task_name && task_name !== "" ? task_name : "-";
 
   try {
       let query = `
@@ -274,14 +273,12 @@ router.post("/signup", upload.single("image"), async (req, res) => {
       `;
       let values = [username, password, fullName, email, phone, department_name, finalSection, finalTask];
 
-      console.log("📝 Query:", query);
-      console.log("🔢 Values:", values);
-
       db.query(query, values, (err, result) => {
           if (err) {
               console.error("❌ SQL Error:", err);
               return res.status(500).json({ success: false, error: err.message });
           }
+          console.log("✅ สมัครสมาชิกสำเร็จ:", result);
           return res.status(201).json({ success: true, message: "✅ สมัครสมาชิกสำเร็จ!" });
       });
 
@@ -290,6 +287,7 @@ router.post("/signup", upload.single("image"), async (req, res) => {
       return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาด" });
   }
 });
+
 
 
 app.put('/api/approve-user/:id', (req, res) => { 
@@ -553,6 +551,46 @@ app.put("/api/products/:id/remaining", async (req, res) => {
       return res.status(500).json({ success: false, message: "❌ เกิดข้อผิดพลาดในการอัปเดต" });
   }
 });
+
+router.put('/products/update-stock/:model', async (req, res) => {
+  const { model } = req.params;
+  const { remaining } = req.body;
+
+  console.log("📌 [API CALL] PUT /products/update-stock/:model");
+  console.log("📌 Model:", model);
+  console.log("📌 Remaining Stock:", remaining);
+
+  if (!model || remaining === undefined) {
+    return res.status(400).json({ error: "ข้อมูลไม่ครบถ้วน" });
+  }
+
+  // ตรวจสอบว่าสินค้าต้องมีอยู่ในฐานข้อมูล
+  const checkProductSql = `SELECT * FROM products WHERE model = ?`;
+
+  db.query(checkProductSql, [model], (err, results) => {
+    if (err) {
+      console.error("❌ ERROR: SELECT products:", err);
+      return res.status(500).json({ error: "เกิดข้อผิดพลาดในการตรวจสอบสินค้า" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: "ไม่พบสินค้าที่ระบุ" });
+    }
+
+    const updateStockSql = `UPDATE products SET remaining = ? WHERE model = ?`;
+
+    db.query(updateStockSql, [remaining, model], (err) => {
+      if (err) {
+        console.error("❌ ERROR: UPDATE stock:", err);
+        return res.status(500).json({ error: "เกิดข้อผิดพลาดในการอัปเดตสต็อก" });
+      }
+
+      console.log("✅ อัปเดตจำนวนคงเหลือสำเร็จ");
+      res.json({ message: "อัปเดตจำนวนคงเหลือสำเร็จ" });
+    });
+  });
+});
+
 
 // อัปเดตข้อมูล
 app.put('/api/products/:id', (req, res) => {
@@ -1501,9 +1539,23 @@ router.get('/borrow-requests/:id', (req, res) => {
 
 
 // ✅ อัปเดตสถานะคำขอ (สำหรับผู้อนุมัติ)
-router.put('/borrow-requests/:id/approve', (req, res) => {
+router.put('/borrow-requests/:id/approve', async (req, res) => {
   const { id } = req.params;
   const { status, approved_by, date_approved, note } = req.body;
+
+  console.log("📌 [API CALL] PUT /borrow-requests/:id/approve");
+  console.log("📌 Request ID:", id);
+  console.log("📌 Request Body:", req.body);
+
+  if (!id || !status || !approved_by || !date_approved) {
+    return res.status(400).json({ error: "ข้อมูลไม่ครบถ้วน" });
+  }
+
+  // ตรวจสอบ ENUM ว่ารองรับหรือไม่
+  const allowedStatuses = ["Pending", "Approved", "Rejected", "Received", "Returned", "WaitingReceive"];
+  if (!allowedStatuses.includes(status)) {
+    return res.status(400).json({ error: "สถานะไม่ถูกต้อง" });
+  }
 
   const updateRequestSql = `
     UPDATE borrow_requests 
@@ -1511,31 +1563,43 @@ router.put('/borrow-requests/:id/approve', (req, res) => {
     WHERE id = ?
   `;
 
-  db.query(updateRequestSql, [status, approved_by, date_approved, note, id], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
+  db.query(updateRequestSql, [status, approved_by, date_approved, note, id], (err, result) => {
+    if (err) {
+      console.error("❌ ERROR: UPDATE borrow_requests:", err);
+      return res.status(500).json({ error: "เกิดข้อผิดพลาดในการอัปเดตสถานะ" });
+    }
 
-    if (status === 'Rejected') {
-      // ดึงข้อมูลวัสดุที่ขอ เพื่อคืนจำนวนในกรณีไม่อนุมัติ
+    console.log("✅ อัปเดตสถานะสำเร็จ", result);
+
+    if (status === "Rejected") {
+      // คืนสต็อกสินค้าเมื่อปฏิเสธ
       const getRequestSql = `SELECT material, quantity_requested FROM borrow_requests WHERE id = ?`;
       const updateStockSql = `UPDATE products SET remaining = remaining + ? WHERE model = ?`;
 
       db.query(getRequestSql, [id], (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-
-        if (results.length > 0) {
-          const { material, quantity_requested } = results[0];
-
-          db.query(updateStockSql, [quantity_requested, material], (err) => {
-            if (err) return res.status(500).json({ error: err.message });
-
-            return res.json({ message: 'อัปเดตสถานะเป็น ไม่อนุมัติ และคืนจำนวนอุปกรณ์สำเร็จ' });
-          });
-        } else {
-          return res.status(404).json({ message: 'ไม่พบคำขอ' });
+        if (err) {
+          console.error("❌ ERROR: SELECT material:", err);
+          return res.status(500).json({ error: "เกิดข้อผิดพลาดในการดึงข้อมูลวัสดุ" });
         }
+
+        if (results.length === 0) {
+          return res.status(404).json({ error: "ไม่พบคำขอที่ระบุ" });
+        }
+
+        const { material, quantity_requested } = results[0];
+
+        db.query(updateStockSql, [quantity_requested, material], (err) => {
+          if (err) {
+            console.error("❌ ERROR: UPDATE stock:", err);
+            return res.status(500).json({ error: "เกิดข้อผิดพลาดในการคืนสต็อก" });
+          }
+
+          console.log("✅ คืนสต็อกสำเร็จ");
+          res.json({ message: "อัปเดตสถานะเป็น 'ไม่อนุมัติ' และคืนจำนวนอุปกรณ์สำเร็จ" });
+        });
       });
     } else {
-      res.json({ message: 'อัปเดตสถานะสำเร็จ' });
+      res.json({ message: "อัปเดตสถานะสำเร็จ" });
     }
   });
 });

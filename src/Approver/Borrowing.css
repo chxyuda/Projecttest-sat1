@@ -1,10 +1,14 @@
 .borrowing-container {
-    max-width: 1000px;
-    background-color: #fbfdff;
-    margin: 150px auto 0 auto;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 200px auto; /* ระยะห่างจากด้านบน */
+  padding: 20px; /* เพิ่ม Padding ด้านใน */
+  background-color: #ffffff; /* สีพื้นหลัง */
+  border-radius: 10px; /* มุมโค้ง */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+  max-width: 1800px; /* ความกว้างสูงสุด */
+  width: 100%; /* ใช้ 100% ของหน้าจอ */
+  margin-top: 200px; /* ระยะห่างจากด้านบนของแถบตัวเลือก */
+  display: flex;
+  flex-direction: column;
   }
   
   .borrowing-title {

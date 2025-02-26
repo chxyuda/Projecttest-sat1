@@ -215,184 +215,88 @@ body.modal-open {
 }
 
 /* ✅ ปรับ Modal ให้ขยายเต็มพื้นที่ */
-.edit-modal {
-  background: white;
-  padding: 20px;
-  width: 90%;
-  max-width: 500px; /* ขยายให้กว้างขึ้น */
-  max-height: 90vh; /* ให้ Modal ใช้พื้นที่ได้เต็มที่ */
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden; /* ไม่ให้ฟอร์มล้น */
-}
-
-/* ✅ ให้ฟอร์มด้านในสามารถเลื่อนได้ */
-.edit-modal .form-grid {
+/* ✅ ปรับขนาด Modal ให้เหมาะสม */
+.edit-modal-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* ทำให้มี 2 คอลัมน์ */
+  gap: 20px; /* ระยะห่างระหว่างช่อง */
   width: 100%;
-  max-height: 70vh; /* จำกัดขนาดให้ไม่เล็กเกินไป */
-  overflow-y: auto; /* เพิ่มการเลื่อนเฉพาะเนื้อหา */
-  padding-right: 10px; /* เพิ่มช่องว่างให้ Scrollbar ไม่ทับ */
 }
 
-/* ✅ ปรับขนาด Input, Select และ Textarea ให้เต็ม Modal */
-.form-row input,
-.form-row select,
-.form-row textarea {
-  width: 100%; /* ใช้พื้นที่เต็ม */
-  padding: 10px;
+.full-width {
+  grid-column: span 2; /* ให้แถวที่ต้องการเต็ม 2 คอลัมน์ */
+}
+
+/* ปรับ modal ให้พอดีกับหน้าจอ */
+.edit-modal {
+  position: relative;
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 20px;
+  border-radius: 10px;
+  background: white;
+}
+
+
+/* ✅ ใช้ Grid 2 คอลัมน์ */
+.edit-item-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+/* ✅ ปรับ input และ select ให้ขนาดเท่ากัน */
+.edit-item-group label {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.edit-item-group input,
+.edit-item-group select,
+.edit-item-group textarea {
+  width: 100%;
+  padding: 8px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  font-size: 14px;
 }
 
-/* ✅ ปุ่มปิด Modal */
-.edit-modal-close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background-color: #ff0000;
-  color: white;
-  font-size: 20px;
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  border: none;
+/* ✅ ทำให้ textarea เต็มแถว */
+.full-width {
+  grid-column: span 2;
 }
 
-.edit-modal-close-btn:hover {
-  transform: scale(1.2);
-  background: #cc0000;
-}
-
-/* ✅ ปรับปุ่มบันทึก & ยกเลิก */
-.form-actions {
+/* ✅ ปุ่มบันทึก & ยกเลิก */
+.edit-item-actions {
   display: flex;
   justify-content: space-between;
-  width: 100%;
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
-.save-btn {
-  background-color: #007bff;
+.edit-item-save-btn {
+  background: #007bff;
   color: white;
-  padding: 12px 20px;
+  padding: 10px 15px;
   border: none;
   border-radius: 5px;
-  cursor: pointer;
-  width: 48%;
-}
-
-.cancel-btn {
-  background-color: #dc3545;
-  color: white;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  width: 48%;
-}
-
-/* ✅ Responsive */
-@media (max-width: 768px) {
-  .edit-modal {
-    width: 95%;
-    max-height: 95vh;
-  }
-
-  .edit-modal .form-grid {
-    max-height: 75vh;
-  }
-}
-
-/* ✅ ปรับขนาด Modal ให้กว้างขึ้น */
-.add-product-modal {
-  background: white;
-  padding: 20px;
-  width: 80%; /* ขยายให้กว้างขึ้น */
-  max-width: 500px; /* ปรับขนาดกว้างสุด */
-  max-height: 85vh; /* ป้องกัน Modal สูงเกินไป */
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden; /* ป้องกันการล้น */
-}
-
-/* ✅ ปรับ Scroll ให้อยู่เฉพาะเนื้อหา */
-.add-product-modal .modal-content {
-  width: 100%;
-  max-height: 70vh;
-  overflow-y: auto; /* ให้เนื้อหาเลื่อนได้ */
-  padding-right: 10px;
-}
-
-/* ✅ ใช้ Grid Layout 2 คอลัมน์ */
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* แบ่งเป็น 2 คอลัมน์ */
-  gap: 15px;
-  width: 100%;
-  max-height: 65vh;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-/* ✅ ปรับ Label */
-.form-row label {
-  font-weight: bold;
-  text-align: left;
-  padding-right: 10px;
-}
-
-/* ✅ ปรับ Input */
-.form-row input,
-.form-row select,
-.form-row textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-/* ✅ ปรับปุ่ม */
-.form-actions {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  width: 100%;
-  margin-top: 20px;
-}
-
-.save-btn {
-  background-color: #28a745;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
+  font-size: 16px;
   cursor: pointer;
 }
 
-.cancel-btn {
-  background-color: #dc3545;
+.edit-item-cancel-btn {
+  background: #dc3545;
   color: white;
-  padding: 10px 20px;
+  padding: 10px 15px;
   border: none;
   border-radius: 5px;
+  font-size: 16px;
   cursor: pointer;
 }
 
-/* ✅ ปรับปุ่มปิดให้เป็นวงกลม */
-.add-product-close-btn {
+.edit-modal-close-btn { 
   position: absolute;
   top: 10px;
   right: 10px;
@@ -407,23 +311,181 @@ body.modal-open {
   align-items: center;
   cursor: pointer;
   transition: transform 0.2s ease;
+  border: none;
 }
 
-.add-product-close-btn:hover {
+.edit-modal-close-btn:hover {
   transform: scale(1.2);
   background-color: #cc0000;
 }
 
-/* ✅ Responsive */
+/* ✅ รองรับจอเล็ก (1 คอลัมน์) */
 @media (max-width: 768px) {
-  .add-product-modal {
-    width: 95%;
-    max-height: 90vh;
+  .edit-item-modal {
+      width: 95%;
+      max-height: 85vh;
   }
-  .form-grid {
-    grid-template-columns: 1fr; /* ถ้าจอเล็กให้เป็นคอลัมน์เดียว */
+  .edit-item-grid {
+      grid-template-columns: 1fr;
+  }
+  .full-width {
+      grid-column: span 1;
   }
 }
+
+
+/* ✅ Background Overlay */
+.add-material-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* ✅ Modal กลางจอ */
+/* ✅ ปรับขนาด Modal ให้เหมาะสม */
+.add-material-modal {
+  background: white;
+  width: 90%; /* ใช้ 90% ของหน้าจอเพื่อไม่ให้ใหญ่เกิน */
+  max-width: 600px; /* จำกัดขนาดสูงสุด */
+  max-height: 90vh; /* จำกัดความสูงไม่ให้เกิน 90% ของ viewport */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease-in-out;
+  position: relative;
+  overflow-y: auto; /* ✅ ให้สามารถเลื่อนภายใน Modal ได้ */
+}
+
+/* ✅ หัวข้อ Modal */
+.add-material-title {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* ✅ ปุ่มปิด */
+.add-material-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ff0000;
+  color: white;
+  font-size: 18px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border: none;
+}
+
+.add-material-close-btn:hover {
+  transform: scale(1.2);
+  background-color: #cc0000;
+}
+
+/* ✅ Grid Layout */
+.add-material-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+/* ✅ ฟิลด์ข้อมูล (ช่อง input & select) */
+.add-material-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.add-material-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.add-material-group input,
+.add-material-group select,
+.add-material-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+/* ✅ Textarea ปรับให้เต็มแถว */
+.full-width {
+  grid-column: span 2;
+}
+
+.add-material-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ✅ ปุ่มบันทึก & ยกเลิก */
+.add-material-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* ✅ ปุ่มบันทึก (สีน้ำเงิน) */
+.add-material-save-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.add-material-save-btn:hover {
+  background-color: #0056b3;
+}
+
+/* ✅ ปุ่มยกเลิก (สีแดง) */
+.add-material-cancel-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.add-material-cancel-btn:hover {
+  background-color: #c82333;
+}
+
+/* ✅ Animation */
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+      transform: translateY(-10px);
+  }
+  to {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}
+
+
+
 
 /* ✅ ปรับขนาด Modal ให้ใหญ่ขึ้น */
 .category-modal {
@@ -1222,6 +1284,40 @@ body.modal-open {
     font-size: 12px;
   }
 }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.pagination button {
+  padding: 10px 15px;
+  font-size: 16px;
+  border: 1px solid #007bff;
+  background-color: white;
+  color: #007bff;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.pagination button:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.pagination .active-page {
+  background-color: #007bff;
+  color: white;
+}
+
 
 
 

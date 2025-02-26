@@ -32,7 +32,7 @@ function WaitingReceiveBorrow() {
       }));
 
       const approvedRequests = enrichedRequests.filter(
-        (req) => req.status === "Approved"
+        (req) => req.status === "Received"
       );
 
       setRequests(approvedRequests);
@@ -276,7 +276,7 @@ function WaitingReceiveBorrow() {
             value={
               selectedRequest.status === "Pending"
                 ? "รอดำเนินการ"
-                : selectedRequest.status === "Approved"
+                : selectedRequest.status === "WaitingReceive"
                 ? "รอรับของ"
                 : selectedRequest.status === "Rejected"
                 ? "ไม่อนุมัติ"

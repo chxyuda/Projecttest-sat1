@@ -44,6 +44,9 @@ const Settings = () => {
   const [newProductDetails, setNewProductDetails] = useState("");
   const [products, setProducts] = useState([]);
   const [editingEquipmentName, setEditingEquipmentName] = useState(""); 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
+
 
 
   console.log("Selected Items:", selectedItems);
@@ -66,8 +69,31 @@ const Settings = () => {
   
     fetchAllData();
   }, []);
+
+ // คำนวณ index ของข้อมูลที่จะแสดง
+const indexOfLastItem = currentPage * itemsPerPage;
+const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+
+const handlePageClick = (page) => {
+  setCurrentPage(page);
+};
+
+const totalPages = Math.ceil(data.length / itemsPerPage);
+// ฟังก์ชันเปลี่ยนหน้า
+const handleNextPage = () => {
+  if (currentPage < totalPages) {
+    setCurrentPage(currentPage + 1);
+  }
+};
+
+const handlePreviousPage = () => {
+  if (currentPage > 1) {
+    setCurrentPage(currentPage - 1);
+  }
+};
   
-  
+
   const fetchData = async () => {
     try {
         const response = await axios.get("http://localhost:5001/api/products");
@@ -1018,7 +1044,7 @@ useEffect(() => {
               </tr>
             </thead>
             <tbody>
-              {data.map((item, index) => ( // เพิ่ม index ใน map
+            {currentItems.map((item, index) => (
                 <tr key={item.id}>
                   <td>
                   <input
@@ -1044,6 +1070,23 @@ useEffect(() => {
               ))}
             </tbody>
           </table>
+          <div className="pagination">
+            <button onClick={handlePreviousPage} disabled={currentPage === 1}>
+              {"< ก่อนหน้า"}
+            </button>
+            {[...Array(totalPages)].map((_, index) => (
+              <button
+                key={index + 1}
+                className={currentPage === index + 1 ? "active-page" : ""}
+                onClick={() => handlePageClick(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+            <button onClick={handleNextPage} disabled={currentPage === totalPages}>
+              {"ถัดไป >"}
+            </button>
+          </div>
         </div>
         {showModal && (
   <div className="category-modal-overlay">
@@ -1286,8 +1329,8 @@ useEffect(() => {
           handleSave();
         }}
       >
-        <div className="form-grid">
-          <div className="form-row">
+        <div className="edit-modal-content"> {/* ✅ ใช้ Grid 2 คอลัมน์ */}
+          <div className="form-group">
             <label>ชื่อ:</label>
             <input
               type="text"
@@ -1298,7 +1341,7 @@ useEffect(() => {
             />
           </div>
 
-          <div className="form-row">
+          <div className="form-group">
             <label>ประเภท:</label>
             <select
               value={currentEditItem.category}
@@ -1313,7 +1356,7 @@ useEffect(() => {
             </select>
           </div>
 
-          <div className="form-row">
+          <div className="form-group">
             <label>อุปกรณ์:</label>
             <select
               value={currentEditItem.equipment}
@@ -1328,7 +1371,7 @@ useEffect(() => {
             </select>
           </div>
 
-          <div className="form-row">
+          <div className="form-group">
             <label>ยี่ห้อ:</label>
             <select
               value={currentEditItem.brand_name}
@@ -1342,7 +1385,7 @@ useEffect(() => {
             </select>
           </div>
 
-          <div className="form-row">
+          <div className="form-group">
             <label>หมายเลขครุภัณฑ์:</label>
             <input
               type="text"
@@ -1353,7 +1396,7 @@ useEffect(() => {
             />
           </div>
 
-          <div className="form-row">
+          <div className="form-group">
             <label>Serial:</label>
             <input
               type="text"
@@ -1364,7 +1407,7 @@ useEffect(() => {
             />
           </div>
 
-          <div className="form-row">
+          <div className="form-group">
             <label>จำนวน:</label>
             <input
               type="number"
@@ -1374,23 +1417,24 @@ useEffect(() => {
               }
             />
           </div>
-          <div className="form-row">
-  <label>คงเหลือ:</label>
-  <input
-    type="number"
-    min="0"
-    max={currentEditItem.inventory_number} // ✅ ป้องกันไม่ให้เกินจำนวนทั้งหมด
-    value={currentEditItem.remaining || ""}
-    onChange={(e) =>
-      setCurrentEditItem({
-        ...currentEditItem,
-        remaining: e.target.value, // ✅ ให้ผู้ใช้เปลี่ยนแปลงค่าได้
-      })
-    }
-  />
-</div>
 
-          <div className="form-row">
+          <div className="form-group">
+            <label>คงเหลือ:</label>
+            <input
+              type="number"
+              min="0"
+              max={currentEditItem.inventory_number}
+              value={currentEditItem.remaining || ""}
+              onChange={(e) =>
+                setCurrentEditItem({
+                  ...currentEditItem,
+                  remaining: e.target.value,
+                })
+              }
+            />
+          </div>
+
+          <div className="form-group full-width"> {/* ✅ ให้ textarea ใช้ทั้ง 2 คอลัมน์ */}
             <label>รายละเอียด:</label>
             <textarea
               value={currentEditItem.details || ""}
@@ -1410,104 +1454,115 @@ useEffect(() => {
   </div>
 )}
 
-
 {showAddProductModal && (
-  <div className="modal-overlay">
-    <div className="add-product-modal">
-      <h2 className="modal-title">เพิ่มวัสดุ</h2>
-      <button className="add-product-close-btn" onClick={handleCloseAddProductModal}>
+  <div className="add-material-overlay">
+    <div className="add-material-modal">
+      <h2 className="add-material-title">เพิ่มวัสดุ</h2>
+      <button className="add-material-close-btn" onClick={handleCloseAddProductModal}>
         ✖
       </button>
+      
       <form onSubmit={handleAddProduct}>
-        <div className="form-grid">
-          <label>ชื่อสินค้า:</label>
-          <input
-            type="text"
-            name="name"
-            placeholder="กรอกชื่อสินค้า"
-            value={formData.name || ""}
-            onChange={handleChange}
-            required
-          />
-          <label>ประเภท:</label>
+        <div className="add-material-grid">
+          {/* ✅ แถวที่ 1 */}
+          <div className="add-material-group">
+            <label>ชื่อสินค้า:</label>
+            <input
+              type="text"
+              name="name"
+              placeholder="กรอกชื่อสินค้า"
+              value={formData.name || ""}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="add-material-group">
+            <label>ประเภท:</label>
             <select name="category" value={formData.category || ""} onChange={handleChange} required>
               <option value="">เลือกประเภท</option>
-                {categories.length > 0 ? (
-                  categories.map((category) => (
-                  <option key={category.id} value={category.name}>
-                  {category.name}
-                </option>
-              ))
-              ) : (
-              <option value="">ไม่มีข้อมูล</option>
-              )}
+              {categories.map((category) => (
+                <option key={category.id} value={category.name}>{category.name}</option>
+              ))}
             </select>
-          <label>อุปกรณ์:</label>
-          <select name="equipment" value={formData.equipment || ""} onChange={handleChange}>
-            <option value="">เลือกอุปกรณ์</option>
-            {equipments.length > 0 ? (
-              equipments.map((equipment, index) => (
+          </div>
+
+          {/* ✅ แถวที่ 2 */}
+          <div className="add-material-group">
+            <label>อุปกรณ์:</label>
+            <select name="equipment" value={formData.equipment || ""} onChange={handleChange}>
+              <option value="">เลือกอุปกรณ์</option>
+              {equipments.map((equipment, index) => (
                 <option key={index} value={equipment.equipment || ""}>
                   {equipment.equipment || "ไม่มีข้อมูล"}
                 </option>
-              ))
-            ) : (
-              <option value="">ไม่มีข้อมูล</option>
-            )}
-          </select>
+              ))}
+            </select>
+          </div>
 
-          <label>ยี่ห้อ:</label>
-          <select name="brand" value={formData.brand || ""} onChange={handleChange} required>
-            <option value="">เลือกยี่ห้อ</option>
-            {brands.map((brand) => (
-              <option key={brand.id} value={brand.name}>
-                {brand.name}
-              </option>
-            ))}
-          </select>
+          <div className="add-material-group">
+            <label>ยี่ห้อ:</label>
+            <select name="brand" value={formData.brand || ""} onChange={handleChange} required>
+              <option value="">เลือกยี่ห้อ</option>
+              {brands.map((brand) => (
+                <option key={brand.id} value={brand.name}>{brand.name}</option>
+              ))}
+            </select>
+          </div>
 
-          <label>หมายเลขครุภัณฑ์:</label>
-          <input
-            type="text"
-            name="equipment_number"
-            placeholder="กรอกหมายเลขครุภัณฑ์"
-            value={formData.equipment_number || ""}
-            onChange={handleChange}
-            required
-          />
+          {/* ✅ แถวที่ 3 */}
+          <div className="add-material-group">
+            <label>หมายเลขครุภัณฑ์:</label>
+            <input
+              type="text"
+              name="equipment_number"
+              placeholder="กรอกหมายเลขครุภัณฑ์"
+              value={formData.equipment_number || ""}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <label>Serial:</label>
-          <input
-            type="text"
-            name="serial_number"
-            placeholder="กรอก Serial Number"
-            value={formData.serial_number || ""}
-            onChange={handleChange}
-          />
+          <div className="add-material-group">
+            <label>Serial:</label>
+            <input
+              type="text"
+              name="serial_number"
+              placeholder="กรอก Serial Number"
+              value={formData.serial_number || ""}
+              onChange={handleChange}
+            />
+          </div>
 
-          <label>จำนวน:</label>
-          <input
-            type="number"
-            name="inventory_number"
-            placeholder="ระบุจำนวน"
-            min="1"
-            value={formData.inventory_number || 1}
-            onChange={handleChange}
-            required
-          />
+          {/* ✅ แถวที่ 4 */}
+          <div className="add-material-group">
+            <label>จำนวน:</label>
+            <input
+              type="number"
+              name="inventory_number"
+              placeholder="ระบุจำนวน"
+              min="1"
+              value={formData.inventory_number || 1}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <label>รายละเอียด:</label>
-          <textarea
-            name="details"
-            placeholder="กรอกรายละเอียดสินค้า (ถ้ามี)"
-            value={formData.details || ""}
-            onChange={handleChange}
-          />
+          <div className="add-material-group full-width">
+            <label>รายละเอียด:</label>
+            <textarea
+              name="details"
+              placeholder="กรอกรายละเอียดสินค้า (ถ้ามี)"
+              value={formData.details || ""}
+              onChange={handleChange}
+            />
+          </div>
         </div>
 
-        <div className="form-actions">
-          <button type="submit" className="save-btn">บันทึก</button>
-          <button type="button" className="cancel-btn" onClick={() => setShowAddProductModal(false)}>
+        {/* ✅ ปุ่มบันทึก & ยกเลิก */}
+        <div className="add-material-actions">
+          <button type="submit" className="add-material-save-btn">บันทึก</button>
+          <button type="button" className="add-material-cancel-btn" onClick={() => setShowAddProductModal(false)}>
             ยกเลิก
           </button>
         </div>
@@ -1515,6 +1570,8 @@ useEffect(() => {
     </div>
   </div>
 )}
+
+
 
 
     </div>

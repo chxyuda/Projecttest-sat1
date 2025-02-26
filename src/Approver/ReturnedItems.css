@@ -138,14 +138,14 @@
   }
   
   /* Modal */
-  /* ====== Overlay ปิด Modal ====== */
+ /* ====== Modal Overlay (พื้นหลังจาง) ====== */
 .returned-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -154,42 +154,47 @@
 
 /* ====== กล่อง Modal ====== */
 .returned-modal {
-  background-color: white;
+  background: white;
+  width: 90%; /* ปรับให้รองรับจอเล็ก */
+  max-width: 700px; /* กำหนดขนาดสูงสุด */
+  max-height: 90vh; /* ป้องกันการล้นหน้าจอแนวตั้ง */
+  overflow-y: auto; /* เพิ่ม Scroll หากเนื้อหายาวเกิน */
   padding: 25px;
-  width: 600px; /* ปรับขนาด */
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   position: relative;
+  text-align: center;
 }
 
 /* ====== หัวข้อ Modal ====== */
 .returned-modal h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
   font-size: 22px;
   font-weight: bold;
-  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
 }
 
-/* ====== ปุ่มปิด Modal (Icon X) ====== */
+/* ====== ปุ่มปิด Modal (ไอคอน X) ====== */
 .returned-modal-close-icon {
   position: absolute;
-  top: -15px;
-  right: -15px;
-  font-size: 26px;
-  color: red;
+  top: 12px;
+  right: 15px;
+  font-size: 22px;
+  color: #ff4d4d;
   cursor: pointer;
-  background-color: white;
-  border-radius: 50%;
-  padding: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transition: 0.2s;
+}
+
+.returned-modal-close-icon:hover {
+  color: #cc0000;
+  transform: scale(1.1);
 }
 
 /* ====== ฟอร์มแสดงข้อมูล ====== */
 .returned-modal-form {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* จัดเป็น 2 คอลัมน์ */
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr); /* แบ่งเป็น 2 คอลัมน์ */
+  gap: 30px;
 }
 
 /* ====== กล่องของแต่ละฟิลด์ ====== */
@@ -197,13 +202,14 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  text-align: left;
 }
 
-/* ====== Label (ชื่อหัวข้อแต่ละช่อง) ====== */
+/* ====== Label (ชื่อหัวข้อ) ====== */
 .returned-form-group label {
   font-weight: bold;
   font-size: 14px;
-  color: #333;
+  color: #555;
 }
 
 /* ====== ช่อง Input และ Textarea ====== */
@@ -212,7 +218,7 @@
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 6px;
   background-color: #f9f9f9;
   font-size: 14px;
   resize: none;
@@ -228,15 +234,18 @@
   background-color: #6c757d;
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
+  padding: 10px 16px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 14px;
   width: 100%;
   margin-top: 10px;
+  transition: 0.2s;
 }
 
 .returned-modal button:hover {
   background-color: #5a6268;
 }
+
 
   
