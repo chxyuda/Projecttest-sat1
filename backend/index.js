@@ -957,8 +957,6 @@ app.get("/api/users/:id", (req, res) => {
 
 // ✅ API เพิ่มผู้ใช้ใหม่
 app.post("/api/users", async (req, res) => {
-  console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body); // ✅ Debug ค่าที่ได้รับ
-
   const { fullName, department_name, section_name, task_name, phone, email, username, password } = req.body;
 
   if (!username || !password || !fullName || !email || !phone || !department_name || !section_name || !task_name) {
@@ -974,7 +972,7 @@ app.post("/api/users", async (req, res) => {
       db.query(query, [fullName, department_name, section_name, task_name, phone, email, username, password], (err, results) => {
           if (err) {
               console.error("❌ Error adding user:", err);
-              return res.status(500).json({ error: "❌ Failed to add user", details: err });
+              return res.status(500).json({ error: "❌ Failed to add user" });
           }
           res.status(201).json({ message: "✅ สมัครสมาชิกสำเร็จ!", userId: results.insertId });
       });
@@ -984,7 +982,6 @@ app.post("/api/users", async (req, res) => {
       res.status(500).json({ error: "❌ เกิดข้อผิดพลาดในการสมัครสมาชิก" });
   }
 });
-
 
 // ✅ อัปเดต API อัปเดตข้อมูล (PUT)
 app.put("/api/users/:id", async (req, res) => {
@@ -1245,7 +1242,7 @@ router.post('/requests', (req, res) => {
     phone,
     email,
     material,
-    type,
+    category, // เปลี่ยนจาก type เป็น category
     equipment,
     brand,
     equipment_number,
@@ -1261,11 +1258,11 @@ router.post('/requests', (req, res) => {
     SELECT model, (inventory_number - borrowed_number) AS remaining 
     FROM products 
     WHERE model = ? AND (inventory_number - borrowed_number) >= ? 
-  `; // ✅ ใช้ WHERE แทน HAVING
+  `;
 
   const insertSql = `
     INSERT INTO requests 
-    (user_id, borrower_name, department, phone, email, material, type, equipment, brand, equipment_number, serial_number, quantity_requested, note, date_requested)
+    (user_id, borrower_name, department, phone, email, material, category, equipment, brand, equipment_number, serial_number, quantity_requested, note, date_requested)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
@@ -1302,7 +1299,7 @@ router.post('/requests', (req, res) => {
 
       db.query(
         insertSql,
-        [userId, borrower_name, department, phone, email, material, type, equipment, brand, equipment_number, serial_number, quantity_requested, note, date_requested],
+        [userId, borrower_name, department, phone, email, material, category, equipment, brand, equipment_number, serial_number, quantity_requested, note, date_requested],
         (err, result) => {
           if (err) {
             return res.status(500).json({ error: 'INSERT REQUEST FAILED: ' + err.message });
@@ -1320,7 +1317,6 @@ router.post('/requests', (req, res) => {
     });
   });
 });
-
 
 // ✅ 2. ดึงคำขอทั้งหมด
 router.get('/requests', (req, res) => {
