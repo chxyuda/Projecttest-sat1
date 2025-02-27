@@ -728,25 +728,47 @@ app.delete('/api/products/:id', async (req, res) => {
   }
 });
 
-router.post("/equipment-names", (req, res) => {
-  console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body);
-
+app.post("/api/equipment-names", async (req, res) => {
   const { name } = req.body;
-
+  
   if (!name) {
-      return res.status(400).json({ success: false, message: "กรุณากรอกชื่ออุปกรณ์" });
+      return res.status(400).json({ success: false, message: "กรุณาระบุชื่ออุปกรณ์" });
   }
 
-  const query = `INSERT INTO equipment_names (name) VALUES (?)`;
+  try {
+      // ✅ 1. เช็คว่ามีอุปกรณ์นี้อยู่ใน `equipment_names` แล้วหรือไม่
+      const [existing] = await db.promise().query(
+          "SELECT id FROM equipment_names WHERE name = ?",
+          [name]
+      );
 
-  db.query(query, [name], (err, result) => {
-      if (err) {
-          console.error("❌ Database error:", err);
-          return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+      let equipmentId;
+      if (existing.length > 0) {
+          equipmentId = existing[0].id;
+          console.log("📌 อุปกรณ์มีอยู่แล้ว ID:", equipmentId);
+      } else {
+          // ✅ 2. ถ้ายังไม่มี ให้เพิ่มใหม่ใน `equipment_names`
+          const [insertResult] = await db.promise().query(
+              "INSERT INTO equipment_names (name) VALUES (?)",
+              [name]
+          );
+          equipmentId = insertResult.insertId;
+          console.log("✅ เพิ่มอุปกรณ์ใหม่ ID:", equipmentId);
       }
-      console.log("✅ เพิ่มชื่ออุปกรณ์สำเร็จ:", { id: result.insertId, name });
-      res.status(201).json({ success: true, id: result.insertId });
-  });
+
+      // ✅ 3. อัปเดตตาราง `products` ให้ใช้ `equipment_id`
+      const [updateResult] = await db.promise().query(
+          "UPDATE products SET name = (SELECT name FROM equipment_names WHERE id = ?) WHERE equipment_id = ?",
+          [equipmentId, equipmentId]
+      );
+
+      console.log("✅ อัปเดต `products` สำเร็จ:", updateResult);
+
+      res.status(201).json({ success: true, id: equipmentId, message: "เพิ่มอุปกรณ์สำเร็จ" });
+  } catch (error) {
+      console.error("❌ Error adding equipment:", error);
+      res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์" });
+  }
 });
 
 

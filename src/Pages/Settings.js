@@ -524,25 +524,32 @@ const fetchEquipments = async () => {
   // ฟังก์ชันเพิ่มอุปกรณ์ใหม่
   const handleAddEquipment = async () => {
     if (!newEquipment.trim()) {
-        alert("กรุณากรอกชื่ออุปกรณ์");
+        alert("❌ กรุณากรอกชื่ออุปกรณ์");
         return;
     }
 
     try {
+        console.log("📌 ส่งข้อมูล:", newEquipment); // ✅ Debug
+
         const response = await axios.post("http://localhost:5001/api/equipment-names", {
-            name: newEquipment, // ส่งเฉพาะชื่อ
+            name: newEquipment
         });
 
+        console.log("📌 คำตอบจาก API:", response.data); // ✅ Debug
+
         if (response.data.success) {
-            alert("✅ เพิ่มชื่ออุปกรณ์สำเร็จ");
-            fetchEquipments(); // โหลดข้อมูลใหม่
-            setNewEquipment(""); // ล้างค่า input
+            alert("✅ เพิ่มอุปกรณ์สำเร็จ");
+
+            // ✅ โหลดข้อมูลใหม่ให้แสดงผล
+            fetchEquipments();
+            fetchProducts();
+            setNewEquipment("");
         } else {
             alert(response.data.message || "❌ เกิดข้อผิดพลาด");
         }
     } catch (error) {
-        console.error("❌ Error adding equipment name:", error);
-        alert("❌ เกิดข้อผิดพลาดในการเพิ่มชื่ออุปกรณ์");
+        console.error("❌ Error adding equipment:", error.response?.data || error);
+        alert("❌ เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์");
     }
 };
 
