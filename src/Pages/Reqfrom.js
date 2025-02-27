@@ -163,7 +163,6 @@ const ReqFrom = ({ onClose, onSubmit }) => {
       status: "Pending",
       note: newRequest.note || "-",
       request_date: newRequest.request_date || new Date().toISOString().split("T")[0],
-      return_date: newRequest.return_date || "",
     };
 
     console.log("📌 Data to send:", requestData);
@@ -344,17 +343,6 @@ const ReqFrom = ({ onClose, onSubmit }) => {
               onChange={(e) => setNewRequest({ ...newRequest, request_date: e.target.value })}
             />
           </div>
-  
-          <div>
-            <label className="add-borrow-label">วันที่คืน:</label>
-            <input
-              className="add-borrow-input"
-              type="date"
-              value={newRequest.return_date || ""}
-              onChange={(e) => setNewRequest({ ...newRequest, return_date: e.target.value })}
-            />
-          </div>
-  
           <div className="add-borrow-full-row">
             <label className="add-borrow-label">หมายเหตุ:</label>
             <textarea

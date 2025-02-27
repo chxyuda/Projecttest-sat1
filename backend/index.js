@@ -1348,10 +1348,12 @@ router.post('/requests', (req, res) => {
   `;
 
   const insertSql = `
-    INSERT INTO requests 
-    (user_id, borrower_name, department, phone, email, material, category, equipment, brand, equipment_number, serial_number, quantity_requested, note, date_requested)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+  INSERT INTO requests 
+  (user_id, borrower_name, department, phone, email, material, category, equipment, brand, 
+   equipment_number, serial_number, quantity_requested, note, date_requested)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_DATE()))
+`;
+
 
   const updateStockSql = `
     UPDATE products 
@@ -1407,7 +1409,15 @@ router.post('/requests', (req, res) => {
 
 // ✅ 2. ดึงคำขอทั้งหมด
 router.get('/requests', (req, res) => {
-  const sql = 'SELECT * FROM requests ORDER BY created_at DESC';
+  const sql = `
+    SELECT id, borrower_name, department, phone, email, material, category, equipment, brand, 
+      equipment_number, serial_number, quantity_requested, note,
+      IFNULL(date_requested, created_at) AS date_requested,
+      status, created_at, updated_at
+    FROM requests 
+    ORDER BY created_at DESC
+  `;
+
   db.query(sql, (err, results) => {
     if (err) {
       return res.status(500).json({ error: err.message });
@@ -1415,6 +1425,7 @@ router.get('/requests', (req, res) => {
     res.json(results);
   });
 });
+
 
 
 router.get('/requests/user/:userId', (req, res) => {
@@ -1528,23 +1539,23 @@ router.put('/requests/:id/receive', (req, res) => {
   const requestId = req.params.id;
 
   if (!received_by) {
-      return res.status(400).json({ error: "ต้องกรอกชื่อผู้รับของ" });
+    return res.status(400).json({ error: "❌ ต้องกรอกชื่อผู้รับของ" });
   }
 
   const updateQuery = `
-      UPDATE requests 
-      SET status = 'Received', received_by = ?, date_received = ? 
-      WHERE id = ?;
+    UPDATE requests 
+    SET status = 'Received', received_by = ?, date_received = ? 
+    WHERE id = ?;
   `;
 
   db.query(updateQuery, [received_by, date_received, requestId], (err, result) => {
     if (err) {
       console.error("🔥 UPDATE ERROR:", err);
-      return res.status(500).json({ error: "เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล" });
+      return res.status(500).json({ error: "❌ เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล" });
     }
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "ไม่พบคำขอในระบบ" });
+      return res.status(404).json({ error: "❌ ไม่พบคำขอที่ต้องการอัปเดต" });
     }
 
     res.json({ success: true, message: "✅ อัปเดตสถานะเป็น 'รับของแล้ว' สำเร็จ" });

@@ -33,8 +33,11 @@ const RequestPage = () => {
       try {
         const response = await fetch("http://localhost:5001/api/requests");
         const data = await response.json();
+        
+        console.log("📌 Data from API:", data); // ✅ ดูค่า date_requested
+        
         setRequests(data);
-        setFilteredRequests(data); // ✅ เซ็ตข้อมูลเริ่มต้น
+        setFilteredRequests(data);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching requests:", error);
@@ -43,6 +46,19 @@ const RequestPage = () => {
     };
     fetchData();
   }, []);
+
+  const formatDate = (dateString) => {
+  if (!dateString || dateString === "0000-00-00" || dateString === "NULL") return "-";
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "-";
+
+  return date.toLocaleDateString("th-TH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
 
   // ฟังก์ชันค้นหาด้วยวันที่
   const handleSearch = () => {
@@ -93,6 +109,25 @@ const RequestPage = () => {
         setSelectedRequest({ ...request, remaining: 'ไม่ทราบ' });
     }
 };
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const response = await fetch("http://localhost:5001/api/requests");
+      const data = await response.json();
+      
+      console.log("📌 Data from API:", data); // ✅ ตรวจสอบค่า date_requested
+      
+      setRequests(data);
+      setFilteredRequests(data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching requests:", error);
+      setLoading(false);
+    }
+  };
+  fetchData();
+}, []);
 
 
   return (
@@ -155,7 +190,7 @@ const RequestPage = () => {
                       <td>{req.borrower_name}</td>
                       <td>{req.department}</td>
                       <td>{req.equipment}</td>
-                      <td>{new Date(req.date_requested).toLocaleDateString("th-TH")}</td>
+                      <td>{formatDate(req.date_requested)}</td>
                       <td>{req.quantity_requested}</td>
                       <td>{getStatusInThai(req.status)}</td>
                       <td>

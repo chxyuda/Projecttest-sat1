@@ -127,7 +127,7 @@ const RequestApproved = () => {
  
         alert("✅ คำขอสำเร็จ!");
         setApprovedRequests((prev) =>
-            prev.map((req) => (req.id === requestId ? { ...req, status: "Received" } : req))
+            prev.map((req) => (req.id === requestId ? { ...req, status: "Approved" } : req))
         );
     } catch (error) {
         console.error("🔥 Fetch Error:", error);
@@ -418,13 +418,14 @@ const handleReceiveItem = async (requestId) => {
             onChange={(e) => setReceiverName(e.target.value)}
             placeholder="กรอกชื่อผู้รับของ"
           />
-          <button
-            className="confirm-receive-button"
-            onClick={() =>handleApproveRequest(selectedRequest.id)}
-            disabled={!receiverName.trim()}
-          >
-            ✅ ยืนยันรับของ
-          </button>
+         <button
+  className="confirm-receive-button"
+  onClick={() => handleReceiveItem(selectedRequest.id)}  // ✅ เปลี่ยนจาก handleApproveRequest เป็น handleReceiveItem
+  disabled={!receiverName.trim()}
+>
+  ✅ ยืนยันรับของ
+</button>
+
         </div>
       )}
     </div>
