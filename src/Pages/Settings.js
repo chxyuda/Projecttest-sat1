@@ -523,40 +523,28 @@ const fetchEquipments = async () => {
   
   // ฟังก์ชันเพิ่มอุปกรณ์ใหม่
   const handleAddEquipment = async () => {
-    // ตรวจสอบว่ามีข้อมูลครบถ้วนหรือไม่
     if (!newEquipment.trim()) {
-      alert("กรุณากรอกชื่ออุปกรณ์");
-      return;
+        alert("กรุณากรอกชื่ออุปกรณ์");
+        return;
     }
-    
-    // กำหนดค่าดีฟอลต์
-    const defaultSerial = "ไม่มี";
-    const defaultInventory = 1; // จำนวนเริ่มต้น
-    const defaultDetails = "ไม่มีรายละเอียด";
-    
+
     try {
-      const response = await axios.post("http://localhost:5001/api/products", {
-        name: newEquipment, // ชื่ออุปกรณ์ (ต้องกรอก)
-        brand_name: newBrand || "ทั่วไป", // ใช้ค่า 'ทั่วไป' ถ้าไม่ได้เลือก
-        equipment_number: newEquipmentNumber || "-", // กำหนดให้เป็น "-" ถ้าไม่ได้กรอก
-        serial_number: newSerial || defaultSerial,
-        inventory_number: newInventory || defaultInventory,
-        remaining: newInventory || defaultInventory, // สมมติว่าเริ่มต้นเท่ากับจำนวน
-        details: newDetails || defaultDetails,
-      });
-    
-      if (response.data.success) {
-        alert("เพิ่มอุปกรณ์สำเร็จ");
-        fetchEquipments(); // โหลดข้อมูลใหม่
-        setNewEquipment(""); // ล้างค่า input
-      } else {
-        alert(response.data.message || "เกิดข้อผิดพลาด");
-      }
+        const response = await axios.post("http://localhost:5001/api/equipment-names", {
+            name: newEquipment, // ส่งเฉพาะชื่อ
+        });
+
+        if (response.data.success) {
+            alert("✅ เพิ่มชื่ออุปกรณ์สำเร็จ");
+            fetchEquipments(); // โหลดข้อมูลใหม่
+            setNewEquipment(""); // ล้างค่า input
+        } else {
+            alert(response.data.message || "❌ เกิดข้อผิดพลาด");
+        }
     } catch (error) {
-      console.error("Error adding equipment:", error);
-      alert("เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์");
+        console.error("❌ Error adding equipment name:", error);
+        alert("❌ เกิดข้อผิดพลาดในการเพิ่มชื่ออุปกรณ์");
     }
-  };
+};
 
 
   const handleSaveEquipment = async (index) => {

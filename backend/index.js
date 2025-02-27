@@ -728,6 +728,27 @@ app.delete('/api/products/:id', async (req, res) => {
   }
 });
 
+router.post("/equipment-names", (req, res) => {
+  console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body);
+
+  const { name } = req.body;
+
+  if (!name) {
+      return res.status(400).json({ success: false, message: "กรุณากรอกชื่ออุปกรณ์" });
+  }
+
+  const query = `INSERT INTO equipment_names (name) VALUES (?)`;
+
+  db.query(query, [name], (err, result) => {
+      if (err) {
+          console.error("❌ Database error:", err);
+          return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+      }
+      console.log("✅ เพิ่มชื่ออุปกรณ์สำเร็จ:", { id: result.insertId, name });
+      res.status(201).json({ success: true, id: result.insertId });
+  });
+});
+
 
 // ดึงรายการ categories
 app.get('/api/categories', (req, res) => {

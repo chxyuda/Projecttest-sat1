@@ -222,7 +222,7 @@ const RequestRejected = () => {
 
         <div className="request-rejected-form-group">
           <label>หมายเหตุ:</label>
-          <textarea value={selectedRequest.note || "-"} readOnly />
+          <textarea value={selectedRequest.note_approver || "-"} readOnly />
         </div>
       </div>
     </div>

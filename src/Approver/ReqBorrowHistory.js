@@ -465,7 +465,7 @@ const handleCloseReturnModal = () => {
           <textarea
             value={
               selectedBorrowRequest.status === 'Rejected'
-                ? selectedBorrowRequest.reject_note || '-'
+                ? selectedBorrowRequest.note_approver || '-'
                 : selectedBorrowRequest.note || '-'
             }
             readOnly
