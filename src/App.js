@@ -46,6 +46,7 @@ import RequestPending from "./Pages/RequestPending.js";
 import RequestApproved from "./Pages/RequestApproved.js";
 import RequestRejected from "./Pages/RequestRejected.js";
 import RequestStatusPage from "./Pages/RequestStatusPage.js";
+import ReqFrom from "./Pages/Reqfrom.js";
 
 
 function App() {
@@ -143,6 +144,7 @@ function App() {
           <Route path="/request-approved" element={<RequestApproved />} />
           <Route path="/request-rejected" element={<RequestRejected />} /> {/* ✅ เพิ่มเส้นทาง */}
           <Route path="/request-status" element={<RequestStatusPage />} />
+          <Route path="/request-from" element={<ReqFrom />} />
         </Routes>
       </div>
     </Router>

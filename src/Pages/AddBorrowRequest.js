@@ -24,12 +24,29 @@ const AddBorrowRequest = ({ onClose, onSubmit }) => {
     status: "Pending",
   });
   
-  const [departments, setDepartments] = useState([]); // รายการฝ่าย/สำนัก
+  const [departments, setDepartments] = useState([]);
   const [categories, setCategories] = useState([]);
   const [equipments, setEquipments] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [materials, setMaterials] = useState([]); // ✅ เพิ่ม useState สำหรับเก็บวัสดุ (model)
+  const [materials, setMaterials] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
+  useEffect(() => {
+    axios.get("http://localhost:5001/api/users")
+      .then((res) => {
+         console.log("📌 Users Data from API:", res.data); // ✅ Debug
+         const approvedUsers = res.data.filter(user => user.status === "Approved");
+  
+         if (!approvedUsers || approvedUsers.length === 0) {
+             console.warn("⚠️ ไม่มีผู้ใช้ที่ได้รับการอนุมัติ!");
+         }
+  
+         setUsers(approvedUsers);
+      })
+      .catch((err) => console.error("❌ Error fetching users:", err));
+  }, []);
+  
   // ✅ ดึงรายการฝ่าย/สำนักจาก API
   useEffect(() => {
     axios.get("http://localhost:5001/api/departments")
@@ -60,22 +77,34 @@ const AddBorrowRequest = ({ onClose, onSubmit }) => {
   }, []);
 
   useEffect(() => {
-    if (newRequest.material) {
-      axios.get(`http://localhost:5001/api/products/model/${newRequest.material}`)
-        .then((response) => {
-          if (response.data.success) {
-            setNewRequest(prevState => ({
-              ...prevState,
-              remaining: response.data.remaining || "-",
-              equipment_number: response.data.equipment_number || "-",
-              serial_number: response.data.serial_number || "-"
-            }));
+    if (newRequest.material && newRequest.type && newRequest.equipment && newRequest.brand) {
+       console.log("📌 Fetching product details:", newRequest);
+       axios.get(`http://localhost:5001/api/products/details`, {
+          params: {
+             material: newRequest.material,
+             type: newRequest.type,
+             equipment: newRequest.equipment,
+             brand: newRequest.brand,
           }
-        })
-        .catch(error => console.error("Error fetching product details:", error));
+       })
+       .then(response => {
+          console.log("📢 API Response:", response.data);
+          if (response.data.success) {
+             setNewRequest(prevState => ({
+                ...prevState,
+                remaining: response.data.remaining || "-",
+                equipment_number: response.data.equipment_number || "-",
+                serial_number: response.data.serial_number || "-",
+             }));
+          } else {
+             console.error("❌ Error fetching product details:", response);
+          }
+       })
+       .catch(error => console.error("❌ API Error:", error));
     }
-  }, [newRequest.material]);
-
+ }, [newRequest.material, newRequest.type, newRequest.equipment, newRequest.brand]);
+ 
+ 
   useEffect(() => {
     axios.get("http://localhost:5001/api/products") // ✅ เรียก API
       .then((response) => {
@@ -102,193 +131,249 @@ const AddBorrowRequest = ({ onClose, onSubmit }) => {
       })
       .then(response => {
         if (response.data.success) {
-          setNewRequest(prevState => ({ ...prevState, remaining: response.data.remaining }));
+          setNewRequest(prevState => ({ ...prevState, remaining: response.data.remaining || "-" }));
         }
       })
       .catch(err => console.error("Error fetching remaining quantity:", err));
     }
   }, [newRequest.material, newRequest.type, newRequest.equipment, newRequest.brand]);
+  
 
-  const handleSubmit = async () => {
-    if (!newRequest.borrower_name || !newRequest.material || !newRequest.equipment || !newRequest.quantity || !newRequest.request_date) {
-      alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const userData = JSON.parse(localStorage.getItem('user'));
+  
+    const dataToSend = {
+      user_id: newRequest.user_id || userData?.id,
+      borrower_name: newRequest.borrower_name,
+      department: newRequest.department || "-",
+      phone: newRequest.phone || "-",
+      email: newRequest.email || "-",
+      material: newRequest.material,
+      category: newRequest.type, 
+      equipment: newRequest.equipment,
+      brand: newRequest.brand,
+      quantity_requested: parseInt(newRequest.quantity, 10) || 1,
+      equipment_number: newRequest.equipment_number || "-",
+      serial_number: newRequest.serial_number || "-",
+      note: newRequest.note || "-",
+      request_date: newRequest.request_date,
+      return_date: newRequest.return_date,
+    };
+  
+    if (!dataToSend.user_id || !dataToSend.borrower_name) {
+      alert("❌ กรุณาเลือกผู้ใช้ก่อนทำรายการ");
       return;
     }
   
     try {
-      const requestData = {
-        user_id: 1, // แก้เป็น user_id ที่ใช้จริง
-        borrower_name: newRequest.borrower_name,
-        department: newRequest.department,
-        phone: newRequest.phone,
-        email: newRequest.email,
-        material: newRequest.material,
-        category: newRequest.type, 
-        equipment: newRequest.equipment,
-        brand: newRequest.brand,
-        quantity_requested: newRequest.quantity,
-        equipment_number: newRequest.equipment_number, // ✅ เพิ่ม field หมายเลขครุภัณฑ์
-        serial_number: newRequest.serial_number, // ✅ เพิ่ม field Serial Number
-        note: newRequest.note,
-        request_date: newRequest.request_date,
-        return_date: newRequest.return_date,
-      };
+      console.log("📌 Data to send:", dataToSend); // ✅ Debug ข้อมูลก่อนส่ง
   
-      const response = await axios.post("http://localhost:5001/borrow-requests", requestData);
+      const response = await axios.post('http://localhost:5001/api/borrow-requests', dataToSend);
+      console.log("✅ Response:", response.data);
   
       if (response.status === 201) {
-        alert("บันทึกคำขอสำเร็จ");
+        alert("✅ บันทึกคำขอสำเร็จ");
         onSubmit(newRequest);
         onClose();
       } else {
-        alert("เกิดข้อผิดพลาดในการบันทึกคำขอ");
+        alert("❌ เกิดข้อผิดพลาดในการบันทึกคำขอ");
       }
     } catch (error) {
-      console.error("Error submitting borrow request:", error);
-      alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+      console.error("❌ API Error:", error.response ? error.response.data : error);
+      alert(`❌ เกิดข้อผิดพลาด: ${error.response?.data?.message || "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์"}`);
     }
   };
   
-  return (
-    <div className="add-borrow-overlay">
-      <div className="add-borrow-modal">
-      
-        {/* ปุ่มกากบาท ปิด Modal */}
-        <button className="add-borrow-close" onClick={onClose}>
-          <FontAwesomeIcon icon={faTimes} />
-        </button>
-        <h3 className="add-borrow-title">เพิ่มรายการยืม/คืน</h3>
-  
-        <div className="add-borrow-grid">
+
+
+return (
+  <div className="add-borrow-overlay">
+    <div className="add-borrow-modal">
+
+      {/* ปุ่มกากบาท ปิด Modal */}
+      <button className="add-borrow-close" onClick={onClose}>
+        <FontAwesomeIcon icon={faTimes} />
+      </button>
+      <h3 className="add-borrow-title">เพิ่มรายการยืม/คืน</h3>
+
+      <div className="add-borrow-grid">
         <div>
-            <label className="add-borrow-label">ชื่อผู้ขอ:</label>
-            <input className="add-borrow-input" type="text" />
-          </div>
+          <label className="add-borrow-label">เลือกผู้ใช้:</label>
+          <select
+            className="add-borrow-select"
+            value={newRequest.user_id || ""}
+            onChange={(e) => {
+              console.log("📌 Selected User ID:", e.target.value);
+              const selectedUser = users.find(user => user.id === parseInt(e.target.value, 10));
+
+              if (selectedUser) {
+                setNewRequest(prevState => ({
+                  ...prevState,
+                  user_id: selectedUser.id,
+                  borrower_name: selectedUser.fullName,
+                  department: selectedUser.department_name || "-",
+                  phone: selectedUser.phone || "-",
+                  email: selectedUser.email || "-",
+                }));
+              }
+            }}
+          >
+            <option value="">-- เลือกผู้ใช้ --</option>
+            {users.length > 0 ? (
+              users.map((user) => (
+                <option key={user.id} value={user.id}>{user.fullName}</option>
+              ))
+            ) : (
+              <option disabled>❌ ไม่มีผู้ใช้ที่อนุมัติ</option>
+            )}
+          </select>
+        </div>
+
         <div>
-            <label className="add-borrow-label">ฝ่าย/สำนัก:</label>
-            <select
-              className="add-borrow-input"
-              value={newRequest.department}
-              onChange={(e) => setNewRequest({ ...newRequest, department: e.target.value })}
-            >
-              <option value="">-- เลือกฝ่าย/สำนัก --</option>
-              {departments.map((dept) => (
-                <option key={dept.id} value={dept.id}>{dept.name}</option>
-              ))}
-            </select>
-          </div>
+          <label className="add-borrow-label">ฝ่าย/สำนัก:</label>
+          <input className="add-borrow-input" type="text" value={newRequest.department || "-"} readOnly />
+        </div>
+
+        <div>
+          <label className="add-borrow-label">โทรศัพท์:</label>
+          <input className="add-borrow-input" type="text" value={newRequest.phone || "-"} readOnly />
+        </div>
+
+        <div>
+          <label className="add-borrow-label">อีเมล:</label>
+          <input className="add-borrow-input" type="email" value={newRequest.email || "-"} readOnly />
+        </div>
+
+        {/* Dropdown เลือกชื่อวัสดุ */}
+        <div>
+          <label className="add-borrow-label">ชื่อวัสดุ:</label>
+          <select
+            className="add-borrow-select"
+            value={newRequest.material}
+            onChange={(e) => setNewRequest({ ...newRequest, material: e.target.value })}
+          >
+            <option value="">-- เลือกชื่อวัสดุ --</option>
+            {materials.map((material, index) => (
+              <option key={index} value={material}>{material}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="add-borrow-form">
           <div>
-            <label className="add-borrow-label">โทรศัพท์:</label>
-            <input className="add-borrow-input" type="text" />
-          </div>
-  
-          <div>
-            <label className="add-borrow-label">อีเมล:</label>
-            <input className="add-borrow-input" type="email" />
-          </div>
-          {/* ✅ Dropdown เลือกชื่อวัสดุ */}
-          <div>
-            <label className="add-borrow-label">ชื่อวัสดุ:</label>
+            <label className="add-borrow-label">ประเภท:</label>
             <select
               className="add-borrow-select"
-              value={newRequest.material}
-              onChange={(e) => setNewRequest({ ...newRequest, material: e.target.value })}
+              value={newRequest.type}
+              onChange={(e) => setNewRequest({ ...newRequest, type: e.target.value })}
             >
-              <option value="">-- เลือกชื่อวัสดุ --</option>
-              {materials.map((material, index) => (
-                <option key={index} value={material}>{material}</option>
+              <option value="">เลือกประเภท</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.category_name}>{category.category_name}</option>
               ))}
             </select>
           </div>
-          <div className="add-borrow-form">
-            <div>
-              <label className="add-borrow-label">ประเภท:</label>
-              <select
-                className="add-borrow-select"
-                value={newRequest.type}
-                onChange={(e) => setNewRequest({ ...newRequest, type: e.target.value })}
-              >
-                <option value="">เลือกประเภท</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.category_name}>{category.category_name}</option>
-                ))}
-              </select>
-            </div>
-  
-            <div>
-              <label className="add-borrow-label">อุปกรณ์:</label>
-              <select
-                className="add-borrow-select"
-                value={newRequest.equipment}
-                onChange={(e) => setNewRequest({ ...newRequest, equipment: e.target.value })}
-              >
-                <option value="">เลือกอุปกรณ์</option>
-                {equipments.map((equipment, index) => (
-                  <option key={index} value={equipment}>{equipment}</option>
-                ))}
-              </select>
-            </div>
-  
-            <div>
-              <label className="add-borrow-label">ยี่ห้อ:</label>
-              <select
-                className="add-borrow-select"
-                value={newRequest.brand}
-                onChange={(e) => setNewRequest({ ...newRequest, brand: e.target.value })}
-              >
-                <option value="">เลือกยี่ห้อ</option>
-                {brands.map((brand) => (
-                  <option key={brand.id} value={brand.name}>{brand.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="add-borrow-row">
-  <div className="add-borrow-group">
-    <label className="add-borrow-label">หมายเลขครุภัณฑ์:</label>
-    <input className="add-borrow-input read-only" type="text" value={newRequest.equipment_number} readOnly />
-  </div>
 
-  <div className="add-borrow-group">
-    <label className="add-borrow-label">Serial Number:</label>
-    <input className="add-borrow-input read-only" type="text" value={newRequest.serial_number} readOnly />
-  </div>
-</div>
+          <div>
+            <label className="add-borrow-label">อุปกรณ์:</label>
+            <select
+              className="add-borrow-select"
+              value={newRequest.equipment}
+              onChange={(e) => setNewRequest({ ...newRequest, equipment: e.target.value })}
+            >
+              <option value="">เลือกอุปกรณ์</option>
+              {equipments.map((equipment, index) => (
+                <option key={index} value={equipment}>{equipment}</option>
+              ))}
+            </select>
+          </div>
 
-          <div className="add-borrow-row">
-            <div className="add-borrow-group">
-              <label className="add-borrow-label">จำนวนคงเหลือ:</label>
-              <input className="add-borrow-input read-only" type="text" value={newRequest.remaining || "-"} readOnly />
-            </div>
-            <div className="add-borrow-group">
-              <label className="add-borrow-label">จำนวน:</label>
-                <input className="add-borrow-input" type="number" min="1" value={newRequest.quantity} 
-                onChange={(e) => setNewRequest({ ...newRequest, quantity: e.target.value })} />
-              </div>
-            </div>
           <div>
-            <label className="add-borrow-label">วันที่ขอ:</label>
-            <input className="add-borrow-input" type="date" />
-          </div>
-  
-          <div>
-            <label className="add-borrow-label">วันที่คืน:</label>
-            <input className="add-borrow-input" type="date" />
-          </div>
-  
-          <div className="add-borrow-full-row">
-            <label className="add-borrow-label">หมายเหตุ:</label>
-            <textarea className="add-borrow-textarea"></textarea>
+            <label className="add-borrow-label">ยี่ห้อ:</label>
+            <select
+              className="add-borrow-select"
+              value={newRequest.brand}
+              onChange={(e) => setNewRequest({ ...newRequest, brand: e.target.value })}
+            >
+              <option value="">เลือกยี่ห้อ</option>
+              {brands.map((brand) => (
+                <option key={brand.id} value={brand.name}>{brand.name}</option>
+              ))}
+            </select>
           </div>
         </div>
-  
+
+        <div className="add-borrow-row">
+          <div className="add-borrow-group">
+            <label className="add-borrow-label">หมายเลขครุภัณฑ์:</label>
+            <input
+              className="add-borrow-input"
+              type="text"
+              value={newRequest.equipment_number || ""}
+              onChange={(e) => setNewRequest({ ...newRequest, equipment_number: e.target.value })}
+            />
+          </div>
+
+          <div className="add-borrow-group">
+            <label className="add-borrow-label">Serial Number:</label>
+            <input
+              className="add-borrow-input"
+              type="text"
+              value={newRequest.serial_number || ""}
+              onChange={(e) => setNewRequest({ ...newRequest, serial_number: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="add-borrow-group">
+          <label className="add-borrow-label">จำนวน:</label>
+          <input
+            className="add-borrow-input"
+            type="number"
+            min="1"
+            value={newRequest.quantity || 1}
+            onChange={(e) => setNewRequest({ ...newRequest, quantity: parseInt(e.target.value, 10) || 1 })}
+          />
+        </div>
+
+        <div>
+          <label className="add-borrow-label">วันที่ขอ:</label>
+          <input
+            className="add-borrow-input"
+            type="date"
+            value={newRequest.request_date || ""}
+            onChange={(e) => setNewRequest({ ...newRequest, request_date: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <label className="add-borrow-label">วันที่คืน:</label>
+          <input
+            className="add-borrow-input"
+            type="date"
+            value={newRequest.return_date || ""}
+            onChange={(e) => setNewRequest({ ...newRequest, return_date: e.target.value })}
+          />
+        </div>
+
+        <div className="add-borrow-full-row">
+          <label className="add-borrow-label">หมายเหตุ:</label>
+          <textarea
+            className="add-borrow-textarea"
+            value={newRequest.note || ""}
+            onChange={(e) => setNewRequest({ ...newRequest, note: e.target.value })}
+          ></textarea>
+        </div>
+
         <div className="add-borrow-buttons">
           <button className="add-borrow-confirm" onClick={handleSubmit}>บันทึก</button>
         </div>
       </div>
     </div>
-  );
-  
+  </div>
+);
 };
 
 export default AddBorrowRequest;

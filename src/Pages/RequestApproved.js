@@ -5,7 +5,7 @@ import "./RequestApproved.css";
 import { jsPDF } from "jspdf";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faEye, faArrowLeft, faSearch } from "@fortawesome/free-solid-svg-icons";
-
+ 
 const RequestApproved = () => {
     const [approvedRequests, setApprovedRequests] = useState([]);
     const [filteredRequests, setFilteredRequests] = useState([]);
@@ -15,15 +15,15 @@ const RequestApproved = () => {
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [remainingStock, setRemainingStock] = useState("ไม่ทราบ");
     const [receiverName, setReceiverName] = useState("");
-
-
-  
+ 
+ 
+ 
     useEffect(() => {
       const fetchApprovedRequests = async () => {
         try {
           const response = await fetch("http://localhost:5001/api/requests");
           const data = await response.json();
-  
+ 
           // กรองเฉพาะคำขอที่ "อนุมัติแล้ว"
           const filtered = data.filter(req => req.status === "Approved");
           setApprovedRequests(filtered);
@@ -34,10 +34,10 @@ const RequestApproved = () => {
           setLoading(false);
         }
       };
-
+ 
       fetchApprovedRequests();
   }, [])
-
+ 
   useEffect(() => {
     if (selectedRequest) {
       fetch(`http://localhost:5001/api/products/model/${selectedRequest.material}`)
@@ -49,14 +49,14 @@ const RequestApproved = () => {
         });
     }
   }, [selectedRequest]);
-
+ 
   const handleViewDetails = async (request) => {
     try {
       const response = await fetch(`http://localhost:5001/api/products/model/${request.material}`);
       const data = await response.json();
-  
+ 
       console.log("API Response:", data); // ✅ ตรวจสอบข้อมูล API
-  
+ 
       setSelectedRequest({
         ...request,
         remaining: data.remaining !== undefined && data.remaining !== null ? data.remaining : "ไม่มีข้อมูล",
@@ -66,27 +66,27 @@ const RequestApproved = () => {
       setSelectedRequest({ ...request, remaining: "ไม่มีข้อมูล" });
     }
   };
-  
-
+ 
+ 
   const handleCloseDetails = () => {
     setSelectedRequest(null);
   };
-
+ 
   const handleSearch = () => {
     if (searchDate) {
       const formattedSearchDate = new Date(searchDate).toLocaleDateString("th-TH");
-
+ 
       const filtered = approvedRequests.filter((request) => {
         const requestDate = new Date(request.date_requested).toLocaleDateString("th-TH");
         return requestDate === formattedSearchDate;
       });
-
+ 
       setFilteredRequests(filtered);
     } else {
       setFilteredRequests(approvedRequests);
     }
   };
-
+ 
   const getStatusInThai = (status) => {
     switch (status) {
       case "Approved":
@@ -101,100 +101,116 @@ const RequestApproved = () => {
         return status;
     }
   };
-
+ 
   const handleApproveRequest = async (requestId) => {
     const isConfirmed = window.confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติคำขอนี้?");
-    
+   
     if (!isConfirmed) {
         alert("❌ ยกเลิกการอนุมัติ");
         return; // ออกจากฟังก์ชันถ้าผู้ใช้กด Cancel
     }
-
+ 
     try {
         const response = await fetch(`http://localhost:5001/api/requests/${requestId}/approve`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: "Approved" }),
         });
-
+ 
         const responseData = await response.json();
-
+ 
         if (!response.ok) {
             console.error("🔥 API Error:", responseData);
             alert("เกิดข้อผิดพลาดในการอนุมัติคำขอ: " + responseData.error);
             return;
         }
-
-        alert("✅ อนุมัติคำขอสำเร็จ!");
+ 
+        alert("✅ คำขอสำเร็จ!");
         setApprovedRequests((prev) =>
-            prev.map((req) => (req.id === requestId ? { ...req, status: "Approved" } : req))
+            prev.map((req) => (req.id === requestId ? { ...req, status: "Received" } : req))
         );
     } catch (error) {
         console.error("🔥 Fetch Error:", error);
         alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
     }
 };
+ 
+ 
+const handleReceiveItem = async (requestId) => {
+  if (!receiverName.trim()) {
+    alert("❌ กรุณากรอกชื่อผู้รับของ");
+    return;
+  }
 
+  try {
+    console.log("📤 Sending Data:", {
+      received_by: receiverName,
+      date_received: new Date().toISOString().split('T')[0]
+    });
 
-  const handleReceiveItem = async (requestId) => {
-    if (!receiverName.trim()) {
-      alert("กรุณากรอกชื่อผู้รับของ");
+    const response = await fetch(`http://localhost:5001/api/requests/${requestId}/receive`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        received_by: receiverName,
+        date_received: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+      }),
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error("🔥 API Error:", responseData);
+      alert("❌ เกิดข้อผิดพลาดในการอัปเดตสถานะ: " + responseData.error);
       return;
     }
-  
-    try {
-      console.log("📤 Sending Data:", {
-        received_by: receiverName,
-        date_received: new Date().toISOString().split('T')[0]
-      });
-  
-      const response = await fetch(`http://localhost:5001/api/requests/${requestId}/receive`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          received_by: receiverName,
-          date_received: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-        }),
-      });
-  
-      const responseData = await response.json();
-  
-      if (!response.ok) {
-        console.error("🔥 API Error:", responseData);
-        alert("เกิดข้อผิดพลาดในการอัปเดตสถานะ: " + responseData.error);
-        return;
-      }
-  
-      alert("อัปเดตสถานะเป็น 'รับของแล้ว' สำเร็จ");
-      setSelectedRequest((prev) => ({
-        ...prev,
-        status: "Received",
-        received_by: receiverName,
-      }));
-    } catch (error) {
-      console.error("🔥 Fetch Error:", error);
-      alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
-    }
-  };
 
+    alert("✅ อัปเดตสถานะเป็น 'รับของแล้ว' สำเร็จ");
+
+    // ✅ อัปเดตรายการใน State ให้เปลี่ยนสถานะ
+    setApprovedRequests((prev) =>
+      prev.map((req) =>
+        req.id === requestId ? { ...req, status: "Received", received_by: receiverName } : req
+      )
+    );
+
+    setFilteredRequests((prev) =>
+      prev.map((req) =>
+        req.id === requestId ? { ...req, status: "Received", received_by: receiverName } : req
+      )
+    );
+
+    setSelectedRequest((prev) => ({
+      ...prev,
+      status: "Received",
+      received_by: receiverName,
+    }));
+
+  } catch (error) {
+    console.error("🔥 Fetch Error:", error);
+    alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+  }
+};
+
+ 
   const handleGeneratePDF = (request) => {
     const doc = new jsPDF();
-  
+ 
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(18);
     doc.text("ใบคำขอเบิกอุปกรณ์", 70, 20);
-  
+ 
     doc.setFontSize(12);
     doc.setFont("Helvetica", "normal");
-  
+ 
     let y = 40;
     const lineHeight = 10;
-  
+ 
     const addText = (label, value) => {
       doc.text(`${label} ${value}`, 20, y);
       y += lineHeight;
     };
-  
+ 
     addText("ชื่อผู้ขอ:", request.borrower_name);
     addText("ฝ่าย/สำนัก:", request.department);
     addText("โทรศัพท์:", request.phone);
@@ -203,13 +219,13 @@ const RequestApproved = () => {
     addText("ยี่ห้อ:", request.brand);
     addText("จำนวน:", request.quantity_requested);
     addText("วันที่ขอ:", new Date(request.date_requested).toLocaleDateString("th-TH"));
-  
+ 
     doc.text("__________________________", 50, y + 20);
     doc.text("ลงชื่อผู้รับของ", 70, y + 30);
-  
+ 
     doc.save(`คำขอเบิก_${request.borrower_name}.pdf`);
   };
-
+ 
   const handlePrint = (request) => {
     const printWindow = window.open("", "_blank");
     printWindow.document.write(`
@@ -249,9 +265,9 @@ const RequestApproved = () => {
     `);
     printWindow.document.close();
 };
-
-  
-  
+ 
+ 
+ 
   return (
     <div>
       <ITDashboard />
@@ -296,7 +312,7 @@ const RequestApproved = () => {
                             <td>{new Date(req.date_requested).toLocaleDateString("th-TH")}</td>
                             <td>{req.quantity_requested}</td>
                             <td>
-                                <button 
+                                <button
                                     className="request-approved-detail-button"
                                     onClick={() => handleViewDetails(req)}
                                 >
@@ -304,8 +320,8 @@ const RequestApproved = () => {
                                 </button>
                             </td>
                             <td>
-                                <button 
-                                    className="print-button" 
+                                <button
+                                    className="print-button"
                                     onClick={() => handlePrint(req)}
                                 >
                                     🖨️ พิมพ์
@@ -324,7 +340,7 @@ const RequestApproved = () => {
             </table>
             )}
         </div>
-
+ 
         {/* Modal ดูรายละเอียด */}
         {selectedRequest && (
         <div className="request-approved-modal-overlay">
@@ -391,7 +407,7 @@ const RequestApproved = () => {
           <input type="text" value={selectedRequest.note || "-"} readOnly />
         </div>
       </div>
-
+ 
       {/* ✅ ส่วนรับของ */}
       {selectedRequest.status !== "Received" && (
         <div className="receive-section">
@@ -414,8 +430,8 @@ const RequestApproved = () => {
     </div>
   </div>
 )}
-
-
+ 
+ 
         <div className="request-approved-footer">
           <button className="request-approved-back-button" onClick={() => navigate(-1)}>
             <FontAwesomeIcon icon={faArrowLeft} /> ย้อนกลับ
@@ -425,5 +441,6 @@ const RequestApproved = () => {
     </div>
   );
 };
-
+ 
 export default RequestApproved;
+ 

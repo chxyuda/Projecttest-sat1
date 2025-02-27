@@ -115,6 +115,9 @@ const RequestPage = () => {
           <button className="status-button" onClick={() => navigate("/request-status")}>
             <FontAwesomeIcon icon={faClipboardList} /> สถานะคำขอ
           </button>
+          <button className="status-button" onClick={() => navigate("/request-from")}>
+            <FontAwesomeIcon icon={faClipboardList} /> เพิ่ม
+          </button>
         </div>
         {/* ช่องค้นหาวันที่ */}
         <div className="search-container">

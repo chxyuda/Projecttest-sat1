@@ -1075,7 +1075,6 @@ app.put("/api/users/:id", async (req, res) => {
 });
 
 
-
 // ✅ ดึงข้อมูลผู้ใช้ทั้งหมด
 app.get("/api/users", async (req, res) => {
   try {
@@ -1295,6 +1294,33 @@ app.put("/api/update-profile", (req, res) => {
   });
 });
 
+router.get('/api/products/details', (req, res) => {
+  const { material, type, equipment, brand } = req.query;
+  console.log("📌 API Received:", { material, type, equipment, brand });
+
+  const query = `SELECT * FROM products WHERE model = ? AND category_name = ? AND name = ? AND brand_name = ?`;
+
+  db.query(query, [material, type, equipment, brand], (err, results) => {
+     if (err) {
+        console.error("❌ Database error:", err);
+        return res.status(500).json({ success: false, message: "❌ Database query failed" });
+     }
+
+     if (results.length === 0) {
+        console.warn("⚠️ No matching product found.");
+        return res.status(404).json({ success: false, message: "ไม่พบข้อมูลสินค้า" });
+     }
+
+     console.log("✅ Product Found:", results[0]);
+     res.status(200).json({
+        success: true,
+        remaining: results[0].remaining || "-",
+        equipment_number: results[0].equipment_number || "-",
+        serial_number: results[0].serial_number || "-",
+     });
+  });
+});
+
 // ✅ เพิ่มคำขอเบิกวัสดุ (ดึง user_id จากฐานข้อมูล users อัตโนมัติ)
 router.post('/requests', (req, res) => { 
   const {
@@ -1498,33 +1524,32 @@ router.put('/requests/:id/approve', (req, res) => {
 
 // ✅ 5. อัปเดตสถานะเป็น "รับของแล้ว" (สำหรับ IT Staff)
 router.put('/requests/:id/receive', (req, res) => {
-  const { id } = req.params;
   const { received_by, date_received } = req.body;
+  const requestId = req.params.id;
 
-  if (!received_by || !date_received) {
-    return res.status(400).json({ error: "❌ กรุณาส่งค่าผู้รับของและวันที่รับของ" });
+  if (!received_by) {
+      return res.status(400).json({ error: "ต้องกรอกชื่อผู้รับของ" });
   }
 
-  const sql = `
-    UPDATE requests 
-    SET status = 'Received', received_by = ?, date_received = ?
-    WHERE id = ?
+  const updateQuery = `
+      UPDATE requests 
+      SET status = 'Received', received_by = ?, date_received = ? 
+      WHERE id = ?;
   `;
 
-  db.query(sql, [received_by, date_received, id], (err, result) => {
+  db.query(updateQuery, [received_by, date_received, requestId], (err, result) => {
     if (err) {
       console.error("🔥 UPDATE ERROR:", err);
-      return res.status(500).json({ error: "❌ เกิดข้อผิดพลาดในการอัปเดตสถานะ" });
+      return res.status(500).json({ error: "เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล" });
     }
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "❌ ไม่พบคำขอที่ต้องการอัปเดต" });
+      return res.status(404).json({ error: "ไม่พบคำขอในระบบ" });
     }
 
-    res.json({ message: "✅ อัปเดตสถานะเป็น 'รับของแล้ว' สำเร็จ" });
+    res.json({ success: true, message: "✅ อัปเดตสถานะเป็น 'รับของแล้ว' สำเร็จ" });
   });
 });
-
 
 
 // ✅ 6. อัปเดตสถานะการแจ้งเตือน (เมื่อผู้ใช้กดดูแจ้งเตือน)
@@ -1608,6 +1633,7 @@ router.post('/borrow-requests', (req, res) => {
     );
   });
 });
+
 
 // ✅ ดึงคำขอทั้งหมด
 router.get('/borrow-requests', (req, res) => {

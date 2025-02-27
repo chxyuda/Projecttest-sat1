@@ -1,0 +1,265 @@
+/* ครอบ Modal Overlay */
+.add-borrow-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  /* กล่อง Modal */
+  .add-borrow-modal {
+    background: white;
+    width: 700px;
+    max-width: 90%;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    overflow-y: auto;
+    max-height: 90vh;
+    position: relative;
+  }
+  
+  /* หัวข้อ Modal */
+  .add-borrow-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  /* ปิด Modal (กากบาท) */
+  .add-borrow-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: #f44336;
+    color: white;
+    font-size: 18px;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    z-index: 10;
+  }
+  
+  .add-borrow-close:hover {
+    transform: scale(1.2);
+    background-color: #d32f2f;
+  }
+  
+  /* จัดฟอร์มเป็น 2 คอลัมน์ */
+  .add-borrow-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  
+  /* Full width field (ให้ "หมายเหตุ" กินพื้นที่ 2 คอลัมน์) */
+  .add-borrow-form textarea {
+    grid-column: span 2;
+    height: 60px;
+    resize: none;
+  }
+  
+  /* Label */
+  .add-borrow-label {
+    font-weight: bold;
+    display: block;
+  }
+  
+  /* Input Fields */
+  .add-borrow-input,
+  .add-borrow-select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  
+  /* Dropdown (ฝ่าย/สำนัก) */
+  .add-borrow-select {
+    appearance: none;
+    background-color: white;
+    cursor: pointer;
+  }
+  
+  /* ปุ่ม */
+  .add-borrow-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    grid-column: span 2;
+  }
+  
+  .add-borrow-confirm {
+    background: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    flex: 1;
+    margin-right: 5px;
+  }
+  
+  .add-borrow-cancel {
+    background: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    flex: 1;
+    margin-left: 5px;
+  }
+  
+  .add-borrow-confirm:hover {
+    background: #218838;
+  }
+  
+  .add-borrow-cancel:hover {
+    background: #5a6268;
+  }
+  
+  /* Scroll bar */
+  .add-borrow-modal::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .add-borrow-modal::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 5px;
+  }
+  
+  .add-borrow-modal::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  /* ✅ ปรับขนาดให้สมดุล */
+  .add-borrow-select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: white;
+    cursor: pointer;
+  }
+  
+  /* ✅ ทำให้ Dropdown มี Scroll bar หากรายการเยอะ */
+  .add-borrow-select option {
+    padding: 10px;
+    font-size: 14px;
+  }
+  
+  /* ✅ ปรับตำแหน่งและความกว้างของ Dropdown ให้พอดีกับอินพุต */
+  /* ✅ ตั้งค่า Grid Layout เป็น 2 คอลัมน์ */
+  .add-borrow-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* ✅ แบ่งเป็น 2 คอลัมน์ */
+    gap: 15px;
+    width: 100%;
+  }
+  
+  /* ✅ ปรับให้ label และ input มีขนาดพอดี */
+  .add-borrow-label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  /* ✅ ปรับขนาด Input และ Dropdown ให้เท่ากัน */
+  .add-borrow-input,
+  .add-borrow-select,
+  .add-borrow-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  
+  /* ✅ ปรับให้ Dropdown (select) มี Scroll bar หากรายการเยอะ */
+  .add-borrow-select {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  /* ✅ จัดให้ "ประเภท" และ "อุปกรณ์" อยู่ในแถวเดียวกัน */
+  .add-borrow-form {
+    display: flex;
+    gap: 15px;
+  }
+  
+  /* ✅ ทำให้ทุกช่องใน Grid มีขนาดเท่ากัน */
+  .add-borrow-form div {
+    flex: 1;
+  }
+  
+  /* ✅ ช่องหมายเหตุให้ใช้เต็มแถว */
+  .add-borrow-full-row {
+    grid-column: span 2; /* ✅ ทำให้ "หมายเหตุ" กินทั้ง 2 คอลัมน์ */
+  }
+  
+  /* ✅ ปุ่มอยู่ตรงกลางและขนาดพอดีกับฟอร์ม */
+  .add-borrow-buttons {
+    grid-column: span 2;
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+  }
+  
+  /* ✅ ปรับสีปุ่มและเอฟเฟกต์ hover */
+  .add-borrow-confirm {
+    background: #28a745;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease;
+  }
+  
+  .add-borrow-buttons {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  .add-borrow-confirm {
+    width: calc(100% - 40px); /* ปรับให้เว้นขอบซ้าย-ขวา 20px */
+    max-width: 100%; /* ป้องกันการขยายเกินฟอร์ม */
+    height: 50px;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .add-borrow-confirm:hover {
+    background-color: #218838;
+  }
+  
+  
+  
