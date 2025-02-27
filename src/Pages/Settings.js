@@ -233,31 +233,42 @@ const handlePreviousPage = () => {
   
   const handleSave = async () => {
     try {
-        const payload = { remaining: currentEditItem.remaining };
+        const payload = {
+            name: currentEditItem.name,
+            category: currentEditItem.category,
+            equipment: currentEditItem.equipment,
+            brand_name: currentEditItem.brand_name,
+            equipment_number: currentEditItem.equipment_number,
+            serial_number: currentEditItem.serial_number,
+            inventory_number: Number(currentEditItem.inventory_number), 
+            remaining: Number(currentEditItem.remaining),
+            details: currentEditItem.details
+        };
 
         console.log("📌 ส่งค่าไปยัง API:", payload);
 
         const response = await axios.put(
-            `http://localhost:5001/api/products/${currentEditItem.id}/remaining`,
+            `http://localhost:5001/api/products/${currentEditItem.id}`,
             payload
         );
 
         console.log("📌 Response จาก API:", response.data);
 
         if (response.data.success) {
-            alert("✅ อัปเดตจำนวนคงเหลือสำเร็จ!");
+            alert("✅ อัปเดตข้อมูลสำเร็จ!");
             setShowEditModal(false);
-            
-            // ✅ โหลดข้อมูลใหม่ทันที
+
+            // ✅ โหลดข้อมูลใหม่ทันทีหลังอัปเดต
             await fetchData();
         } else {
             alert(`❌ ไม่สามารถบันทึกข้อมูลได้: ${response.data.message}`);
         }
     } catch (error) {
-        console.error("❌ Error updating remaining:", error.response?.data || error);
-        alert(`❌ เกิดข้อผิดพลาดในการอัปเดตจำนวนคงเหลือ`);
+        console.error("❌ Error updating product:", error.response?.data || error);
+        alert(`❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล`);
     }
 };
+
 
   const openEditModal = (item) => {
     console.log("Item received:", item);
@@ -512,104 +523,93 @@ const fetchEquipments = async () => {
   
   // ฟังก์ชันเพิ่มอุปกรณ์ใหม่
   const handleAddEquipment = async () => {
+    // ตรวจสอบว่ามีข้อมูลครบถ้วนหรือไม่
     if (!newEquipment.trim()) {
-        alert("❌ กรุณากรอกชื่ออุปกรณ์");
-        return;
-    }
-
-    try {
-        console.log("📌 ค่าที่จะส่งไป API:", { equipment: newEquipment });
-
-        const response = await axios.post("http://localhost:5001/api/products", {
-            equipment: newEquipment.trim(), // ✅ ตรวจสอบค่าให้แน่ใจว่าไม่มีช่องว่างเกิน
-            brand_name: newBrand.trim() || "ทั่วไป",
-            equipment_number: newEquipmentNumber.trim() || "-",
-            serial_number: newSerial.trim() || "-",
-            inventory_number: Number(newInventory) || 1,
-            remaining: Number(newInventory) || 1,
-            details: newDetails.trim() || "-",
-        });
-
-        console.log("📌 คำตอบจาก API:", response.data);
-
-        if (response.data.success) {
-            alert("✅ เพิ่มอุปกรณ์สำเร็จ!");
-            fetchEquipments(); // โหลดข้อมูลใหม่
-            setNewEquipment(""); // ล้างค่า input
-        } else {
-            alert(`❌ ไม่สามารถเพิ่มอุปกรณ์ได้: ${response.data.message}`);
-        }
-    } catch (error) {
-        console.error("❌ Error adding equipment:", error.response?.data || error);
-        alert("❌ เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์");
-    }
-};
-
-
-const handleSaveEquipment = async (index) => {
-  if (!editingEquipmentName.trim()) {
-      alert("❌ ชื่ออุปกรณ์ห้ามเว้นว่าง");
+      alert("กรุณากรอกชื่ออุปกรณ์");
       return;
-  }
-
-  console.log("📌 กำลังอัปเดตอุปกรณ์...");
-  console.log("📌 ID:", equipments[index]?.id);
-  console.log("📌 ค่าที่จะส่งไป API:", { equipment: editingEquipmentName });
-
-  try {
-      const response = await axios.put(
-          `http://localhost:5001/api/products/${equipments[index]?.id}`,
-          { equipment: editingEquipmentName } // ✅ ตรวจสอบให้ส่งค่าถูกต้อง
-      );
-
-      console.log("📌 Response จาก API:", response.data);
-
+    }
+    
+    // กำหนดค่าดีฟอลต์
+    const defaultSerial = "ไม่มี";
+    const defaultInventory = 1; // จำนวนเริ่มต้น
+    const defaultDetails = "ไม่มีรายละเอียด";
+    
+    try {
+      const response = await axios.post("http://localhost:5001/api/products", {
+        name: newEquipment, // ชื่ออุปกรณ์ (ต้องกรอก)
+        brand_name: newBrand || "ทั่วไป", // ใช้ค่า 'ทั่วไป' ถ้าไม่ได้เลือก
+        equipment_number: newEquipmentNumber || "-", // กำหนดให้เป็น "-" ถ้าไม่ได้กรอก
+        serial_number: newSerial || defaultSerial,
+        inventory_number: newInventory || defaultInventory,
+        remaining: newInventory || defaultInventory, // สมมติว่าเริ่มต้นเท่ากับจำนวน
+        details: newDetails || defaultDetails,
+      });
+    
       if (response.data.success) {
-          alert("✅ อัปเดตสำเร็จ!");
-          setEquipments((prevEquipments) =>
-              prevEquipments.map((item, i) =>
-                  i === index ? { ...item, equipment: editingEquipmentName } : item
-              )
-          );
-          setEditingEquipmentRow(null);
+        alert("เพิ่มอุปกรณ์สำเร็จ");
+        fetchEquipments(); // โหลดข้อมูลใหม่
+        setNewEquipment(""); // ล้างค่า input
       } else {
-          alert("❌ ไม่สามารถอัปเดตข้อมูลได้");
+        alert(response.data.message || "เกิดข้อผิดพลาด");
       }
-  } catch (error) {
-      console.error("❌ Error updating:", error);
-      alert("❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล");
-  }
-};
+    } catch (error) {
+      console.error("Error adding equipment:", error);
+      alert("เกิดข้อผิดพลาดในการเพิ่มอุปกรณ์");
+    }
+  };
+
+
+  const handleSaveEquipment = async (index) => {
+    if (!newEquipment.trim()) {
+      alert("ชื่ออุปกรณ์ไม่สามารถเว้นว่างได้");
+      return;
+    }
+  
+    try {
+      const response = await axios.put(
+        `http://localhost:5001/api/products/${equipments[index].id}`,
+        { name: newEquipment }
+      );
+  
+      if (response.data.success) {
+        const updatedEquipments = [...equipments];
+        updatedEquipments[index].equipment = newEquipment; // อัปเดตค่าที่แก้ไข
+        setEquipments(updatedEquipments); // อัปเดต state
+        setEditingEquipmentRow(null); // ออกจากโหมดแก้ไข
+        setNewEquipment(""); // รีเซ็ตค่า
+        alert("แก้ไขข้อมูลอุปกรณ์สำเร็จ");
+      } else {
+        alert("เกิดข้อผิดพลาดในการแก้ไขข้อมูลอุปกรณ์");
+      }
+    } catch (error) {
+      console.error("Error saving equipment:", error);
+      alert("เกิดข้อผิดพลาดในการแก้ไขข้อมูลอุปกรณ์");
+    }
+  };
 
 
   // ฟังก์ชันลบอุปกรณ์
   const handleDeleteEquipment = async (index) => {
-    const equipmentId = equipments[index]?.id;
-    if (!equipmentId) {
-        alert("❌ ไม่พบ ID ของอุปกรณ์ที่ต้องการลบ");
-        return;
-    }
-
-    if (!window.confirm("⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบอุปกรณ์นี้?")) return;
-
-    try {
-        console.log("📌 กำลังส่งคำขอลบ ID:", equipmentId);
-
-        const response = await axios.delete(`http://localhost:5001/api/products/${equipmentId}`);
-
-        console.log("📌 คำตอบจาก API:", response.data);
-
+    if (window.confirm("คุณต้องการลบอุปกรณ์นี้หรือไม่?")) {
+      try {
+        const response = await axios.post("http://localhost:5001/api/products/delete", {
+          ids: [equipments[index].id],
+        });
+  
         if (response.data.success) {
-            alert("✅ ลบข้อมูลอุปกรณ์สำเร็จ!");
-            setEquipments((prevEquipments) => prevEquipments.filter((_, i) => i !== index));
+          const updatedEquipments = equipments.filter((_, i) => i !== index);
+          setEquipments(updatedEquipments); // อัปเดต state
+          alert("ลบข้อมูลอุปกรณ์สำเร็จ");
         } else {
-            alert(`❌ ไม่สามารถลบข้อมูลได้: ${response.data.message}`);
+          alert("เกิดข้อผิดพลาดในการลบข้อมูลอุปกรณ์");
         }
-    } catch (error) {
-        console.error("❌ Error deleting equipment:", error.response?.data || error);
-        alert("❌ เกิดข้อผิดพลาดในการลบข้อมูลอุปกรณ์");
+      } catch (error) {
+        console.error("Error deleting equipment:", error);
+        alert("เกิดข้อผิดพลาดในการลบข้อมูลอุปกรณ์");
+      }
     }
-};
+  };
+
 
   const getUniqueEquipments = (data) => {
     const uniqueEquipments = [];
@@ -814,17 +814,31 @@ const handleCloseBrandModal = () => {
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
-    
-    console.log("📌 formData ที่ส่งไป API:", formData); // ตรวจสอบข้อมูลที่ส่งไป API
-    
-    if (!formData.equipment || !formData.category || !formData.brand || !formData.inventory_number) {
-      alert("❌ กรุณากรอกข้อมูลให้ครบถ้วน");
-      return;
+
+    // ✅ กำหนดค่า default เพื่อป้องกัน error
+    const updatedFormData = {
+        name: formData.equipment?.trim() || "-",
+        category: formData.category?.trim() || "-",
+        brand: formData.brand?.trim() || "-",
+        model: formData.name?.trim() || "-",
+        serial_number: formData.serial_number?.trim() || "-",
+        inventory_number: Number(formData.inventory_number) || 0,
+        details: formData.details?.trim() || "-",
+        equipment_number: formData.equipment_number?.trim() || "-",
+        remaining: Number(formData.inventory_number) || 0, // ✅ ใช้ inventory_number เป็นค่าเริ่มต้น
+    };
+
+    console.log("📌 formData ที่จะส่งไป API:", updatedFormData);
+
+    // ✅ ตรวจสอบว่ามีค่าที่จำเป็นก่อนส่งไป API
+    if (!updatedFormData.name || !updatedFormData.category || !updatedFormData.brand || !updatedFormData.model) {
+        alert("❌ กรุณากรอกข้อมูลให้ครบถ้วน");
+        return;
     }
 
     try {
-        const response = await axios.post("http://localhost:5001/api/products", formData);
-        console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data); // ตรวจสอบว่ามีการตอบกลับอะไรจาก API
+        const response = await axios.post("http://localhost:5001/api/products", updatedFormData);
+        console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data);
 
         if (response.data.success) {
             alert("✅ เพิ่มข้อมูลสำเร็จ!");
@@ -1160,8 +1174,8 @@ useEffect(() => {
   </div>
 )}
       {showEquipmentsModal && ( 
-  <div className="equipments-modal-overlay"> {/* ✅ ฉากหลังโปร่งแสง */}
-    <div className="equipments-modal"> {/* ✅ ขยาย Modal ให้ใหญ่ขึ้น */}
+  <div className="equipments-modal-overlay">
+    <div className="equipments-modal">
       <h2 className="equipments-modal-title">รายละเอียดอุปกรณ์</h2>
       <button className="equipments-close-btn" onClick={closeEquipmentsModal}>
         ✖
@@ -1191,56 +1205,56 @@ useEffect(() => {
           </tr>
         </thead>
         <tbody>
-  {equipments.length > 0 ? (
-    equipments.map((equipment, index) => (
-      <tr key={index}>
-        <td>{index + 1}</td>
-        <td>
-          {editingEquipmentRow === index ? (
-            <input
-              type="text"
-              className="equipments-modal-edit-input"
-              value={editingEquipmentName}
-              onChange={(e) => setEditingEquipmentName(e.target.value)}
-            />
+          {equipments.length > 0 ? (
+            equipments.map((equipment, index) => (
+              <tr key={index}>
+                <td>{index + 1}</td>
+                <td>
+                  {editingEquipmentRow === index ? (
+                    <input
+                      type="text"
+                      className="equipments-modal-edit-input"
+                      value={editingEquipmentName}
+                      onChange={(e) => setEditingEquipmentName(e.target.value)}
+                    />
+                  ) : (
+                    equipment.equipment
+                  )}
+                </td>
+                <td className="action-buttons">
+                  {editingEquipmentRow === index ? (
+                    <>
+                      <button className="equipments-modal-save-btn" onClick={() => handleSaveEquipment(index)}>
+                        บันทึก
+                      </button>
+                      <button className="equipments-modal-cancel-btn" onClick={() => setEditingEquipmentRow(null)}>
+                        ยกเลิก
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button className="equipments-modal-edit-btn" onClick={() => handleEditEquipment(index)}>
+                        แก้ไข
+                      </button>
+                      <button className="equipments-modal-delete-btn" onClick={() => handleDeleteEquipment(index)}>
+                        ลบ
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))
           ) : (
-            equipment.equipment
+            <tr>
+              <td colSpan="3">ไม่มีข้อมูลอุปกรณ์</td>
+            </tr>
           )}
-        </td>
-        <td className="action-buttons">
-          {editingEquipmentRow === index ? (
-            <>
-              <button className="equipments-modal-save-btn" onClick={() => handleSaveEquipment(index)}>
-                บันทึก
-              </button>
-              <button className="equipments-modal-cancel-btn" onClick={() => setEditingEquipmentRow(null)}>
-                ยกเลิก
-              </button>
-            </>
-          ) : (
-            <>
-              <button className="equipments-modal-edit-btn" onClick={() => handleEditEquipment(index)}>
-                แก้ไข
-              </button>
-              <button className="equipments-modal-delete-btn" onClick={() => handleDeleteEquipment(index)}>
-                ลบ
-              </button>
-            </>
-          )}
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan="3">ไม่มีข้อมูลอุปกรณ์</td>
-    </tr>
-  )}
-</tbody>
-
+        </tbody>
       </table>
     </div>
   </div>
 )}
+
         {/* Modal สำหรับจัดการยี่ห้อ */}
         {showBrandModal && (
   <div className="brand-modal-overlay"> {/* ✅ เปลี่ยนชื่อให้ตรงกับ CSS */}

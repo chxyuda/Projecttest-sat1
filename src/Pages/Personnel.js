@@ -33,6 +33,7 @@ const Personnel = () => {
   const [rejectedUsers, setRejectedUsers] = useState([]);
   const [showRejectedModal, setShowRejectedModal] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [newUser, setNewUser] = useState({
     fullName: '',
     department_id: '',
@@ -220,7 +221,12 @@ const handleEditUser = async (user) => {
   try {
     const response = await axios.get(`http://localhost:5001/api/users/${user.id}`);
     setSelectedUser(response.data);
-    setFormData(response.data);
+    setFormData({
+      ...response.data,
+      department_id: departments.find(d => d.name === response.data.department_name)?.id || "",
+      section_id: sections.find(s => s.name === response.data.section_name)?.id || "",
+      task_id: tasks.find(t => t.name === response.data.task_name)?.id || "",
+    });
     setShowEditModal(true);
   } catch (error) {
     console.error("Error fetching user details:", error);
@@ -228,24 +234,48 @@ const handleEditUser = async (user) => {
 };
 
 
+
 const handleSaveEdit = async () => {
   console.log("📌 ข้อมูลที่กำลังอัปเดต:", formData);
 
+  if (!formData.fullName || !formData.department_id || !formData.section_id || !formData.task_id) {
+      alert("❌ กรุณากรอกข้อมูลให้ครบถ้วน");
+      return;
+  }
+
   try {
+      let imageUrl = formData.image; // ใช้รูปเดิมหากไม่มีการอัปโหลดใหม่
+
+      if (selectedFile) {
+          const formDataImg = new FormData();
+          formDataImg.append("image", selectedFile);
+
+          const uploadResponse = await axios.post("http://localhost:5001/api/upload-profile", formDataImg, {
+              headers: { "Content-Type": "multipart/form-data" },
+          });
+
+          imageUrl = uploadResponse.data.imageUrl;
+      }
+
       const response = await axios.put(`http://localhost:5001/api/users/${selectedUser.id}`, {
           fullName: formData.fullName,
-          department_name: formData.department_name, // ✅ ใช้ชื่อแทน ID
-          section_name: formData.section_name,
-          task_name: formData.task_name,
+          department_name: departments.find(d => d.id.toString() === formData.department_id)?.name || formData.department_id,
+          section_name: sections.find(s => s.id.toString() === formData.section_id)?.name || formData.section_id,
+          task_name: tasks.find(t => t.id.toString() === formData.task_id)?.name || formData.task_id,
           phone: formData.phone,
           email: formData.email,
           username: formData.username,
-          password: formData.password
+          password: formData.password ? formData.password : undefined, // ไม่เปลี่ยนรหัสผ่านถ้าปล่อยว่าง
+          image: imageUrl,
       });
 
-      alert("✅ อัปเดตข้อมูลสำเร็จ!");
-      setShowEditModal(false);
-      fetchPersonnelData(); // ✅ โหลดข้อมูลใหม่หลังจากอัปเดต
+      if (response.data.success) {
+          alert("✅ บันทึกข้อมูลสำเร็จ!");
+          setShowEditModal(false);
+          fetchPersonnelData(); // โหลดข้อมูลใหม่
+      } else {
+          alert("❌ บันทึกไม่สำเร็จ: " + response.data.message);
+      }
   } catch (error) {
       console.error("❌ Error updating user:", error.response?.data || error);
       alert("❌ อัปเดตไม่สำเร็จ");
@@ -253,23 +283,18 @@ const handleSaveEdit = async () => {
 };
 
 
-const handleInputChange = async (e) => {
+const handleInputChange = (e) => {
   const { name, value } = e.target;
 
-  setFormData(prev => ({
-      ...prev,
-      [name]: value,
-      ...(name === "department_id" ? { section_id: "", task_id: "" } : {}),
-      ...(name === "section_id" ? { task_id: "" } : {})
+  setFormData((prev) => ({
+    ...prev,
+    [name]: value,
+    ...(name === "department_id" ? { section_id: "", task_id: "" } : {}),
+    ...(name === "section_id" ? { task_id: "" } : {}),
   }));
 
-  if (name === "department_id") {
-      fetchSections(value);
-  }
-
-  if (name === "section_id") {
-      fetchTasks(value);
-  }
+  if (name === "department_id") fetchSections(value);
+  if (name === "section_id") fetchTasks(value);
 };
 
 
@@ -379,7 +404,7 @@ const toggleUserSelection = (userId) => {
 };
 
 // ✅ ฟังก์ชันลบข้อมูลที่ถูกเลือก
-const handleDeleteSelected = async () => { 
+const handleDeleteSelected = async () => {
   if (selectedUsers.length === 0) {
     alert("กรุณาเลือกผู้ใช้ที่ต้องการลบ");
     return;
@@ -388,23 +413,25 @@ const handleDeleteSelected = async () => {
   if (!window.confirm(`คุณต้องการลบ ${selectedUsers.length} รายการหรือไม่?`)) return;
 
   try {
-    const response = await axios.delete("http://localhost:5001/api/users", {
-      data: { ids: selectedUsers }, // ✅ ส่งค่าเป็น JSON
-      headers: { "Content-Type": "application/json" },
-    });
+    for (const userId of selectedUsers) {
+      const response = await axios.delete(`http://localhost:5001/api/users/${userId}`);
 
-    if (response.data.success) {
-      alert(response.data.message);
-      setSelectedUsers([]); // ✅ ล้างค่าที่เลือก
-      await fetchPersonnelData(); // ✅ โหลดข้อมูลใหม่หลังลบ
-    } else {
-      alert(`❌ ไม่สามารถลบข้อมูลได้: ${response.data.message}`);
+      if (response.status === 200) {
+        console.log(`✅ ลบผู้ใช้ ID: ${userId} สำเร็จ`);
+      } else {
+        console.log(`❌ ลบผู้ใช้ ID: ${userId} ไม่สำเร็จ`, response.data);
+      }
     }
+
+    alert("✅ ลบข้อมูลสำเร็จ!");
+    setSelectedUsers([]);
+    await fetchPersonnelData();
   } catch (error) {
-    console.error("Error deleting users:", error.response?.data || error);
-    alert(`❌ เกิดข้อผิดพลาดในการลบข้อมูล: ${error.response?.data?.message || error.message}`);
+    console.error("❌ Error deleting users:", error);
+    alert("❌ ไม่สามารถเชื่อมต่อ API ได้ กรุณาตรวจสอบเซิร์ฟเวอร์");
   }
 };
+
 
 const fetchPersonnelData = async () => {
   try {

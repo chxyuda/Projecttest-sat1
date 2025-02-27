@@ -46,15 +46,34 @@ const ProfileModal = ({ onClose, userData }) => {
     }
   }, [formData.section_id]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === "department_id" ? { section_id: "", task_id: "" } : {}),
-      ...(name === "section_id" ? { task_id: "" } : {}),
-    }));
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/profile?username=${formData.username}`);
+      console.log("📌 ข้อมูลที่อัปเดตจาก API:", response.data);
+      setFormData(response.data);
+    } catch (error) {
+      console.error("❌ Error fetching user data:", error);
+    }
   };
+  
+  // ✅ โหลดข้อมูลใหม่หลังจากการอัปเดต
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+  
+
+
+const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  setFormData((prev) => ({
+    ...prev,
+    [name]: value,
+    ...(name === "department_id" ? { section_id: "", task_id: "" } : {}), // ✅ รีเซ็ตค่าเมื่อเปลี่ยนฝ่าย
+    ...(name === "section_id" ? { task_id: "" } : {}), // ✅ รีเซ็ตค่าเมื่อเปลี่ยนกอง
+  }));
+};
+
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -62,30 +81,52 @@ const ProfileModal = ({ onClose, userData }) => {
     setImagePreview(URL.createObjectURL(file));
   };
 
-  const handleSave = async () => {
+  const handleSaveEdit = async () => {
+    console.log("📌 ข้อมูลที่กำลังอัปเดต:", formData);
+  
+    if (!formData.fullName || !formData.department_id || !formData.section_id || !formData.task_id) {
+      alert("❌ กรุณากรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+  
     try {
-      let imageUrl = formData.image;
-
+      let imageUrl = formData.image; // ใช้รูปเดิมหากไม่มีการอัปโหลดใหม่
+  
       if (selectedFile) {
         const formDataImg = new FormData();
         formDataImg.append("image", selectedFile);
+  
         const uploadResponse = await axios.post("http://localhost:5001/api/upload-profile", formDataImg, {
-          headers: { "Content-Type": "multipart/form-data" }
+          headers: { "Content-Type": "multipart/form-data" },
         });
+  
         imageUrl = uploadResponse.data.imageUrl;
       }
-
-      await axios.put("http://localhost:5001/api/update-profile", { ...formData, image: imageUrl });
-
-      alert("✅ บันทึกข้อมูลสำเร็จ!");
-      setIsEditing(false);
-      window.location.reload();
+  
+      const response = await axios.put(`http://localhost:5001/api/users/${formData.id}`, { // ✅ เปลี่ยนจาก selectedUser.id เป็น formData.id
+        fullName: formData.fullName,
+        department_name: departments.find(d => d.id.toString() === formData.department_id)?.name || formData.department_id,
+        section_name: sections.find(s => s.id.toString() === formData.section_id)?.name || formData.section_id,
+        task_name: tasks.find(t => t.id.toString() === formData.task_id)?.name || formData.task_id,
+        phone: formData.phone,
+        email: formData.email,
+        username: formData.username,
+        password: formData.password ? formData.password : undefined, // ไม่เปลี่ยนรหัสผ่านถ้าปล่อยว่าง
+        image: imageUrl,
+      });
+  
+      if (response.data.success) {
+        alert("✅ บันทึกข้อมูลสำเร็จ!");
+        onClose();  // ✅ ใช้ onClose() ปิด modal แทน setShowEditModal(false)
+      } else {
+        alert("❌ บันทึกไม่สำเร็จ: " + response.data.message);
+      }
     } catch (error) {
-      console.error("❌ อัปเดตข้อมูลล้มเหลว:", error);
-      alert("❌ ไม่สามารถบันทึกข้อมูลได้");
+      console.error("❌ Error updating user:", error.response?.data || error);
+      alert("❌ อัปเดตไม่สำเร็จ");
     }
   };
-
+  
   const handleCancel = () => {
     setIsEditing(false);
     setFormData(userData);
@@ -104,16 +145,17 @@ const ProfileModal = ({ onClose, userData }) => {
           <ViewProfile userData={userData} setIsEditing={setIsEditing} />
         ) : (
           <EditProfile
-            formData={formData}
-            imagePreview={imagePreview}
-            handleChange={handleChange}
-            handleFileChange={handleFileChange}
-            handleSave={handleSave}
-            handleCancel={handleCancel}
-            departments={departments}
-            sections={sections}
-            tasks={tasks}
-          />
+    formData={formData}
+    imagePreview={imagePreview}
+    handleChange={handleChange}
+    handleFileChange={handleFileChange}
+    handleSaveEdit={handleSaveEdit}  // ✅ เปลี่ยนจาก handleSave เป็น handleSaveEdit
+    handleCancel={handleCancel}
+    departments={departments}
+    sections={sections}
+    tasks={tasks}
+/>
+
         )}
       </div>
     </div>
@@ -156,30 +198,24 @@ const ViewProfile = ({ userData, setIsEditing }) => (
 );
 
 // ✅ แก้ไขโปรไฟล์
-const EditProfile = ({ formData, imagePreview, handleChange, handleFileChange, handleSave, handleCancel, departments, sections, tasks }) => (
+const EditProfile = ({ formData, imagePreview, handleChange, handleFileChange, handleSaveEdit, handleCancel, departments, sections, tasks }) => (
   <>
     <div className="edit-profile">
-      {/* 🔹 ชื่อ - นามสกุล */}
       <label>ชื่อ - นามสกุล:</label>
       <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} />
 
-      {/* 🔹 Username */}
       <label>Username:</label>
       <input type="text" name="username" value={formData.username} onChange={handleChange} />
 
-      {/* 🔹 Password */}
       <label>Password:</label>
       <input type="password" name="password" value={formData.password} onChange={handleChange} />
 
-      {/* 🔹 เบอร์โทร */}
       <label>เบอร์โทร:</label>
       <input type="text" name="phone" value={formData.phone} onChange={handleChange} />
 
-      {/* 🔹 อีเมล */}
       <label>อีเมล:</label>
       <input type="email" name="email" value={formData.email} onChange={handleChange} />
 
-      {/* 🔹 ฝ่าย/สำนัก */}
       <label>ฝ่าย/สำนัก:</label>
       <select name="department_id" value={formData.department_id} onChange={handleChange}>
         <option value="">เลือกฝ่าย/สำนัก</option>
@@ -188,7 +224,6 @@ const EditProfile = ({ formData, imagePreview, handleChange, handleFileChange, h
         ))}
       </select>
 
-      {/* 🔹 กอง */}
       <label>กอง:</label>
       <select name="section_id" value={formData.section_id} onChange={handleChange} disabled={!formData.department_id}>
         <option value="">เลือกกอง</option>
@@ -197,7 +232,6 @@ const EditProfile = ({ formData, imagePreview, handleChange, handleFileChange, h
         ))}
       </select>
 
-      {/* 🔹 งาน */}
       <label>งาน:</label>
       <select name="task_id" value={formData.task_id} onChange={handleChange} disabled={!formData.section_id}>
         <option value="">เลือกงาน</option>
@@ -206,14 +240,14 @@ const EditProfile = ({ formData, imagePreview, handleChange, handleFileChange, h
         ))}
       </select>
 
-      {/* 🔹 ปุ่มบันทึกและยกเลิก */}
       <div className="buttons">
-        <button className="save-btn" onClick={handleSave}>บันทึก</button>
+        <button className="save-btn" onClick={handleSaveEdit}>บันทึก</button>  {/* ✅ เปลี่ยน handleSave เป็น handleSaveEdit */}
         <button className="cancel-btn" onClick={handleCancel}>ยกเลิก</button>
       </div>
     </div>
   </>
 );
+
 
 
 export default ProfileModal;

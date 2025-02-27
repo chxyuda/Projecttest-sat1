@@ -483,45 +483,40 @@ app.post("/api/products", (req, res) => {
   console.log("📌 ข้อมูลที่ได้รับจาก Frontend:", req.body);
 
   const {
-    name,  // ❌ name นี้ใช้ผิด ควรใช้ equipment
-    category,  
-    brand,  
-    inventory_number,
-    serial_number = "-",
-    details = "-",
-    equipment_number = "-",
-    equipment // ✅ ต้องใช้ค่าจาก req.body.equipment
-} = req.body;
+      name,  
+      category,  
+      brand,  
+      model,  
+      serial_number = "-",  
+      inventory_number,  
+      details = "-",  
+      equipment_number = "-",  
+      remaining  
+  } = req.body;
 
-const model = name; // ✅ model ใช้ค่าจาก name ถูกต้อง (CC11111)
-const category_name = category;
-const brand_name = brand;
-const product_name = equipment; // ✅ name ควรเป็นค่า equipment (หมึกพิมพ์)
-
-
-  // ตรวจสอบว่าข้อมูลครบถ้วน
-  if (!model || !category_name || !name || !brand_name || !inventory_number) {
-      console.error("❌ ข้อมูลไม่ครบ:", { model, category_name, name, brand_name, inventory_number });
+  // ✅ ตรวจสอบค่าที่ต้องใส่ก่อน
+  if (!name || !category || !brand || !model || inventory_number === undefined || remaining === undefined) {
+      console.error("❌ ข้อมูลไม่ครบ:", { name, category, brand, model, inventory_number, remaining });
       return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" });
   }
 
   const query = `
-    INSERT INTO products (category_name, name, brand_name, model, serial_number, inventory_number, status, details, borrowed_number, equipment_number)
-    VALUES (?, ?, ?, ?, ?, ?, "In Stock", ?, 0, ?)
-`;
+      INSERT INTO products (category_name, name, brand_name, model, serial_number, inventory_number, status, details, borrowed_number, equipment_number, remaining)
+      VALUES (?, ?, ?, ?, ?, ?, "In Stock", ?, 0, ?, ?)
+  `;
 
-db.query(
-    query,
-    [category_name, product_name, brand_name, model, serial_number, inventory_number, details, equipment_number],  // ✅ ใช้ product_name แทน name
-    (err, result) => {
-        if (err) {
-            console.error("❌ Database error:", err);
-            return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
-        }
-        console.log("✅ เพิ่มข้อมูลสำเร็จ:", { model, category_name, product_name, brand_name, inventory_number });
-        res.status(201).json({ success: true, id: result.insertId });
-    }
-);
+  db.query(
+      query,
+      [category, name, brand, model, serial_number, inventory_number, details, equipment_number, remaining],
+      (err, result) => {
+          if (err) {
+              console.error("❌ Database error:", err);
+              return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในระบบ" });
+          }
+          console.log("✅ เพิ่มข้อมูลสำเร็จ:", { name, category, brand, model, inventory_number, remaining });
+          res.status(201).json({ success: true, id: result.insertId });
+      }
+  );
 });
 
 // ดึงข้อมูลจำนวนคงเหลือตามวัสดุ, ประเภท, อุปกรณ์, ยี่ห้อ
@@ -710,6 +705,29 @@ app.delete("/api/products", (req, res) => {
       res.status(200).json({ success: true, message: `✅ ลบข้อมูลสำเร็จ ${results.affectedRows} รายการ` });
   });
 });
+
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+      const { id } = req.params;
+      console.log("📌 ได้รับคำขอลบ ID:", id);
+
+      if (!id) {
+          return res.status(400).json({ success: false, message: "❌ ไม่พบ ID ที่ส่งมา" });
+      }
+
+      const deleteResult = await db.query("DELETE FROM products WHERE id = ?", [id]);
+
+      if (deleteResult.affectedRows > 0) {
+          return res.json({ success: true, message: "✅ ลบข้อมูลสำเร็จ!" });
+      } else {
+          return res.status(404).json({ success: false, message: "❌ ไม่พบอุปกรณ์ที่ต้องการลบ" });
+      }
+  } catch (error) {
+      console.error("❌ Error deleting product:", error);
+      res.status(500).json({ success: false, message: "❌ เกิดข้อผิดพลาดในเซิร์ฟเวอร์" });
+  }
+});
+
 
 // ดึงรายการ categories
 app.get('/api/categories', (req, res) => {
@@ -1089,6 +1107,8 @@ app.put('/api/users/:id', async (req, res) => {
 // ✅ ลบผู้ใช้
 app.delete("/api/users/:id", async (req, res) => {
   const { id } = req.params;
+  console.log(`📌 กำลังลบ ID: ${id}`);  // ✅ ตรวจสอบค่าที่ส่งมา
+
   try {
     const query = `DELETE FROM users WHERE id = ?`;
     const [result] = await db.promise().query(query, [id]);
@@ -1097,12 +1117,14 @@ app.delete("/api/users/:id", async (req, res) => {
       return res.status(404).json({ error: "❌ ไม่พบผู้ใช้ที่ต้องการลบ" });
     }
 
+    console.log("✅ ลบข้อมูลสำเร็จ!");
     res.json({ success: true, message: "✅ ลบข้อมูลสำเร็จ!" });
   } catch (error) {
     console.error("❌ Error deleting user:", error);
     res.status(500).json({ error: "❌ เกิดข้อผิดพลาดในการลบข้อมูล" });
   }
 });
+
 
 //ดึงข้อมูล
 app.get("/api/profile", async (req, res) => {
@@ -1196,17 +1218,13 @@ app.post("/api/upload-profile", upload.single("image"), (req, res) => {
 
 
 app.put("/api/update-profile", (req, res) => {
+  console.log("📌 Data received from Frontend:", req.body); // ✅ Debug ข้อมูลที่ API ได้รับ
+
   let { id, fullName, phone, email, department_name, section_name, task_name, image } = req.body;
 
   if (!id) {
       return res.status(400).json({ success: false, message: "❌ ไม่มี ID ของผู้ใช้" });
   }
-
-  // ✅ ตรวจสอบค่าก่อนอัปเดต
-  department_name = department_name?.trim() || null;
-  section_name = section_name?.trim() || null;
-  task_name = task_name?.trim() || null;
-  image = image || null; // ถ้าไม่มีรูป ไม่ต้องอัปเดต
 
   const query = `
       UPDATE users 
@@ -1226,10 +1244,10 @@ app.put("/api/update-profile", (req, res) => {
 
       // ✅ ดึงข้อมูลล่าสุดกลับไปยัง React
       db.query("SELECT id, fullName, phone, email, department_name, section_name, task_name, image FROM users WHERE id = ?", [id], (err, updatedResults) => {
-        if (err) {
-          return res.status(500).json({ message: "❌ ไม่สามารถดึงข้อมูลที่อัปเดตได้" });
-        }
-        res.json({ success: true, message: "✅ อัปเดตสำเร็จ!", userData: updatedResults[0] });
+          if (err) {
+              return res.status(500).json({ message: "❌ ไม่สามารถดึงข้อมูลที่อัปเดตได้" });
+          }
+          res.json({ success: true, message: "✅ อัปเดตสำเร็จ!", userData: updatedResults[0] });
       });
   });
 });

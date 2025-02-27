@@ -102,6 +102,40 @@ const RequestApproved = () => {
     }
   };
 
+  const handleApproveRequest = async (requestId) => {
+    const isConfirmed = window.confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติคำขอนี้?");
+    
+    if (!isConfirmed) {
+        alert("❌ ยกเลิกการอนุมัติ");
+        return; // ออกจากฟังก์ชันถ้าผู้ใช้กด Cancel
+    }
+
+    try {
+        const response = await fetch(`http://localhost:5001/api/requests/${requestId}/approve`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "Approved" }),
+        });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+            console.error("🔥 API Error:", responseData);
+            alert("เกิดข้อผิดพลาดในการอนุมัติคำขอ: " + responseData.error);
+            return;
+        }
+
+        alert("✅ อนุมัติคำขอสำเร็จ!");
+        setApprovedRequests((prev) =>
+            prev.map((req) => (req.id === requestId ? { ...req, status: "Approved" } : req))
+        );
+    } catch (error) {
+        console.error("🔥 Fetch Error:", error);
+        alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+    }
+};
+
+
   const handleReceiveItem = async (requestId) => {
     if (!receiverName.trim()) {
       alert("กรุณากรอกชื่อผู้รับของ");
@@ -370,7 +404,7 @@ const RequestApproved = () => {
           />
           <button
             className="confirm-receive-button"
-            onClick={() => handleReceiveItem(selectedRequest.id)}
+            onClick={() =>handleApproveRequest(selectedRequest.id)}
             disabled={!receiverName.trim()}
           >
             ✅ ยืนยันรับของ

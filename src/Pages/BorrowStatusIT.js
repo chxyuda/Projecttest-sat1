@@ -86,37 +86,44 @@ const BorrowStatusIT = () => {
 
   const [returnNote, setReturnNote] = useState(""); // state สำหรับเก็บหมายเหตุคืนของ
 
-const handleReturnItem = async () => {
-  if (!returnNote.trim()) {
-    alert("กรุณากรอกหมายเหตุการคืนของ");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `http://localhost:5001/api/borrow-requests/${selectedRequest.id}/return`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          return_date: new Date().toISOString().split("T")[0],
-          note: returnNote,
-        }),
-      }
-    );
-
-    if (response.ok) {
-      alert("อัปเดตสถานะเป็น คืนของแล้ว สำเร็จ");
-      setSelectedRequest(null); // ปิด modal หลังจากอัปเดตสำเร็จ
-    } else {
-      const errorData = await response.json();
-      alert("เกิดข้อผิดพลาด: " + errorData.error);
+  const handleReturnItem = async () => {
+    if (!returnNote.trim()) {
+      alert("กรุณากรอกหมายเหตุการคืนของ");
+      return;
     }
-  } catch (error) {
-    console.error("Error updating return status:", error);
-    alert("เกิดข้อผิดพลาด: " + error.message);
-  }
-};
+  
+    const isConfirmed = window.confirm("คุณแน่ใจหรือไม่ว่าต้องการคืนของ?");
+    if (!isConfirmed) {
+      alert("❌ ยกเลิกการคืนของ");
+      return; // ออกจากฟังก์ชันหากผู้ใช้กด Cancel
+    }
+  
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/borrow-requests/${selectedRequest.id}/return`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            return_date: new Date().toISOString().split("T")[0],
+            note: returnNote,
+          }),
+        }
+      );
+  
+      if (response.ok) {
+        alert("✅ อัปเดตสถานะเป็น 'คืนของแล้ว' สำเร็จ");
+        setSelectedRequest(null); // ปิด modal หลังจากอัปเดตสำเร็จ
+      } else {
+        const errorData = await response.json();
+        alert("❌ เกิดข้อผิดพลาด: " + errorData.error);
+      }
+    } catch (error) {
+      console.error("🔥 Error updating return status:", error);
+      alert("❌ เกิดข้อผิดพลาด: " + error.message);
+    }
+  };
+  
 
 const handleSearch = () => {
   if (!searchDate) {

@@ -149,7 +149,6 @@ const AddBorrowRequest = ({ onClose, onSubmit }) => {
     }
   };
   
-
   return (
     <div className="add-borrow-overlay">
       <div className="add-borrow-modal">

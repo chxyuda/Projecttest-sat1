@@ -112,6 +112,36 @@ const BorrowApproved = () => {
 
     doc.save(`Borrow_Request_${request.borrower_name}.pdf`);
 };
+const handleApproveRequest = async (requestId) => {
+  const isConfirmed = window.confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติคำขอนี้?");
+  
+  if (!isConfirmed) {
+      alert("❌ ยกเลิกการอนุมัติ");
+      return; // ออกจากฟังก์ชันถ้าผู้ใช้กด Cancel
+  }
+
+  try {
+      const response = await fetch(`http://localhost:5001/api/borrow-requests/${requestId}/approve`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "Approved" }),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+          console.error("🔥 API Error:", responseData);
+          alert("เกิดข้อผิดพลาดในการอนุมัติคำขอ: " + responseData.error);
+          return;
+      }
+
+      alert("✅ อนุมัติคำขอสำเร็จ!");
+      fetchData(); // อัปเดตข้อมูลใหม่หลังจากอนุมัติ
+  } catch (error) {
+      console.error("🔥 Fetch Error:", error);
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+  }
+};
 
 
   return (
@@ -256,7 +286,7 @@ const BorrowApproved = () => {
           value={receiverName}
           onChange={(e) => setReceiverName(e.target.value)}
         />
-        <button className="confirm-receive-button" onClick={handleReceiveConfirm}>
+        <button className="confirm-receive-button" onClick={handleApproveRequest}>
           ยืนยันการรับของ
         </button>
       </div>
