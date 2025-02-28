@@ -108,9 +108,9 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     const fetchData = async () => {
         try {
             const [productsRes, categoriesRes, brandsRes] = await Promise.all([
-                axios.get("http://localhost:5001/api/products"),
-                axios.get("http://localhost:5001/api/categories"),
-                axios.get("http://localhost:5001/api/brands"),
+                axios.get("http://newstock.sat.or.th:5001/api/products"),
+                axios.get("http://newstock.sat.or.th:5001/api/categories"),
+                axios.get("http://newstock.sat.or.th:5001/api/brands"),
             ]);
             setData(productsRes.data.data || []);
             setFilteredData(productsRes.data.data || []);
@@ -177,7 +177,7 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const handleShowDetails = async (item) => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/products/${item.id}`); // ดึงข้อมูลล่าสุดของสินค้านี้จากฐานข้อมูล
+      const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/${item.id}`); // ดึงข้อมูลล่าสุดของสินค้านี้จากฐานข้อมูล
       setSelectedItem(response.data); // เซ็ตข้อมูลใหม่ที่ได้จากฐานข้อมูล
       setShowDetails(true);
     } catch (error) {
@@ -202,7 +202,7 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   useEffect(() => {
   const fetchUserProfile = async () => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/profile?username=${storedUser.username}`);
+      const response = await axios.get(`http://newstock.sat.or.th:5001/api/profile?username=${storedUser.username}`);
       setUserData(response.data);
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
@@ -215,7 +215,7 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   
 const handleShowBorrowForm = async (row) => {
   try {
-    const response = await axios.get(`http://localhost:5001/api/products/${row.id}`);
+    const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/${row.id}`);
     const updatedRemaining = response.data.remaining || 0;
 
     setBorrowFormData({
@@ -271,7 +271,7 @@ const handleSubmitBorrow = async (e) => {
   console.log("📤 Data Sent to API:", dataToSend);
 
   try {
-    await axios.post('http://localhost:5001/api/requests', dataToSend);
+    await axios.post('http://newstock.sat.or.th:5001/api/requests', dataToSend);
     alert('บันทึกคำขอสำเร็จ');
     setShowBorrowForm(false);
   } catch (error) {
@@ -288,7 +288,7 @@ const handleSubmitBorrow = async (e) => {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/requests');
+        const response = await axios.get('http://newstock.sat.or.th:5001/api/requests');
         setRequests(response.data);
       } catch (error) {
         console.error('Error fetching requests:', error);
@@ -301,7 +301,7 @@ const handleSubmitBorrow = async (e) => {
   const handleShowLoanForm = async (row) => {
     try {
       // ดึงข้อมูลจำนวนคงเหลือล่าสุดจากฐานข้อมูล โดยใช้ id ของวัสดุ (row.id)
-      const response = await axios.get(`http://localhost:5001/api/products/${row.id}`);
+      const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/${row.id}`);
   
       const updatedRemaining = response.data.remaining; // จำนวนคงเหลือล่าสุด
   
@@ -357,12 +357,12 @@ const handleSubmitBorrow = async (e) => {
     
 
     try {
-      await axios.post('http://localhost:5001/api/borrow-requests', dataToSend);
+      await axios.post('http://newstock.sat.or.th:5001/api/borrow-requests', dataToSend);
       alert('บันทึกคำขอยืมสำเร็จ');
       setShowLoanForm(false);
   
       // อัปเดตข้อมูลสินค้าใหม่ทั้งตารางหลังทำรายการยืม
-      const productResponse = await axios.get(`http://localhost:5001/api/products`);
+      const productResponse = await axios.get(`http://newstock.sat.or.th:5001/api/products`);
       setData(productResponse.data.data || []);
       setFilteredData(productResponse.data.data || []);
     } catch (error) {

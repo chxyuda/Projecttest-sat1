@@ -31,7 +31,7 @@ const UserDashboard = () => {
     }
 
     axios
-      .get(`http://localhost:5001/api/profile?username=${storedUser.username}`)
+      .get(`http://newstock.sat.or.th:5001/api/profile?username=${storedUser.username}`)
       .then((response) => {
         setUserData(response.data);
         setLoading(false);

@@ -22,7 +22,7 @@ function Borrowing() {
     useEffect(() => {
       const fetchBorrowRequests = async () => {
         try {
-          const response = await axios.get("http://localhost:5001/api/borrow-requests");
+          const response = await axios.get("http://newstock.sat.or.th:5001/api/borrow-requests");
           const pendingRequests = response.data.filter((req) => req.status === "Pending");
           setRequests(pendingRequests);
           setFilteredRequests(pendingRequests);          
@@ -46,7 +46,7 @@ function Borrowing() {
   
     const handleViewDetails = async (request) => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
+        const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/model/${request.material}`);
         
         const { remaining, equipment_number, serial_number } = response.data;
     
@@ -110,7 +110,7 @@ function Borrowing() {
     
             // ✅ 1️⃣ อัปเดตสถานะคำขอ
             const approveResponse = await axios.put(
-                `http://localhost:5001/api/borrow-requests/${selectedRequest.id}/approve`,
+                `http://newstock.sat.or.th:5001/api/borrow-requests/${selectedRequest.id}/approve`,
                 {
                     status: finalStatus,
                     approved_by: "Admin",
@@ -124,7 +124,7 @@ function Borrowing() {
             // ✅ 2️⃣ หากอนุมัติแล้ว อัปเดตจำนวนคงเหลือของอุปกรณ์
             if (status === "Approved") {
                 const stockResponse = await axios.put(
-                    `http://localhost:5001/api/products/update-stock/${selectedRequest.material}`,
+                    `http://newstock.sat.or.th:5001/api/products/update-stock/${selectedRequest.material}`,
                     { remaining: newRemainingStock }
                 );
     

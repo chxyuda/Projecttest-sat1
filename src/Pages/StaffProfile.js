@@ -8,7 +8,7 @@ const StaffProfile = () => {
   // ดึงข้อมูลจาก API เมื่อ Component โหลด
   useEffect(() => {
     axios
-      .get("http://localhost:5001/api/staff-info") // API ที่ใช้ดึงข้อมูลเจ้าหน้าที่
+      .get("http://newstock.sat.or.th:5001/api/staff-info") // API ที่ใช้ดึงข้อมูลเจ้าหน้าที่
       .then((response) => {
         setStaffInfo(response.data);
       })

@@ -22,7 +22,7 @@ const BorrowApproved = () => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch("http://localhost:5001/api/borrow-requests");
+      const response = await fetch("http://newstock.sat.or.th:5001/api/borrow-requests");
       const data = await response.json();
       setBorrowRequests(data);
       setLoading(false);
@@ -54,7 +54,7 @@ const BorrowApproved = () => {
   
     try {
       const response = await fetch(
-        `http://localhost:5001/api/borrow-requests/${selectedRequest.id}/receive`,
+        `http://newstock.sat.or.th:5001/api/borrow-requests/${selectedRequest.id}/receive`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -121,7 +121,7 @@ const handleApproveRequest = async (requestId) => {
   }
 
   try {
-      const response = await fetch(`http://localhost:5001/api/borrow-requests/${requestId}/approve`, {
+      const response = await fetch(`http://newstock.sat.or.th:5001/api/borrow-requests/${requestId}/approve`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: "Approved" }),

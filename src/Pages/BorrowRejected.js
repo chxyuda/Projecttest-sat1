@@ -16,7 +16,7 @@ const BorrowRejected = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5001/api/borrow-requests"
+          "http://newstock.sat.or.th:5001/api/borrow-requests"
         );
         const data = await response.json();
         setBorrowRequests(data);

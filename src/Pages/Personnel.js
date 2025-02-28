@@ -57,7 +57,7 @@ const [formData, setFormData] = useState({
 });
 
 useEffect(() => {
-  axios.get('http://localhost:5001/api/users')
+  axios.get('http://newstock.sat.or.th:5001/api/users')
     .then(response => {
       console.log("✅ Pending Users (Before Filter):", response.data);  // ตรวจสอบค่าที่ได้
       console.log("✅ Personnel Data (API Response):", response.data);
@@ -65,11 +65,11 @@ useEffect(() => {
     })
     .catch(error => console.error('❌ Error fetching users:', error));
 
-  axios.get('http://localhost:5001/api/departments')
+  axios.get('http://newstock.sat.or.th:5001/api/departments')
       .then(response => setDepartments(response.data))
       .catch(error => console.error('Error fetching departments:', error));
 
-      axios.get("http://localhost:5001/api/pending-users")
+      axios.get("http://newstock.sat.or.th:5001/api/pending-users")
       .then(response => {
          console.log("✅ Pending Users from API:", response.data);
          setPendingUsers(Array.isArray(response.data) ? response.data : []);  // ป้องกัน null
@@ -78,7 +78,7 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  axios.get("http://localhost:5001/api/users")
+  axios.get("http://newstock.sat.or.th:5001/api/users")
       .then(response => {
           console.log("✅ Approved Users:", response.data);
           setApprovedUsers(response.data.filter(user => user.status === "Approved"));
@@ -89,7 +89,7 @@ useEffect(() => {
 // โหลด Sections เมื่อเลือก Department
 useEffect(() => {
   if (newUser.department_id) {
-      axios.get(`http://localhost:5001/api/sections/${newUser.department_id}`)
+      axios.get(`http://newstock.sat.or.th:5001/api/sections/${newUser.department_id}`)
           .then(response => setSections(response.data))
           .catch(error => console.error('Error fetching sections:', error));
   } else {
@@ -101,7 +101,7 @@ useEffect(() => {
 // โหลด Tasks เมื่อเลือก Section
 useEffect(() => {
   if (newUser.section_id) {
-      axios.get(`http://localhost:5001/api/tasks/${newUser.section_id}`)
+      axios.get(`http://newstock.sat.or.th:5001/api/tasks/${newUser.section_id}`)
           .then(response => setTasks(response.data))
           .catch(error => console.error('Error fetching tasks:', error));
   } else {
@@ -111,7 +111,7 @@ useEffect(() => {
 
 // ดึงข้อมูลบุคลากรที่ยังไม่อนุมัติ
 useEffect(() => {
-  axios.get('http://localhost:5001/api/pending-users')
+  axios.get('http://newstock.sat.or.th:5001/api/pending-users')
       .then(response => {
           console.log("✅ ข้อมูลที่โหลดจาก API:", response.data.users);  // ✅ Debug ดูข้อมูล
           setPendingUsers(response.data.users);
@@ -124,7 +124,7 @@ useEffect(() => {
   // โหลดข้อมูลกองตามฝ่าย
   const fetchSections = (departmentId) => {
     if (!departmentId) return;
-    axios.get(`http://localhost:5001/api/sections/${departmentId}`)
+    axios.get(`http://newstock.sat.or.th:5001/api/sections/${departmentId}`)
       .then((response) => setSections(response.data || []))
       .catch((error) => console.error("Error fetching sections:", error));
   };
@@ -132,7 +132,7 @@ useEffect(() => {
   // โหลดข้อมูลงานตามกอง
   const fetchTasks = (sectionId) => {
     if (!sectionId) return;
-    axios.get(`http://localhost:5001/api/tasks/${sectionId}`)
+    axios.get(`http://newstock.sat.or.th:5001/api/tasks/${sectionId}`)
       .then((response) => setTasks(response.data || []))
       .catch((error) => console.error("Error fetching tasks:", error));
   };
@@ -159,7 +159,7 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
     setSelectedTask('');
   
     if (departmentId) {
-      axios.get(`http://localhost:5001/api/sections/${departmentId}`)
+      axios.get(`http://newstock.sat.or.th:5001/api/sections/${departmentId}`)
         .then(response => setSections(response.data))
         .catch(error => console.error('Error fetching sections:', error));
     } else {
@@ -174,7 +174,7 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
     setSelectedTask('');
   
     if (sectionId) {
-      axios.get(`http://localhost:5001/api/tasks/${sectionId}`)
+      axios.get(`http://newstock.sat.or.th:5001/api/tasks/${sectionId}`)
         .then(response => setTasks(response.data))
         .catch(error => console.error('Error fetching tasks:', error));
     } else {
@@ -194,7 +194,7 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
 
   const handleViewDetails = async (user) => {
     try {
-        const response = await axios.get(`http://localhost:5001/api/users/${user.id}`);
+        const response = await axios.get(`http://newstock.sat.or.th:5001/api/users/${user.id}`);
         console.log("✅ User Details from API:", response.data);  // ตรวจสอบว่ามีค่า image หรือไม่
         setSelectedUser(response.data);
         setShowModal(true);
@@ -219,7 +219,7 @@ const filteredPendingUsers = Array.isArray(pendingUsers)
 
 const handleEditUser = async (user) => {
   try {
-    const response = await axios.get(`http://localhost:5001/api/users/${user.id}`);
+    const response = await axios.get(`http://newstock.sat.or.th:5001/api/users/${user.id}`);
     setSelectedUser(response.data);
     setFormData({
       ...response.data,
@@ -250,14 +250,14 @@ const handleSaveEdit = async () => {
           const formDataImg = new FormData();
           formDataImg.append("image", selectedFile);
 
-          const uploadResponse = await axios.post("http://localhost:5001/api/upload-profile", formDataImg, {
+          const uploadResponse = await axios.post("http://newstock.sat.or.th:5001/api/upload-profile", formDataImg, {
               headers: { "Content-Type": "multipart/form-data" },
           });
 
           imageUrl = uploadResponse.data.imageUrl;
       }
 
-      const response = await axios.put(`http://localhost:5001/api/users/${selectedUser.id}`, {
+      const response = await axios.put(`http://newstock.sat.or.th:5001/api/users/${selectedUser.id}`, {
           fullName: formData.fullName,
           department_name: departments.find(d => d.id.toString() === formData.department_id)?.name || formData.department_id,
           section_name: sections.find(s => s.id.toString() === formData.section_id)?.name || formData.section_id,
@@ -370,7 +370,7 @@ const handleChange = (e) => {
         password: newUser.password,
     });
 
-    axios.post("http://localhost:5001/api/users", {
+    axios.post("http://newstock.sat.or.th:5001/api/users", {
         fullName: newUser.fullName,
         department_name: department.name,  // ✅ ส่งเป็นชื่อฝ่ายแทน ID
         section_name: section.name,
@@ -414,7 +414,7 @@ const handleDeleteSelected = async () => {
 
   try {
     for (const userId of selectedUsers) {
-      const response = await axios.delete(`http://localhost:5001/api/users/${userId}`);
+      const response = await axios.delete(`http://newstock.sat.or.th:5001/api/users/${userId}`);
 
       if (response.status === 200) {
         console.log(`✅ ลบผู้ใช้ ID: ${userId} สำเร็จ`);
@@ -435,7 +435,7 @@ const handleDeleteSelected = async () => {
 
 const fetchPersonnelData = async () => {
   try {
-    const response = await axios.get("http://localhost:5001/api/users");
+    const response = await axios.get("http://newstock.sat.or.th:5001/api/users");
     console.log("✅ โหลดข้อมูลใหม่:", response.data);
     setPersonnelData(response.data); // ✅ อัปเดต State
     setUsers(response.data); // ✅ อัปเดต users ด้วย
@@ -455,7 +455,7 @@ useEffect(() => {
 // ✅ ฟังก์ชันโหลดข้อมูลใหม่
 const fetchPendingUsers = async () => {
   try {
-    const response = await axios.get("http://localhost:5001/api/pending-users"); // ✅ ใช้ API ที่ถูกต้อง
+    const response = await axios.get("http://newstock.sat.or.th:5001/api/pending-users"); // ✅ ใช้ API ที่ถูกต้อง
     console.log("✅ Pending Users (Frontend):", response.data.users); // ✅ Debug ข้อมูล
     setPendingUsers(response.data.users);  // ✅ อัปเดต State
   } catch (error) {
@@ -471,7 +471,7 @@ useEffect(() => {
 
 const fetchApprovedUsers = async () => {
   try {
-    const response = await axios.get("http://localhost:5001/api/users");
+    const response = await axios.get("http://newstock.sat.or.th:5001/api/users");
     const approvedUsers = response.data.filter(user => user.status === "Approved"); // ✅ กรองเฉพาะที่อนุมัติแล้ว
     console.log("✅ Approved Users:", approvedUsers);
     setApprovedUsers(approvedUsers);
@@ -489,7 +489,7 @@ useEffect(() => {
 useEffect(() => {
   const fetchApprovedUsers = async () => {
      try {
-        const response = await axios.get("http://localhost:5001/api/users");
+        const response = await axios.get("http://newstock.sat.or.th:5001/api/users");
         console.log("✅ Approved Users (Frontend):", response.data);
         setUsers(Array.isArray(response.data) ? response.data : []); // ป้องกัน null
      } catch (error) {
@@ -505,7 +505,7 @@ const handleApprove = async (userId) => {
   try {
       console.log("📌 Sending Approve Request for User ID:", userId);
 
-      const response = await fetch(`http://localhost:5001/api/approve-user/${userId}`, {
+      const response = await fetch(`http://newstock.sat.or.th:5001/api/approve-user/${userId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
       });
@@ -551,7 +551,7 @@ const handleReject = async (userId) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:5001/api/reject-user/${userId}`, {
+    const response = await fetch(`http://newstock.sat.or.th:5001/api/reject-user/${userId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
     });
@@ -589,7 +589,7 @@ const handleReject = async (userId) => {
 };
 
 useEffect(() => {
-  axios.get("http://localhost:5001/api/users")
+  axios.get("http://newstock.sat.or.th:5001/api/users")
     .then(response => {
       console.log("✅ Users Data (Before Filter):", response.data);
       const approvedUsers = response.data.filter(user => user.status.toLowerCase() === "approved"); // ✅ กรองเฉพาะ Approved
@@ -603,7 +603,7 @@ useEffect(() => {
 useEffect(() => {
   const fetchApprovedUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:5001/api/users"); // ✅ ใช้ API ที่ถูกต้อง
+      const response = await axios.get("http://newstock.sat.or.th:5001/api/users"); // ✅ ใช้ API ที่ถูกต้อง
       console.log("✅ Approved Users (Frontend):", response.data); // ✅ Debug
       setUsers(response.data); // ✅ ตั้งค่า users ใหม่
     } catch (error) {
@@ -617,7 +617,7 @@ useEffect(() => {
 useEffect(() => {
   const fetchPendingCount = async () => {
     try {
-      const response = await fetch("http://localhost:5001/api/users/pending/count");
+      const response = await fetch("http://newstock.sat.or.th:5001/api/users/pending/count");
       const data = await response.json();
       setPendingCount(data.count);
     } catch (error) {

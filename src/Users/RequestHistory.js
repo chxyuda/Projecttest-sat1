@@ -28,7 +28,7 @@ const RequestHistory = () => {
     const fetchRequests = async () => {
       try {
         const userData = JSON.parse(localStorage.getItem('user'));
-        const response = await fetch(`http://localhost:5001/api/requests/user/${userData.id}`);
+        const response = await fetch(`http://newstock.sat.or.th:5001/api/requests/user/${userData.id}`);
         const data = await response.json();
   
         // กรองเฉพาะสถานะ 'Received' ตั้งแต่ดึงข้อมูลครั้งแรก

@@ -19,7 +19,7 @@ const ReturningHistory = () => {
                     return;
                 }
     
-                const response = await axios.get(`http://localhost:5001/api/borrow-requests/user/${userId}`);
+                const response = await axios.get(`http://newstock.sat.or.th:5001/api/borrow-requests/user/${userId}`);
                 console.log('Response:', response.data); // ตรวจสอบข้อมูลที่ได้จาก API
     
                 // กรองเฉพาะสถานะ "รับของแล้ว" และ "คืนของแล้ว"

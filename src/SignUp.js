@@ -32,7 +32,7 @@ const SignUp = () => {
 
     // ✅ Fetch departments
     useEffect(() => {
-        axios.get("http://localhost:5001/api/departments")
+        axios.get("http://newstock.sat.or.th:5001/api/departments")
           .then(response => setDepartments(response.data))
           .catch(error => console.error("❌ Error fetching departments:", error));
       }, []);
@@ -40,7 +40,7 @@ const SignUp = () => {
       // ✅ โหลดกอง (Sections) ตามฝ่ายที่เลือก
       useEffect(() => {
         if (formData.department_id) {
-          axios.get(`http://localhost:5001/api/sections/${formData.department_id}`)
+          axios.get(`http://newstock.sat.or.th:5001/api/sections/${formData.department_id}`)
             .then(response => setSections(response.data))
             .catch(error => console.error("❌ Error loading sections:", error));
         } else {
@@ -52,7 +52,7 @@ const SignUp = () => {
       // ✅ โหลดงาน (Tasks) ตามกองที่เลือก
       useEffect(() => {
         if (formData.section_id) {
-          axios.get(`http://localhost:5001/api/tasks/${formData.section_id}`)
+          axios.get(`http://newstock.sat.or.th:5001/api/tasks/${formData.section_id}`)
             .then(response => setTasks(response.data))
             .catch(error => console.error("❌ Error loading tasks:", error));
         } else {
@@ -170,7 +170,7 @@ const SignUp = () => {
         console.log("📩 ข้อมูลที่กำลังส่งไป Backend:", data);
     
         try {
-            const response = await axios.post('http://localhost:5001/api/signup', data, {
+            const response = await axios.post('http://newstock.sat.or.th:5001/api/signup', data, {
                 headers: { "Content-Type": "application/json" } 
             });
     

@@ -18,7 +18,7 @@ const Dashboard = () => {
   // ✅ ดึงจำนวนวัสดุที่เบิก
   const fetchRequests = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/requests');
+      const response = await axios.get('http://newstock.sat.or.th:5001/api/requests');
       return response.data.length; // นับจำนวนรายการทั้งหมด
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -29,7 +29,7 @@ const Dashboard = () => {
   // ✅ ดึงจำนวนวัสดุที่ยืม (รวมทุกสถานะ)
   const fetchBorrowRequests = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/borrow-requests');
+      const response = await axios.get('http://newstock.sat.or.th:5001/api/borrow-requests');
       return response.data.filter(item => 
         item.status.toLowerCase() === 'approved' || 
         item.status.toLowerCase() === 'borrowed'
@@ -43,7 +43,7 @@ const Dashboard = () => {
   // ✅ ดึงจำนวนวัสดุที่คืน (เฉพาะที่คืนแล้ว)
   const fetchReturnedRequests = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/borrow-requests');
+      const response = await axios.get('http://newstock.sat.or.th:5001/api/borrow-requests');
       return response.data.filter(item => item.status.toLowerCase() === 'returned').length;
     } catch (error) {
       console.error('Error fetching returned requests:', error);
@@ -54,7 +54,7 @@ const Dashboard = () => {
   // ✅ ดึงข้อมูลสำหรับกราฟ
   const fetchChartData = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/dashboard-charts');
+      const response = await axios.get('http://newstock.sat.or.th:5001/api/dashboard-charts');
   
       if (response.data && response.data.availableYears) {
         setChartData(response.data);
@@ -102,7 +102,7 @@ const Dashboard = () => {
 
   const fetchBorrowSummary = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/borrow-requests');
+      const response = await axios.get('http://newstock.sat.or.th:5001/api/borrow-requests');
   
       // ✅ นับทุก status ที่เกี่ยวข้อง
       const totalBorrowed = response.data.filter(
@@ -123,7 +123,7 @@ const Dashboard = () => {
   
   const fetchReturnSummary = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/borrow-requests');
+      const response = await axios.get('http://newstock.sat.or.th:5001/api/borrow-requests');
   
       // ✅ นับเฉพาะ "คืนของแล้ว"
       const totalReturned = response.data.filter(

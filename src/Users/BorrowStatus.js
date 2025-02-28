@@ -18,7 +18,7 @@ const BorrowStatus = () => {
 
     const fetchBorrowings = async () => {
         try {
-            const response = await axios.get(`http://localhost:5001/api/borrow-requests/user/${userId}`);
+            const response = await axios.get(`http://newstock.sat.or.th:5001/api/borrow-requests/user/${userId}`);
             console.log("📌 ข้อมูลจาก API:", response.data);
             setBorrowings(response.data);
         } catch (error) {

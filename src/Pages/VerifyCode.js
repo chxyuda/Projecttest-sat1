@@ -35,7 +35,7 @@ const VerifyCode = () => {
 
     try {
       // เรียก API ยืนยัน OTP
-      const response = await axios.post("http://localhost:5001/api/verify-otp", {
+      const response = await axios.post("http://newstock.sat.or.th:5001/api/verify-otp", {
         email,
         otp: otpCode,
       });

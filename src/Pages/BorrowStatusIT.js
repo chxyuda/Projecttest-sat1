@@ -20,7 +20,7 @@ const BorrowStatusIT = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:5001/api/borrow-requests");
+        const response = await fetch("http://newstock.sat.or.th:5001/api/borrow-requests");
         const data = await response.json();
         setBorrowRequests(data);
         setLoading(false);
@@ -100,7 +100,7 @@ const BorrowStatusIT = () => {
   
     try {
       const response = await fetch(
-        `http://localhost:5001/api/borrow-requests/${selectedRequest.id}/return`,
+        `http://newstock.sat.or.th:5001/api/borrow-requests/${selectedRequest.id}/return`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

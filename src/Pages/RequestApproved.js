@@ -21,7 +21,7 @@ const RequestApproved = () => {
     useEffect(() => {
       const fetchApprovedRequests = async () => {
         try {
-          const response = await fetch("http://localhost:5001/api/requests");
+          const response = await fetch("http://newstock.sat.or.th:5001/api/requests");
           const data = await response.json();
  
           // กรองเฉพาะคำขอที่ "อนุมัติแล้ว"
@@ -40,7 +40,7 @@ const RequestApproved = () => {
  
   useEffect(() => {
     if (selectedRequest) {
-      fetch(`http://localhost:5001/api/products/model/${selectedRequest.material}`)
+      fetch(`http://newstock.sat.or.th:5001/api/products/model/${selectedRequest.material}`)
         .then((res) => res.json())
         .then((data) => setRemainingStock(data.remaining || "ไม่ทราบ"))
         .catch((error) => {
@@ -52,7 +52,7 @@ const RequestApproved = () => {
  
   const handleViewDetails = async (request) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/products/model/${request.material}`);
+      const response = await fetch(`http://newstock.sat.or.th:5001/api/products/model/${request.material}`);
       const data = await response.json();
  
       console.log("API Response:", data); // ✅ ตรวจสอบข้อมูล API
@@ -111,7 +111,7 @@ const RequestApproved = () => {
     }
  
     try {
-        const response = await fetch(`http://localhost:5001/api/requests/${requestId}/approve`, {
+        const response = await fetch(`http://newstock.sat.or.th:5001/api/requests/${requestId}/approve`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: "Approved" }),
@@ -148,7 +148,7 @@ const handleReceiveItem = async (requestId) => {
       date_received: new Date().toISOString().split('T')[0]
     });
 
-    const response = await fetch(`http://localhost:5001/api/requests/${requestId}/receive`, {
+    const response = await fetch(`http://newstock.sat.or.th:5001/api/requests/${requestId}/receive`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

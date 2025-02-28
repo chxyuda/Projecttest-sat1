@@ -16,7 +16,7 @@ const Login = () => {
     console.log("🔍 กำลังส่งข้อมูลเข้าสู่ระบบ...");
 
     try {
-        const response = await axios.post("http://localhost:5001/api/login", { username, password });
+        const response = await axios.post("http://newstock.sat.or.th:5001/api/login", { username, password });
         console.log("✅ Response:", response.data);
 
         const { success, user } = response.data;

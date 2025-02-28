@@ -17,7 +17,7 @@ const ForgotPassword = () => {
 
     try {
       // เรียก API สำหรับส่ง OTP ไปยังอีเมล
-      const response = await axios.post("http://localhost:5001/api/send-otp", { email });
+      const response = await axios.post("http://newstock.sat.or.th:5001/api/send-otp", { email });
       console.log(response.data); // ตรวจสอบ response จากเซิร์ฟเวอร์
 
       setMessage("OTP sent successfully. Please check your email.");

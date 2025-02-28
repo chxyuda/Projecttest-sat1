@@ -96,7 +96,7 @@ const handlePreviousPage = () => {
 
   const fetchData = async () => {
     try {
-        const response = await axios.get("http://localhost:5001/api/products");
+        const response = await axios.get("http://newstock.sat.or.th:5001/api/products");
         if (response.data.success) {
             setData(response.data.data); // อัปเดต state ของ data
             console.log("Fetched data:", response.data.data);
@@ -119,7 +119,7 @@ const handlePreviousPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/products');
+        const response = await axios.get('http://newstock.sat.or.th:5001/api/products');
         if (response.data.success) {
           setData(response.data.data); // ตั้งค่า State `data` ด้วยข้อมูลจาก API
           console.log("Fetched data:", response.data.data); // Debug เพื่อตรวจสอบข้อมูล
@@ -159,7 +159,7 @@ const handlePreviousPage = () => {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/options');
+        const response = await axios.get('http://newstock.sat.or.th:5001/api/options');
         if (response.data.success) {
           setCategories(response.data.categories);
           setEquipments(response.data.equipments);
@@ -186,7 +186,7 @@ const handlePreviousPage = () => {
   useEffect(() => {
     const fetchFilters = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/filters');
+        const response = await axios.get('http://newstock.sat.or.th:5001/api/filters');
         if (response.data.success) {
           setFilters(response.data.data);
         }
@@ -200,7 +200,7 @@ const handlePreviousPage = () => {
   
   const handleEditClick = async (item) => {
     try {
-        const response = await axios.get(`http://localhost:5001/api/products/${item.id}`);
+        const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/${item.id}`);
         console.log("📌 API Response:", response.data); // Debug ตรวจสอบค่าจากฐานข้อมูล
 
         setCurrentEditItem({
@@ -248,7 +248,7 @@ const handlePreviousPage = () => {
         console.log("📌 ส่งค่าไปยัง API:", payload);
 
         const response = await axios.put(
-            `http://localhost:5001/api/products/${currentEditItem.id}`,
+            `http://newstock.sat.or.th:5001/api/products/${currentEditItem.id}`,
             payload
         );
 
@@ -302,7 +302,7 @@ const handlePreviousPage = () => {
     console.log("📌 รายการที่ถูกเลือก:", selectedItems); // ✅ Debug
 
     try {
-        const response = await axios.delete("http://localhost:5001/api/products", {
+        const response = await axios.delete("http://newstock.sat.or.th:5001/api/products", {
             data: { ids: selectedItems } // ✅ ตรวจสอบว่ากำลังส่ง ID อะไรไป
         });
 
@@ -330,7 +330,7 @@ const [showDeleteModal, setShowDeleteModal] = useState(false);
 const handleDeleteConfirm = async () => {
   setShowDeleteModal(false); // ปิด Modal
   try {
-    const response = await axios.post("http://localhost:5001/api/products/delete", {
+    const response = await axios.post("http://newstock.sat.or.th:5001/api/products/delete", {
       ids: selectedItems,
     });
 
@@ -349,7 +349,7 @@ const handleDeleteConfirm = async () => {
 
   const handleShowModal = async () => {
   try {
-    const response = await axios.get("http://localhost:5001/api/categories");
+    const response = await axios.get("http://newstock.sat.or.th:5001/api/categories");
     console.log("Categories data:", response.data); // ตรวจสอบข้อมูล
     setCategories(response.data.data || []);
     setShowModal(true); //
@@ -370,7 +370,7 @@ const handleDeleteConfirm = async () => {
     }
   
     try {
-      const response = await axios.post("http://localhost:5001/api/categories", {
+      const response = await axios.post("http://newstock.sat.or.th:5001/api/categories", {
         name: newCategoryName, // ส่งชื่อประเภทไปยัง API
         type: newCategoryType || "ประเภททั่วไป", // หากไม่มีชนิด ให้ตั้งค่าเริ่มต้น
       });
@@ -390,7 +390,7 @@ const handleDeleteConfirm = async () => {
   const handleDeleteCategory = async (id) => {
     if (window.confirm("คุณต้องการลบประเภทนี้หรือไม่?")) {
       try {
-        const response = await axios.delete(`http://localhost:5001/api/categories/${id}`);
+        const response = await axios.delete(`http://newstock.sat.or.th:5001/api/categories/${id}`);
         if (response.data.success) {
           alert("ลบประเภทเรียบร้อย");
           fetchCategories(); // อัปเดตข้อมูลใหม่
@@ -410,7 +410,7 @@ const handleDeleteConfirm = async () => {
   
     try {
       // ✅ ส่งคำขอไปที่ API เพื่ออัปเดตข้อมูล
-      const response = await axios.put(`http://localhost:5001/api/categories/${id}`, {
+      const response = await axios.put(`http://newstock.sat.or.th:5001/api/categories/${id}`, {
         name: updatedName.trim(), 
       });
   
@@ -439,7 +439,7 @@ const handleDeleteConfirm = async () => {
     }
   
     try {
-      const response = await axios.put(`http://localhost:5001/api/categories/${id}`, {
+      const response = await axios.put(`http://newstock.sat.or.th:5001/api/categories/${id}`, {
         name: updatedName,
         type: updatedType || "ประเภททั่วไป",
       });
@@ -456,7 +456,7 @@ const handleDeleteConfirm = async () => {
   
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("http://localhost:5001/api/categories");
+      const response = await axios.get("http://newstock.sat.or.th:5001/api/categories");
       if (response.data.success) {
         setCategories(response.data.data);
       }
@@ -468,7 +468,7 @@ const handleDeleteConfirm = async () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://localhost:5001/api/categories");
+        const response = await axios.get("http://newstock.sat.or.th:5001/api/categories");
         if (response.data.success) {
           setCategories(response.data.data);
           console.log("Categories fetched:", response.data.data); // ตรวจสอบข้อมูล
@@ -484,7 +484,7 @@ const handleDeleteConfirm = async () => {
 
 const fetchEquipments = async () => {
   try {
-      const response = await axios.get("http://localhost:5001/api/products");
+      const response = await axios.get("http://newstock.sat.or.th:5001/api/products");
       console.log("📌 ข้อมูลที่โหลดจาก API:", response.data);
 
       if (response.data.success) {
@@ -531,7 +531,7 @@ const fetchEquipments = async () => {
     try {
         console.log("📌 ส่งข้อมูล:", newEquipment); // ✅ Debug
 
-        const response = await axios.post("http://localhost:5001/api/equipment-names", {
+        const response = await axios.post("http://newstock.sat.or.th:5001/api/equipment-names", {
             name: newEquipment
         });
 
@@ -562,7 +562,7 @@ const fetchEquipments = async () => {
   
     try {
       const response = await axios.put(
-        `http://localhost:5001/api/products/${equipments[index].id}`,
+        `http://newstock.sat.or.th:5001/api/products/${equipments[index].id}`,
         { name: newEquipment }
       );
   
@@ -587,7 +587,7 @@ const fetchEquipments = async () => {
   const handleDeleteEquipment = async (index) => {
     if (window.confirm("คุณต้องการลบอุปกรณ์นี้หรือไม่?")) {
       try {
-        const response = await axios.post("http://localhost:5001/api/products/delete", {
+        const response = await axios.post("http://newstock.sat.or.th:5001/api/products/delete", {
           ids: [equipments[index].id],
         });
   
@@ -638,7 +638,7 @@ const fetchEquipments = async () => {
 
   const fetchBrands = async () => {
     try {
-      const response = await axios.get("http://localhost:5001/api/brands");
+      const response = await axios.get("http://newstock.sat.or.th:5001/api/brands");
       if (response.data.success) {
         setBrands(response.data.data); // เก็บข้อมูลใน state
       }
@@ -651,7 +651,7 @@ const fetchEquipments = async () => {
   
   const handleFetchBrands = async () => {
     try {
-      const response = await axios.get("http://localhost:5001/api/brands"); // ดึงข้อมูลจาก API ยี่ห้อ
+      const response = await axios.get("http://newstock.sat.or.th:5001/api/brands"); // ดึงข้อมูลจาก API ยี่ห้อ
       if (response.data.success) {
         setBrands(response.data.data || []); // อัปเดตข้อมูล state ของยี่ห้อ
       } else {
@@ -670,7 +670,7 @@ const fetchEquipments = async () => {
     }
   
     try {
-      const response = await axios.post("http://localhost:5001/api/brands", {
+      const response = await axios.post("http://newstock.sat.or.th:5001/api/brands", {
         name: newBrand.trim(),
         category: "ทั่วไป",
       });
@@ -700,7 +700,7 @@ const fetchEquipments = async () => {
     if (!window.confirm("คุณต้องการลบยี่ห้อนี้หรือไม่?")) return;
   
     try {
-      const response = await axios.delete(`http://localhost:5001/api/brands/${id}`);
+      const response = await axios.delete(`http://newstock.sat.or.th:5001/api/brands/${id}`);
       if (response.data.success) {
         alert("ลบยี่ห้อสำเร็จ");
         // กรองข้อมูลใน state โดยลบรายการที่มี id ตรงกัน
@@ -743,7 +743,7 @@ const fetchEquipments = async () => {
     try {
         console.log("📌 Sending update request:", { id, name: editingBrandName });
 
-        const response = await axios.put(`http://localhost:5001/api/brands/${id}`, {
+        const response = await axios.put(`http://newstock.sat.or.th:5001/api/brands/${id}`, {
             name: editingBrandName.trim(),
         });
 
@@ -832,7 +832,7 @@ const handleCloseBrandModal = () => {
     }
 
     try {
-        const response = await axios.post("http://localhost:5001/api/products", updatedFormData);
+        const response = await axios.post("http://newstock.sat.or.th:5001/api/products", updatedFormData);
         console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data);
 
         if (response.data.success) {
@@ -852,7 +852,7 @@ const handleCloseBrandModal = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get("http://localhost:5001/api/products");
+      const response = await axios.get("http://newstock.sat.or.th:5001/api/products");
       if (response.data.success) {
         setProducts(response.data.data);
         console.log("Products:", response.data.data);
@@ -865,9 +865,9 @@ const handleCloseBrandModal = () => {
 
   const fetchDropdownData = async () => {
     try {
-        const equipmentResponse = await axios.get("http://localhost:5001/api/products");
-        const categoryResponse = await axios.get("http://localhost:5001/api/categories");
-        const brandResponse = await axios.get("http://localhost:5001/api/brands");
+        const equipmentResponse = await axios.get("http://newstock.sat.or.th:5001/api/products");
+        const categoryResponse = await axios.get("http://newstock.sat.or.th:5001/api/categories");
+        const brandResponse = await axios.get("http://newstock.sat.or.th:5001/api/brands");
 
         console.log("📌 Equipment API Response:", equipmentResponse.data); // ✅ Debug Response
         console.log("📌 Category API Response:", categoryResponse.data);
@@ -983,7 +983,7 @@ const handleSubmit = async (e) => {
   }
 
   try {
-      const response = await axios.post("http://localhost:5001/api/products", updatedFormData);
+      const response = await axios.post("http://newstock.sat.or.th:5001/api/products", updatedFormData);
       console.log("📌 คำตอบจากเซิร์ฟเวอร์:", response.data); // ✅ Debug คำตอบจาก API
 
       if (response.data.success) {

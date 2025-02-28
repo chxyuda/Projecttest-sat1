@@ -20,14 +20,14 @@ const ProfileModal = ({ onClose, userData }) => {
 
   useEffect(() => {
     // โหลดข้อมูลฝ่าย
-    axios.get("http://localhost:5001/api/departments")
+    axios.get("http://newstock.sat.or.th:5001/api/departments")
       .then(response => setDepartments(response.data))
       .catch(error => console.error("Error fetching departments:", error));
   }, []);
 
   useEffect(() => {
     if (formData.department_id) {
-      axios.get(`http://localhost:5001/api/sections/${formData.department_id}`)
+      axios.get(`http://newstock.sat.or.th:5001/api/sections/${formData.department_id}`)
         .then(response => setSections(response.data))
         .catch(error => console.error("Error fetching sections:", error));
     } else {
@@ -38,7 +38,7 @@ const ProfileModal = ({ onClose, userData }) => {
 
   useEffect(() => {
     if (formData.section_id) {
-      axios.get(`http://localhost:5001/api/tasks/${formData.section_id}`)
+      axios.get(`http://newstock.sat.or.th:5001/api/tasks/${formData.section_id}`)
         .then(response => setTasks(response.data))
         .catch(error => console.error("Error fetching tasks:", error));
     } else {
@@ -48,7 +48,7 @@ const ProfileModal = ({ onClose, userData }) => {
 
   const fetchUserData = async () => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/profile?username=${formData.username}`);
+      const response = await axios.get(`http://newstock.sat.or.th:5001/api/profile?username=${formData.username}`);
       console.log("📌 ข้อมูลที่อัปเดตจาก API:", response.data);
       setFormData(response.data);
     } catch (error) {
@@ -96,14 +96,14 @@ const handleChange = (e) => {
         const formDataImg = new FormData();
         formDataImg.append("image", selectedFile);
   
-        const uploadResponse = await axios.post("http://localhost:5001/api/upload-profile", formDataImg, {
+        const uploadResponse = await axios.post("http://newstock.sat.or.th:5001/api/upload-profile", formDataImg, {
           headers: { "Content-Type": "multipart/form-data" },
         });
   
         imageUrl = uploadResponse.data.imageUrl;
       }
   
-      const response = await axios.put(`http://localhost:5001/api/users/${formData.id}`, { // ✅ เปลี่ยนจาก selectedUser.id เป็น formData.id
+      const response = await axios.put(`http://newstock.sat.or.th:5001/api/users/${formData.id}`, { // ✅ เปลี่ยนจาก selectedUser.id เป็น formData.id
         fullName: formData.fullName,
         department_name: departments.find(d => d.id.toString() === formData.department_id)?.name || formData.department_id,
         section_name: sections.find(s => s.id.toString() === formData.section_id)?.name || formData.section_id,

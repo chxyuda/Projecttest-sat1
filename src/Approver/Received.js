@@ -17,10 +17,10 @@ function Received() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await axios.get("http://localhost:5001/api/requests");
+        const response = await axios.get("http://newstock.sat.or.th:5001/api/requests");
         const userResponses = await Promise.all(
           response.data.map((req) =>
-            axios.get(`http://localhost:5001/api/users/${req.user_id}`)
+            axios.get(`http://newstock.sat.or.th:5001/api/users/${req.user_id}`)
           )
         );
         const enrichedRequests = response.data.map((req, index) => ({
@@ -44,7 +44,7 @@ function Received() {
   
   const handleViewDetails = async (request) => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
+      const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/model/${request.material}`);
       
       const { remaining, equipment_number, serial_number } = response.data;
   
@@ -79,7 +79,7 @@ function Received() {
     }
   
     try {
-        await axios.put(`http://localhost:5001/api/requests/${selectedRequest.id}/approve`, {
+        await axios.put(`http://newstock.sat.or.th:5001/api/requests/${selectedRequest.id}/approve`, {
             status: status,
             approved_by: 'ผู้อนุมัติ',
             date_approved: new Date().toISOString().slice(0, 10),
