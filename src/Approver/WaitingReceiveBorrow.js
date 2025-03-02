@@ -20,10 +20,10 @@ function WaitingReceiveBorrow() {
 
   const fetchRequests = async () => {
     try {
-      const response = await axios.get("http://newstock.sat.or.th:5001/api/borrow-requests");
+      const response = await axios.get("http://localhost:5001/api/borrow-requests");
       const userResponses = await Promise.all(
         response.data.map((req) =>
-          axios.get(`http://newstock.sat.or.th:5001/api/users/${req.user_id}`)
+          axios.get(`http://localhost:5001/api/users/${req.user_id}`)
         )
       );
       const enrichedRequests = response.data.map((req, index) => ({
@@ -52,7 +52,7 @@ function WaitingReceiveBorrow() {
 
   const handleViewDetails = async (request) => {
     try {
-      const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/model/${request.material}`);
+      const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
       
       const { remaining, equipment_number, serial_number } = response.data;
   

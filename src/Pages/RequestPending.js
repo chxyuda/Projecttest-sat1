@@ -17,7 +17,7 @@ const RequestPending = () => {
   useEffect(() => {
     const fetchPendingRequests = async () => {
       try {
-        const response = await fetch("http://newstock.sat.or.th:5001/api/requests");
+        const response = await fetch("http://localhost:5001/api/requests");
         const data = await response.json();
   
         // กรองเฉพาะคำขอที่มีสถานะ "รออนุมัติ"
@@ -47,7 +47,7 @@ const RequestPending = () => {
 
   const handleViewDetails = async (request) => {
     try {
-        const response = await fetch(`http://newstock.sat.or.th:5001/api/products/model/${request.material}`);
+        const response = await fetch(`http://localhost:5001/api/products/model/${request.material}`);
         const data = await response.json();
         
         console.log("API Response:", data); // ✅ ตรวจสอบข้อมูลที่ API ส่งกลับมา

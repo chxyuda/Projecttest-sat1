@@ -99,7 +99,7 @@ const ReqBorrowHistory = () => {
   // ดึงข้อมูลเบิกวัสดุ ยกเว้น Pending
   const fetchRequests = async () => {
     try {
-      const response = await axios.get('http://newstock.sat.or.th:5001/api/requests');
+      const response = await axios.get('http://localhost:5001/api/requests');
       const approvedOrRejected = response.data.filter(
         (request) => request.status !== 'Pending'
       );
@@ -114,7 +114,7 @@ const ReqBorrowHistory = () => {
   // ดึงข้อมูลยืมวัสดุ ยกเว้น Pending
   const fetchBorrowRequests = async () => {
     try {
-      const response = await axios.get('http://newstock.sat.or.th:5001/api/borrow-requests');
+      const response = await axios.get('http://localhost:5001/api/borrow-requests');
       const approvedOrOtherStatus = response.data.filter(
         (request) => request.status !== 'Pending'
       );

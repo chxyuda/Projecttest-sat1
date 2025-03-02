@@ -33,7 +33,7 @@ const ReqFrom = ({ onClose, onSubmit }) => {
 
 
   useEffect(() => {
-    axios.get("http://newstock.sat.or.th:5001/api/users")
+    axios.get("http://localhost:5001/api/users")
       .then((res) => {
          console.log("📌 Users Data from API:", res.data); // ✅ Debug
          const approvedUsers = res.data.filter(user => user.status === "Approved");
@@ -49,7 +49,7 @@ const ReqFrom = ({ onClose, onSubmit }) => {
   
   // ✅ ดึงรายการฝ่าย/สำนักจาก API
   useEffect(() => {
-    axios.get("http://newstock.sat.or.th:5001/api/departments")
+    axios.get("http://localhost:5001/api/departments")
       .then((res) => setDepartments(res.data))
       .catch((err) => console.error("Error fetching departments:", err));
   }, []);
@@ -58,9 +58,9 @@ const ReqFrom = ({ onClose, onSubmit }) => {
   useEffect(() => {
     const fetchFilters = async () => {
       try {
-        const productsResponse = await axios.get("http://newstock.sat.or.th:5001/api/products");
-        const categoriesResponse = await axios.get("http://newstock.sat.or.th:5001/api/categories");
-        const brandsResponse = await axios.get("http://newstock.sat.or.th:5001/api/brands");
+        const productsResponse = await axios.get("http://localhost:5001/api/products");
+        const categoriesResponse = await axios.get("http://localhost:5001/api/categories");
+        const brandsResponse = await axios.get("http://localhost:5001/api/brands");
 
         // ✅ ลบข้อมูลซ้ำออกจากอุปกรณ์
         const uniqueEquipments = Array.from(new Set(productsResponse.data.data.map(product => product.equipment)));
@@ -79,7 +79,7 @@ const ReqFrom = ({ onClose, onSubmit }) => {
   useEffect(() => {
     if (newRequest.material && newRequest.type && newRequest.equipment && newRequest.brand) {
        console.log("📌 Fetching product details:", newRequest);
-       axios.get(`http://newstock.sat.or.th:5001/api/products/details`, {
+       axios.get(`http://localhost:5001/api/products/details`, {
           params: {
              material: newRequest.material,
              type: newRequest.type,
@@ -106,7 +106,7 @@ const ReqFrom = ({ onClose, onSubmit }) => {
  
  
   useEffect(() => {
-    axios.get("http://newstock.sat.or.th:5001/api/products") // ✅ เรียก API
+    axios.get("http://localhost:5001/api/products") // ✅ เรียก API
       .then((response) => {
         if (response.data.success) {
           // ✅ ใช้ Set() กรองข้อมูลวัสดุไม่ให้ซ้ำ
@@ -121,7 +121,7 @@ const ReqFrom = ({ onClose, onSubmit }) => {
   
   useEffect(() => {
     if (newRequest.material && newRequest.type && newRequest.equipment && newRequest.brand) {
-      axios.get(`http://newstock.sat.or.th:5001/api/remaining`, {
+      axios.get(`http://localhost:5001/api/remaining`, {
         params: {
           model: newRequest.material,
           category: newRequest.type,
@@ -168,7 +168,7 @@ const ReqFrom = ({ onClose, onSubmit }) => {
     console.log("📌 Data to send:", requestData);
 
     try {
-      const response = await axios.post("http://newstock.sat.or.th:5001/api/requests", requestData);
+      const response = await axios.post("http://localhost:5001/api/requests", requestData);
 
       if (response.status === 201) {
         alert("✅ บันทึกคำขอสำเร็จ");

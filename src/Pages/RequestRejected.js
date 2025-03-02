@@ -16,7 +16,7 @@ const RequestRejected = () => {
     useEffect(() => {
         const fetchRejectedRequests = async () => {
             try {
-                const response = await fetch("http://newstock.sat.or.th:5001/api/requests");
+                const response = await fetch("http://localhost:5001/api/requests");
                 const data = await response.json();
 
                 // กรองเฉพาะคำขอที่ "ไม่อนุมัติ"
@@ -50,7 +50,7 @@ const RequestRejected = () => {
     // ฟังก์ชันแสดงรายละเอียด
     const handleViewDetails = async (request) => {
         try {
-            const response = await fetch(`http://newstock.sat.or.th:5001/api/products/model/${request.material}`);
+            const response = await fetch(`http://localhost:5001/api/products/model/${request.material}`);
             const data = await response.json();
     
             console.log("API Response:", data); // ✅ ตรวจสอบข้อมูล API ที่ส่งกลับมาใน Console

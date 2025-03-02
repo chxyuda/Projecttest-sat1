@@ -27,9 +27,9 @@ const InventoryApprover = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const productsResponse = await axios.get("http://newstock.sat.or.th:5001/api/products");
-        const categoriesResponse = await axios.get("http://newstock.sat.or.th:5001/api/categories");
-        const brandsResponse = await axios.get("http://newstock.sat.or.th:5001/api/brands");
+        const productsResponse = await axios.get("http://localhost:5001/api/products");
+        const categoriesResponse = await axios.get("http://localhost:5001/api/categories");
+        const brandsResponse = await axios.get("http://localhost:5001/api/brands");
   
         console.log("Products Response:", productsResponse.data.data);
         console.log("Categories Response:", categoriesResponse.data.data);
@@ -125,7 +125,7 @@ const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleShowDetails = async (item) => {
     try {
-        const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/${item.id}`);
+        const response = await axios.get(`http://localhost:5001/api/products/${item.id}`);
         console.log("Product Details Response:", response.data); // 🔍 Debug ข้อมูล API
 
         // ตรวจสอบว่า API ส่งข้อมูลมาเป็น `data` หรือ `data.product`

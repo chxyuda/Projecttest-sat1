@@ -29,7 +29,7 @@ const BorrowReturn = () => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch("http://newstock.sat.or.th:5001/api/borrow-requests"); // เปลี่ยน URL ให้ตรงกับ API จริง
+      const response = await fetch("http://localhost:5001/api/borrow-requests"); // เปลี่ยน URL ให้ตรงกับ API จริง
       const data = await response.json();
       setBorrowRequests(data);
       setLoading(false);
@@ -118,7 +118,7 @@ console.log("Filtered Data:", filteredRequests);
 
   const handleAddRequest = async (newRequest) => {
     try {
-      const response = await fetch("http://newstock.sat.or.th:5001/api/borrow-requests", {
+      const response = await fetch("http://localhost:5001/api/borrow-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

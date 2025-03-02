@@ -28,9 +28,9 @@ const Inventory = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const productsResponse = await axios.get("http://newstock.sat.or.th:5001/api/products");
-        const categoriesResponse = await axios.get("http://newstock.sat.or.th:5001/api/categories");
-        const brandsResponse = await axios.get("http://newstock.sat.or.th:5001/api/brands");
+        const productsResponse = await axios.get("http://localhost:5001/api/products");
+        const categoriesResponse = await axios.get("http://localhost:5001/api/categories");
+        const brandsResponse = await axios.get("http://localhost:5001/api/brands");
   
         console.log("Products Response:", productsResponse.data.data);
         console.log("Categories Response:", categoriesResponse.data.data);
@@ -122,7 +122,7 @@ const Inventory = () => {
 
   const handleShowDetails = async (item) => {
     try {
-      const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/${item.id}`); // ดึงข้อมูลล่าสุดของสินค้านี้จากฐานข้อมูล
+      const response = await axios.get(`http://localhost:5001/api/products/${item.id}`); // ดึงข้อมูลล่าสุดของสินค้านี้จากฐานข้อมูล
       setSelectedItem(response.data); // เซ็ตข้อมูลใหม่ที่ได้จากฐานข้อมูล
       setShowDetails(true);
     } catch (error) {

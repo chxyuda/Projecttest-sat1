@@ -24,7 +24,7 @@ const RequestForm = () => {
     useEffect(() => {
         const fetchEquipmentTypes = async () => {
             try {
-                const response = await fetch('http://newstock.sat.or.th:3000/api/equipment-types');
+                const response = await fetch('http://localhost:3000/api/equipment-types');
                 const data = await response.json();
                 setEquipmentTypes(data);
             } catch (error) {
@@ -42,7 +42,7 @@ const RequestForm = () => {
             }
 
             try {
-                const response = await fetch('http://newstock.sat.or.th:3000/api/equipment');
+                const response = await fetch('http://localhost:3000/api/equipment');
                 const data = await response.json();
                 const filteredEquipment = data.filter(item => item.type_id === formData.typeId);
                 setEquipment(filteredEquipment);
@@ -73,7 +73,7 @@ const RequestForm = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            const response = await fetch('http://newstock.sat.or.th:3000/api/borrowings', {
+            const response = await fetch('http://localhost:3000/api/borrowings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),

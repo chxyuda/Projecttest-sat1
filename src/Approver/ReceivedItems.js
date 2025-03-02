@@ -20,10 +20,10 @@ function ReceivedItems() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await axios.get("http://newstock.sat.or.th:5001/api/requests");
+        const response = await axios.get("http://localhost:5001/api/requests");
         const userResponses = await Promise.all(
           response.data.map((req) =>
-            axios.get(`http://newstock.sat.or.th:5001/api/users/${req.user_id}`)
+            axios.get(`http://localhost:5001/api/users/${req.user_id}`)
           )
         );
         const enrichedRequests = response.data.map((req, index) => ({
@@ -51,7 +51,7 @@ function ReceivedItems() {
 
   const handleViewDetails = async (request) => {
     try {
-      const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/model/${request.material}`);
+      const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
       const remainingStock = response.data.remaining;
   
       // อัปเดต selectedRequest พร้อมจำนวนคงเหลือ

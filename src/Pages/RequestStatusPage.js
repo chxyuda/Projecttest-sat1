@@ -16,7 +16,7 @@ const RequestStatusPage = () => {
     useEffect(() => {
         const fetchRequests = async () => {
             try {
-                const response = await fetch("http://newstock.sat.or.th:5001/api/requests");
+                const response = await fetch("http://localhost:5001/api/requests");
                 const data = await response.json();
                 
                 // ✅ กรองเฉพาะคำขอที่มีสถานะ "รับของแล้ว"

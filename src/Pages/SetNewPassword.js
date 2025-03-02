@@ -17,7 +17,7 @@ const SetNewPassword = () => {
     }
 
     try {
-      const response = await axios.post("http://newstock.sat.or.th:5001/api/set-new-password", {
+      const response = await axios.post("http://localhost:5001/api/set-new-password", {
         email,
         newPassword: password,
       });

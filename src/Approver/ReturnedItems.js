@@ -17,7 +17,7 @@ function ReturnedItems() {
   const fetchReturnedRequests = async () => {
     try {
       const response = await axios.get(
-        "http://newstock.sat.or.th:5001/api/borrow-requests"
+        "http://localhost:5001/api/borrow-requests"
       );
       const returnedItems = response.data.filter(
         (req) => req.status === "Returned"
@@ -30,7 +30,7 @@ function ReturnedItems() {
 
   const handleViewDetails = async (request) => {
     try {
-      const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/model/${request.material}`);
+      const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
       
       const { remaining, equipment_number, serial_number } = response.data;
   

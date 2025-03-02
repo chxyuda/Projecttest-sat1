@@ -19,7 +19,7 @@ const RequestStatus = () => {
 
   const fetchRequests = async () => {
     try {
-      const response = await axios.get(`http://newstock.sat.or.th:5001/api/requests/user/${userId}`);
+      const response = await axios.get(`http://localhost:5001/api/requests/user/${userId}`);
       setRequests(response.data);
       setFilteredRequests(response.data);
     } catch (error) {

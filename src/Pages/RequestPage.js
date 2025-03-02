@@ -31,7 +31,7 @@ const RequestPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://newstock.sat.or.th:5001/api/requests");
+        const response = await fetch("http://localhost:5001/api/requests");
         const data = await response.json();
         
         console.log("📌 Data from API:", data); // ✅ ดูค่า date_requested
@@ -96,7 +96,7 @@ const RequestPage = () => {
 
   const handleViewDetails = async (request) => {
     try {
-        const response = await axios.get(`http://newstock.sat.or.th:5001/api/products/model/${request.material}`);
+        const response = await axios.get(`http://localhost:5001/api/products/model/${request.material}`);
         const remainingStock = response.data.remaining;
   
         setSelectedRequest({
@@ -113,7 +113,7 @@ const RequestPage = () => {
 useEffect(() => {
   const fetchData = async () => {
     try {
-      const response = await fetch("http://newstock.sat.or.th:5001/api/requests");
+      const response = await fetch("http://localhost:5001/api/requests");
       const data = await response.json();
       
       console.log("📌 Data from API:", data); // ✅ ตรวจสอบค่า date_requested
